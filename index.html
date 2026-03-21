@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f0f2f5; text-align: center; }
+    input { width: 90%; padding: 15px; font-size: 24px; text-align: center; border-radius: 10px; border: 2px solid #ccc; font-weight: bold; margin-bottom: 20px; }
+    button { width: 90%; padding: 20px; font-size: 22px; background: #4CAF50; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+    #reader { width: 100%; margin-top: 20px; border-radius: 10px; overflow: hidden; display: none; }
+  </style>
+</head>
+<body>
+
+  <h2>Живий Сканер (GitHub)</h2>
+  
+  <input type="text" id="barcodeValue" placeholder="Результат сканування...">
+  <button onclick="startScanner()">📹 Увімкнути лазерний сканер</button>
+  
+  <div id="reader"></div>
+
+  <script>
+    let scanner = null;
+
+    function startScanner() {
+      const readerDiv = document.getElementById("reader");
+      readerDiv.style.display = "block";
+
+      if (!scanner) {
+        scanner = new Html5QrcodeScanner("reader", { 
+          fps: 15, 
+          qrbox: { width: 250, height: 100 },
+          rememberLastUsedCamera: true
+        }, false);
+      }
+
+      scanner.render(
+        function(decodedText) {
+          // Коли зловили штрихкод:
+          document.getElementById("barcodeValue").value = decodedText;
+          scanner.clear().then(() => {
+            readerDiv.style.display = "none";
+            alert("✅ Успішно відскановано: " + decodedText);
+          });
+        },
+        function(error) { /* ігноруємо помилки фокусу */ }
+      );
+    }
+  </script>
+
+</body>
+</html>
