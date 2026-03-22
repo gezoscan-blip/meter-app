@@ -984,7 +984,7 @@ z-index:9999;
 /* =========================================================
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxC9wgjFxGWFLxxNX_S4_K6sm3KwBhS3qj2JHADJerOVh2XJy2PqSpi5-6YYA0gFgmH/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzQq8nk2Dd6Rv7NNxXQSVfXPRCfPkmzX1Zf_bDCZhsdgo98AzFCPrCLL81UkBKAr2sK/exec";
 
 const google = {
   script: {
@@ -1005,14 +1005,31 @@ const google = {
 };
 
 function sendRequest(action, payload, callback) {
+  // Змінюємо текст кнопки, щоб бачити, що процес пішов
+  const btn = event ? event.target : null;
+  const oldText = btn ? btn.innerText : "";
+  if (btn) btn.innerText = "⏳ Завантаження...";
+
   fetch(GOOGLE_API_URL, {
     method: "POST",
     body: JSON.stringify({ action: action, ...payload }),
-    headers: { "Content-Type": "text/plain;charset=utf-8" } // Обхід CORS
+    headers: { "Content-Type": "text/plain;charset=utf-8" } // Це обходить блокування Google
   })
-  .then(res => res.json())
-  .then(data => { if(callback) callback(data); })
-  .catch(err => console.error("Помилка зв'язку:", err));
+  .then(res => res.text()) // Читаємо відповідь як текст
+  .then(text => {
+    if (btn) btn.innerText = oldText; // Повертаємо текст кнопці
+    try {
+      let data = JSON.parse(text);
+      if(callback) callback(data);
+    } catch(e) {
+      alert("❌ Помилка бази даних! Google повернув не те, що треба. Перевір посилання /exec.");
+      console.log("Відповідь Google:", text);
+    }
+  })
+  .catch(err => {
+    if (btn) btn.innerText = oldText;
+    alert("❌ Немає зв'язку з Google! Можливо, неправильні налаштування доступу (має бути 'Усі'). Помилка: " + err.message);
+  });
 }
 
 /* =========================================================
