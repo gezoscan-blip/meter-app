@@ -426,7 +426,7 @@ function sendRequest(action, payload, callback) {
       let data = JSON.parse(text);
       if(callback) callback(data);
     } catch(e) {
-      alert("❌ Помилка бази даних! Google повернув не те, що треба. Перевір посилання /exec.");
+      alert("❌ Відповідь Гугла: " + text.substring(0, 150));
     }
   })
   .catch(err => {
