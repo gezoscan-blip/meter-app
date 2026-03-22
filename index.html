@@ -10,7 +10,7 @@
 <base target="_top">
 <link rel="manifest" href="?f=manifest.json">
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 /* =====================================================
@@ -537,8 +537,8 @@ textarea { resize: none; overflow: hidden; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ОСТАННЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycby7wtdTerMoejfv_g-ZsU3xhAtPqDP-Fck-NWVjAaKNjxQdDcao1l4kvDIdF9jUxEJd/exec";
-  
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyEqs9e6589y-fzLjXz8nAhIiq_Rvsk-GRig5KR8jotKMoWNpEcZbR5JWXPrdDmk2kw/exec";
+
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
   const oldText = btn ? btn.innerText : "";
@@ -670,58 +670,18 @@ function showHints(list){
     box.appendChild(div);
   });
 }
-const beep = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-let scanner = null;
 
-async function startScanner(){
-
-  const reader = document.getElementById("reader");
-  reader.style.display = "block";
-
+function startScanner() {
+  const readerDiv = document.getElementById("reader");
+  readerDiv.style.display = "block";
   if (!scanner) {
-    scanner = new Html5Qrcode("reader");
+    scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: { width: 250, height: 100 }, rememberLastUsedCamera: true }, false);
   }
-
-  const cameras = await Html5Qrcode.getCameras();
-
-  if (!cameras.length) {
-    alert("Камера не знайдена");
-    return;
-  }
-
-  const cameraId = cameras[cameras.length - 1].id;
-
-  scanner.start(
-    cameraId,
-    {
-      fps: 12,
-
-      // 👇 ОЦЕ ГОЛОВНЕ
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8
-      ],
-
-      // 👇 правильна зона для штрихкоду (НЕ квадрат!)
-      qrbox: { width: 300, height: 120 }
-
-    },
-    (decodedText) => {
-
-  beep.play();
-
-  document.getElementById("account").value = decodedText;
-
-  scanner.stop().then(()=>{
-    reader.style.display = "none";
-    search();
-  });
-
-    },
-
-    () => {}
+  scanner.render(
+    function(decodedText) {
+      document.getElementById("account").value = decodedText;
+      scanner.clear().then(() => { readerDiv.style.display = "none"; search(); });
+    }, function(error) {} 
   );
 }
 
