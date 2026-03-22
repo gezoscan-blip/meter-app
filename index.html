@@ -407,10 +407,10 @@ textarea { resize: none; overflow: hidden; }
 const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwylmktUm1Qk8HtA2XifuYihjpBj5mqNgctr1m9gxHmqMlwprRy0r_WaSQmqfzyfiY/exec";
 
 function sendRequest(action, payload, callback) {
-  let loadingInterval;
-  
-  if (action === "login") document.getElementById("btnLogin").innerText = "⏳ Завантаження...";
-  if (action === "findAccountFast") document.getElementById("btnSearch").innerText = "⏳ Шукаю...";
+  // Безпечно шукаємо кнопку
+  const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
+  const oldText = btn ? btn.innerText : "";
+  if (btn && btn.tagName === "BUTTON") btn.innerText = "⏳...";
 
   fetch(GOOGLE_API_URL, {
     method: "POST",
@@ -419,20 +419,33 @@ function sendRequest(action, payload, callback) {
   })
   .then(res => res.text()) 
   .then(text => {
-    if (action === "login") document.getElementById("btnLogin").innerText = "Увійти";
-    if (action === "findAccountFast") document.getElementById("btnSearch").innerText = "Знайти";
+    if (btn && btn.tagName === "BUTTON") btn.innerText = oldText; 
     
+    let data;
+    // 1. Перевіряємо, чи Гугл відповів даними, чи якоюсь сторінкою помилки
     try {
-      let data = JSON.parse(text);
-      if(callback) callback(data);
+      data = JSON.parse(text);
     } catch(e) {
-      alert("❌ Відповідь Гугла: " + text.substring(0, 150));
+      alert("❌ Гугл відповів текстом, а не даними:\n" + text.substring(0, 150));
+      return;
+    }
+
+    // 2. Перевіряємо, чи не зламався сам Code.gs під час пошуку
+    if (data.error) {
+      alert("⚠️ Помилка в Apps Script (Code.gs):\n" + data.error);
+      return;
+    }
+
+    // 3. Передаємо дані в твою форму (заповнюємо поля)
+    try {
+      if (callback) callback(data);
+    } catch(err) {
+      alert("⚠️ Помилка у формі на телефоні:\n" + err.message);
     }
   })
   .catch(err => {
-    if (action === "login") document.getElementById("btnLogin").innerText = "Увійти";
-    if (action === "findAccountFast") document.getElementById("btnSearch").innerText = "Знайти";
-    alert("❌ Немає зв'язку з Google! Перевір налаштування доступу 'Усі'.");
+    if (btn && btn.tagName === "BUTTON") btn.innerText = oldText;
+    alert("❌ Немає зв'язку! Помилка: " + err.message);
   });
 }
 
