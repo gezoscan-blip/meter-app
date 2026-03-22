@@ -1004,19 +1004,19 @@ const google = {
 };
 
 function sendRequest(action, payload, callback) {
-  // Змінюємо текст кнопки, щоб бачити, що процес пішов
-  const btn = event ? event.target : null;
+  // Безпечно шукаємо кнопку, яку натиснули
+  const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
   const oldText = btn ? btn.innerText : "";
-  if (btn) btn.innerText = "⏳ Завантаження...";
+  if (btn && btn.tagName === "BUTTON") btn.innerText = "⏳ Завантаження...";
 
   fetch(GOOGLE_API_URL, {
     method: "POST",
     body: JSON.stringify({ action: action, ...payload }),
-    headers: { "Content-Type": "text/plain;charset=utf-8" } // Це обходить блокування Google
+    headers: { "Content-Type": "text/plain;charset=utf-8" }
   })
-  .then(res => res.text()) // Читаємо відповідь як текст
+  .then(res => res.text()) 
   .then(text => {
-    if (btn) btn.innerText = oldText; // Повертаємо текст кнопці
+    if (btn && btn.tagName === "BUTTON") btn.innerText = oldText; 
     try {
       let data = JSON.parse(text);
       if(callback) callback(data);
@@ -1026,8 +1026,8 @@ function sendRequest(action, payload, callback) {
     }
   })
   .catch(err => {
-    if (btn) btn.innerText = oldText;
-    alert("❌ Немає зв'язку з Google! Можливо, неправильні налаштування доступу (має бути 'Усі'). Помилка: " + err.message);
+    if (btn && btn.tagName === "BUTTON") btn.innerText = oldText;
+    alert("❌ Немає зв'язку з Google! Можливо, неправильні налаштування доступу. Помилка: " + err.message);
   });
 }
 
