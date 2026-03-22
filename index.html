@@ -1,52 +1,2405 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #f0f2f5; text-align: center; }
-    input { width: 90%; padding: 15px; font-size: 24px; text-align: center; border-radius: 10px; border: 2px solid #ccc; font-weight: bold; margin-bottom: 20px; }
-    button { width: 90%; padding: 20px; font-size: 22px; background: #4CAF50; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-    #reader { width: 100%; margin-top: 20px; border-radius: 10px; overflow: hidden; display: none; }
-  </style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2196F3">
+
+<base target="_top">
+<link rel="manifest" href="?f=manifest.json">
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+/* =====================================================
+ЗАГАЛЬНИЙ СТИЛЬ ТА ШРИФТИ
+===================================================== */
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  margin: 0;
+  padding: 8px;
+  color: #111;
+  font-size: 26px; /* Базовий шрифт сильно збільшено */
+}
+
+.container {
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #fff;
+  padding: 20px; /* Збільшено відступи */
+  border-radius: 16px;
+  margin-top: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.hidden { display: none !important; }
+
+/* =====================================================
+КНОПКИ
+===================================================== */
+button {
+  width: 100%;
+  min-height: 80px; /* Дуже великі кнопки */
+  border: none;
+  border-radius: 14px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+  margin-top: 15px;
+  transition: transform 0.1s;
+}
+button:active { transform: scale(0.97); }
+
+.actionBtn { background: #2196F3; }
+.btn-save { background: #FF9800; }
+.btn-back { background: #9E9E9E; }
+.logoutBtn {
+  width: 60px; height: 60px; min-height: 60px;
+  border-radius: 50%;
+  background: #d32f2f;
+  font-size: 24px;
+}
+
+.work-btn {
+  background: #efefef;
+  color: #111;
+  border: 1px solid #ccc;
+  min-height: 70px;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.work-btn.active {
+  background: #4CAF50;
+  color: #fff;
+  border-color: #4CAF50;
+}
+
+/* =====================================================
+ІНПУТИ (ПОЛЯ ВВЕДЕННЯ)
+===================================================== */
+input, select, textarea {
+  width: 100%;
+  min-height: 70px; /* Великі поля */
+  padding: 15px;
+  font-size: 28px; /* Великий текст всередині */
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  background: #fff;
+  box-sizing: border-box;
+  font-weight: bold;
+}
+textarea { resize: none; overflow: hidden; }
+
+/* =====================================================
+ПОЛЕ РАХУНКУ ТА СКАНЕР
+===================================================== */
+.account-box { position: relative; margin-top: 15px; }
+.account-box input { padding-right: 80px; }
+.scan-inline {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  width: 60px; height: 60px; min-height: 60px;
+  background: #4CAF50;
+  border-radius: 12px;
+  font-size: 30px;
+  margin: 0; padding: 0;
+}
+
+/* =====================================================
+ІНФОРМАЦІЯ ПРО АБОНЕНТА ТА ПРАЦІВНИКА
+===================================================== */
+.workerCard {
+  background: #e3f2fd;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+.topInfoRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 30px;
+  font-weight: bold;
+}
+.accountRight { color: #d32f2f; }
+.info { font-size: 26px; margin-bottom: 10px; line-height: 1.3; }
+.valueBold { font-weight: bold; color: #1565c0; }
+
+.sectionLine { border-top: 2px solid #eee; margin: 20px 0; }
+.blockTitle { font-size: 32px; font-weight: bold; margin-bottom: 15px; color: #333; }
+
+.fieldGrid { display: flex; flex-direction: column; gap: 15px; }
+.fieldLabel { font-size: 28px; font-weight: normal; margin-bottom: -10px; }
+
+/* =====================================================
+РАДІОКНОПКИ ТА ЧЕКБОКСИ (ФАСАДНІ РОБОТИ)
+===================================================== */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Більша відстань між пунктами */
+  margin-top: 10px;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+}
+.radio-label {
+  display: flex;
+  align-items: center;
+  font-size: 28px; /* Збільшено шрифт */
+  cursor: pointer;
+}
+.radio-label input[type="radio"], 
+.radio-label input[type="checkbox"] {
+  width: 40px !important; /* Величезні кружечки */
+  height: 40px !important;
+  min-height: 40px !important;
+  margin: 0 15px 0 0 !important;
+  flex-shrink: 0;
+}
+
+/* =====================================================
+ТАБЛИЦЯ МАТЕРІАЛІВ
+===================================================== */
+.material-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+.material-name { font-size: 24px; width: 65%; line-height: 1.2; }
+.material-input { width: 35%; }
+.material-input input { min-height: 60px; font-size: 28px; text-align: center; }
+
+/* =====================================================
+ПЛОМБИ ТА ПОКАЗИ
+===================================================== */
+.plombRow {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.plombPlace { flex: 0 0 35%; font-size: 26px; }
+.plombField { flex: 1; }
+.plombField input { text-align: center; }
+
+.meterRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.meterBox { text-align: center; }
+.meterBox label { display: block; font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+.meterBox input { text-align: center; font-size: 26px; padding: 10px 5px; }
+
+</style>
+
 </head>
+
 <body>
 
-  <h2>Живий Сканер (GitHub)</h2>
-  
-  <input type="text" id="barcodeValue" placeholder="Результат сканування...">
-  <button onclick="startScanner()">📹 Увімкнути лазерний сканер</button>
-  
-  <div id="reader"></div>
+<!-- =====================================================
+СКАНЕР
+===================================================== -->
+<div id="scannerBox" style="
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+display:none;
+z-index:9999;
+">
 
-  <script>
-    let scanner = null;
+  <div id="scanner" style="width:100%;height:100%"></div>
 
-    function startScanner() {
-      const readerDiv = document.getElementById("reader");
-      readerDiv.style.display = "block";
+  <button onclick="stopScanner()" style="
+  position:absolute;
+  top:20px;
+  right:20px;
+  padding:14px 20px;
+  background:red;
+  color:white;
+  border:none;
+  border-radius:10px;
+  font-size:20px;
+  z-index:10000;
+  width:auto;
+  min-height:auto;
+  margin-top:0;
+  ">
+    Закрити
+  </button>
 
-      if (!scanner) {
-        scanner = new Html5QrcodeScanner("reader", { 
-          fps: 15, 
-          qrbox: { width: 250, height: 100 },
-          rememberLastUsedCamera: true
-        }, false);
+</div>
+
+<!-- =====================================================
+ЕКРАН ВХОДУ
+===================================================== -->
+<div class="container" id="login">
+  <div class="card">
+    <h3>Вхід</h3>
+
+    <input id="tab" placeholder="Табельний номер">
+    <input id="pass" type="password" placeholder="Пароль">
+
+    <button onclick="doLogin()">Увійти</button>
+  </div>
+</div>
+
+<!-- =====================================================
+ГОЛОВНИЙ ДОДАТОК
+===================================================== -->
+<div class="container hidden" id="app">
+
+  <!-- =====================================================
+  БЛОК ПОШУКУ
+  ===================================================== -->
+  <div class="card" id="searchBlock">
+
+    <div class="statusBar">
+      <div class="status" id="who"></div>
+      <button class="logoutBtn" onclick="askLogout()">✖</button>
+    </div>
+
+    <div class="work-buttons">
+      <button class="work-btn" onclick="selectWork(this,'Технічна перевірка')">Технічна перевірка</button>
+      <button class="work-btn" onclick="selectWork(this,'Фасадні роботи')">Фасадні роботи</button>
+      <button class="work-btn" onclick="selectWork(this,'Заміна лічильника')">Заміна лічильника</button>
+      <button class="work-btn" onclick="selectWork(this,'Контрольний огляд')">Контрольний огляд</button>
+      <button class="work-btn" onclick="selectWork(this,'Закриття о/р з демонтажем')">Закриття о/р з демонтажем</button>
+    </div>
+
+    <div class="account-box">
+      <input
+        id="account"
+        placeholder="Особовий рахунок"
+        autocomplete="off"
+        inputmode="numeric"
+        oninput="autoSearch()"
+      >
+      <button class="scan-inline" onclick="startScanner()">📷</button>
+    </div>
+
+    <div id="accountHints" class="hintBox"></div>
+
+    <div class="row">
+  <button class="actionBtn" onclick="search()">Знайти</button>
+  <button class="actionBtn" onclick="offlineMode()">Офлайн режим</button>
+</div>
+
+  </div>
+
+  <!-- =====================================================
+  ФОРМА Техперевірки
+  ===================================================== -->
+  <div class="card hidden" id="techCheckForm">
+
+    <!-- Електромонтер -->
+   <!-- В workForm заміни верхній інформаційний блок на цей -->
+
+<div class="workerCard">
+  Т/н: <span id="workerTab"></span> <span id="workerName"></span>
+</div>
+
+<div class="topInfoRow">
+  <div class="workTypeLeft">
+    <span id="workTypeView"></span>
+  </div>
+
+  <div class="accountRight">
+    О/р: <span id="accountView"></span>
+  </div>
+</div>
+
+<div class="info">
+  <span class="label">Споживач:</span>
+  <span id="pibView" class="valueBold"></span>
+</div>
+
+<div class="info">
+  <span class="label">Адреса:</span>
+  <span id="addressView" class="valueBold"></span>
+</div>
+
+<div class="sectionLine"></div>
+
+<div class="blockTitle">Встановлений лічильник</div>
+
+<div class="fieldGrid">
+  <div class="fieldLabel">Тип</div>
+  <div><input id="meterType"></div>
+
+  <div class="fieldLabel">Заводський номер</div>
+  <div><input id="meterNumber"></div>
+</div>
+
+<div class="sectionLine"></div>
+
+<div class="plombHeaderRow">
+  <div class="plombPlaceHead">Місце пломбування</div>
+  <div class="plombNumHead">№ Знятої пломби</div>
+  <div class="plombNumHead">№ Встановленої пломби</div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">Клемна кришка</div>
+  <div class="plombField"><input id="removedLichil" maxlength="9"></div>
+  <div class="plombField"><input id="installedLichil" maxlength="9"></div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">Шафа обліку</div>
+  <div class="plombField"><input id="removedFasad1" maxlength="9"></div>
+  <div class="plombField"><input id="installedFasad1" maxlength="9"></div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">Шафа обліку</div>
+  <div class="plombField"><input id="removedFasad2" maxlength="9"></div>
+  <div class="plombField"><input id="installedFasad2" maxlength="9"></div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">ВКП</div>
+  <div class="plombField"><input id="removedVkp" maxlength="9"></div>
+  <div class="plombField"><input id="installedVkp" maxlength="9"></div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">Оптопорт</div>
+  <div class="plombField"><input id="removedOptop" maxlength="9"></div>
+  <div class="plombField"><input id="installedOptop" maxlength="9"></div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">ІМП</div>
+  <div class="plombField"><input id="removedImp1" maxlength="9"></div>
+  <div class="plombField"><input id="installedImp1" maxlength="9"></div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">ІМП</div>
+  <div class="plombField"><input id="removedImp2" maxlength="9"></div>
+  <div class="plombField"><input id="installedImp2" maxlength="9"></div>
+</div>
+
+<div class="plombRow">
+  <div class="plombPlace">ІМП</div>
+  <div class="plombField"><input id="removedImp3" maxlength="9"></div>
+  <div class="plombField"><input id="installedImp3" maxlength="9"></div>
+</div>
+
+<div class="plombRow plombRowOther">
+  <div class="plombPlace">Інше</div>
+  <div class="plombField">
+    <textarea id="removedOther" rows="1" oninput="resizeTextarea(this)"></textarea>
+  </div>
+  <div class="plombField">
+    <textarea id="installedOther" rows="1" oninput="resizeTextarea(this)"></textarea>
+  </div>
+</div>
+
+    <!-- Покази -->
+    <div class="sectionLine"></div>
+    <div class="meterTitle">Покази лічильника</div>
+
+    <div class="meterRow">
+      <div class="meterBox">
+        <label>T</label>
+        <input id="t0" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+
+      <div class="meterBox">
+        <label>T1</label>
+        <input id="t1" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+
+      <div class="meterBox">
+        <label>T2</label>
+        <input id="t2" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+
+      <div class="meterBox">
+        <label>T3</label>
+        <input id="t3" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+    </div>
+
+    <button class="btn-save actionBtn" onclick="save()">Зберегти</button>
+    <button class="btn-back actionBtn" onclick="goBack()">Назад</button>
+
+    <div id="saveHint"></div>
+
+  </div>
+</div>
+
+<!-- =====================================================
+  ФОРМА Заміни лічильника
+  ===================================================== -->
+<div class="card hidden" id="meterReplaceStep1">
+
+  <div class="workerCard">
+    Т/н: <span id="replaceWorkerTab1"></span> <span id="replaceWorkerName1"></span>
+  </div>
+
+  <div class="topInfoRow">
+    <div class="workTypeLeft">
+      <span>Заміна лічильника</span>
+    </div>
+
+    <div class="accountRight">
+      О/р: <span id="replaceAccountView1"></span>
+    </div>
+  </div>
+
+  <div class="info">
+    <span class="label">Споживач:</span>
+    <span id="replacePibView1" class="valueBold"></span>
+  </div>
+
+  <div class="info">
+    <span class="label">Адреса:</span>
+    <span id="replaceAddressView1" class="valueBold"></span>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="blockTitle">Знятий лічильник</div>
+
+  <div class="fieldGrid">
+    <div class="fieldLabel">Тип</div>
+    <div><input id="replaceRemovedMeterType"></div>
+
+    <div class="fieldLabel">Заводський номер</div>
+    <div><input id="replaceRemovedMeterNumber"></div>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="blockTitle">Зняті пломби</div>
+
+  <div class="plombHeaderRow replaceHeader2">
+    <div class="plombPlaceHead">Місце пломбування</div>
+    <div class="plombNumHead">№ Знятої пломби</div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Клемна кришка</div>
+    <div class="plombField"><input id="replaceRemovedLichil" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Шафа обліку</div>
+    <div class="plombField"><input id="replaceRemovedFasad1" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Шафа обліку</div>
+    <div class="plombField"><input id="replaceRemovedFasad2" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ВКП</div>
+    <div class="plombField"><input id="replaceRemovedVkp" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Оптопорт</div>
+    <div class="plombField"><input id="replaceRemovedOptop" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="replaceRemovedImp1" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="replaceRemovedImp2" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="replaceRemovedImp3" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2 replaceRowOther2">
+    <div class="plombPlace">Інше</div>
+    <div class="plombField">
+      <textarea id="replaceRemovedOther" rows="1" oninput="resizeTextarea(this)"></textarea>
+    </div>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="meterTitle">Покази знятого лічильника</div>
+
+  <div class="meterRow">
+    <div class="meterBox">
+      <label>T</label>
+      <input id="replaceRemovedT0" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T1</label>
+      <input id="replaceRemovedT1" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T2</label>
+      <input id="replaceRemovedT2" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T3</label>
+      <input id="replaceRemovedT3" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+  </div>
+
+  <button class="btn-save actionBtn" onclick="goToReplaceStep2()">Далі</button>
+  <button class="btn-back actionBtn" onclick="backFromReplace1()">Назад</button>
+
+</div>
+
+<div class="card hidden" id="meterReplaceStep2">
+
+  <div class="workerCard">
+    Т/н: <span id="replaceWorkerTab2"></span> <span id="replaceWorkerName2"></span>
+  </div>
+
+  <div class="topInfoRow">
+    <div class="workTypeLeft">
+      <span>Заміна лічильника</span>
+    </div>
+
+    <div class="accountRight">
+      О/р: <span id="replaceAccountView2"></span>
+    </div>
+  </div>
+
+  <div class="info">
+    <span class="label">Споживач:</span>
+    <span id="replacePibView2" class="valueBold"></span>
+  </div>
+
+  <div class="info">
+    <span class="label">Адреса:</span>
+    <span id="replaceAddressView2" class="valueBold"></span>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="blockTitle">Встановлений лічильник</div>
+
+  <div class="fieldGrid">
+    <div class="fieldLabel">Тип</div>
+<div class="meterTypeBox">
+  <input
+    id="replaceInstalledMeterType"
+    autocomplete="off"
+    onfocus="showMeterTypes()"
+    oninput="filterMeterTypes(this.value)"
+  >
+  <div id="meterTypeHints" class="meterTypeHints hidden"></div>
+</div>
+
+    <div class="fieldLabel">Заводський номер</div>
+    <div><input id="replaceInstalledMeterNumber"></div>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="blockTitle">Встановлені пломби</div>
+
+  <div class="plombHeaderRow replaceHeader2">
+    <div class="plombPlaceHead">Місце пломбування</div>
+    <div class="plombNumHead">№ Встановленої пломби</div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Клемна кришка</div>
+    <div class="plombField"><input id="replaceInstalledLichil" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Шафа обліку</div>
+    <div class="plombField"><input id="replaceInstalledFasad1" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Шафа обліку</div>
+    <div class="plombField"><input id="replaceInstalledFasad2" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ВКП</div>
+    <div class="plombField"><input id="replaceInstalledVkp" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Оптопорт</div>
+    <div class="plombField"><input id="replaceInstalledOptop" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="replaceInstalledImp1" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="replaceInstalledImp2" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="replaceInstalledImp3" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2 replaceRowOther2">
+    <div class="plombPlace">Інше</div>
+    <div class="plombField">
+      <textarea id="replaceInstalledOther" rows="1" oninput="resizeTextarea(this)"></textarea>
+    </div>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="meterTitle">Покази встановленого лічильника</div>
+
+  <div class="meterRow">
+    <div class="meterBox">
+      <label>T</label>
+      <input id="replaceInstalledT0" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T1</label>
+      <input id="replaceInstalledT1" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T2</label>
+      <input id="replaceInstalledT2" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T3</label>
+      <input id="replaceInstalledT3" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+  </div>
+
+  <button class="btn-save actionBtn" onclick="saveReplaceData()">Зберегти</button>
+  <button class="btn-back actionBtn" onclick="backFromReplace2()">Назад</button>
+
+  <div id="replaceSaveHint"></div>
+
+</div>
+<!-- =====================================================
+  ФОРМА Контрольного огляду
+  ===================================================== -->
+  <div class="card hidden" id="controlCheckForm">
+
+  <div class="workerCard">
+    Т/н: <span id="controlWorkerTab"></span> <span id="controlWorkerName"></span>
+  </div>
+
+  <div class="topInfoRow">
+    <div class="workTypeLeft">
+      <span>Контрольний огляд</span>
+    </div>
+
+    <div class="accountRight">
+      О/р: <span id="controlAccountView"></span>
+    </div>
+  </div>
+
+  <div class="info">
+    <span class="label">Споживач:</span>
+    <span id="controlPibView" class="valueBold"></span>
+  </div>
+
+  <div class="info">
+    <span class="label">Адреса:</span>
+    <span id="controlAddressView" class="valueBold"></span>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="blockTitle">Встановлений лічильник</div>
+
+  <div class="fieldGrid">
+    <div class="fieldLabel">Тип</div>
+    <div><input id="controlMeterType"></div>
+
+    <div class="fieldLabel">Заводський номер</div>
+    <div><input id="controlMeterNumber"></div>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="blockTitle">Встановлені пломби</div>
+
+  <div class="plombHeaderRow replaceHeader2">
+    <div class="plombPlaceHead">Місце пломбування</div>
+    <div class="plombNumHead">№ Встановленої пломби</div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Клемна кришка</div>
+    <div class="plombField"><input id="controlInstalledLichil" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Шафа обліку</div>
+    <div class="plombField"><input id="controlInstalledFasad1" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Шафа обліку</div>
+    <div class="plombField"><input id="controlInstalledFasad2" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ВКП</div>
+    <div class="plombField"><input id="controlInstalledVkp" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">Оптопорт</div>
+    <div class="plombField"><input id="controlInstalledOptop" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="controlInstalledImp1" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="controlInstalledImp2" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2">
+    <div class="plombPlace">ІМП</div>
+    <div class="plombField"><input id="controlInstalledImp3" maxlength="9"></div>
+  </div>
+
+  <div class="plombRow replaceRow2 replaceRowOther2">
+    <div class="plombPlace">Інше</div>
+    <div class="plombField">
+      <textarea id="controlInstalledOther" rows="1" oninput="resizeTextarea(this)"></textarea>
+    </div>
+  </div>
+
+  <div class="sectionLine"></div>
+
+  <div class="meterTitle">Покази встановленого лічильника</div>
+
+  <div class="meterRow">
+    <div class="meterBox">
+      <label>T</label>
+      <input id="controlT0" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T1</label>
+      <input id="controlT1" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T2</label>
+      <input id="controlT2" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+
+    <div class="meterBox">
+      <label>T3</label>
+      <input id="controlT3" maxlength="7" inputmode="numeric" placeholder="">
+    </div>
+  </div>
+
+  <button class="btn-save actionBtn" onclick="saveControlCheck()">Зберегти</button>
+  <button class="btn-back actionBtn" onclick="goBackControlCheck()">Назад</button>
+
+  <div id="controlSaveHint"></div>
+
+</div>
+
+<!-- =====================================================
+  ФОРМА ФАСАДНІ РОБОТИ — СТОРІНКА 1
+===================================================== -->
+<div class="card hidden" id="fasadStep1">
+  <div class="workerCard">Т/н: <span id="fasadWorkerTab"></span> <span id="fasadWorkerName"></span></div>
+  <div class="blockTitle">Фасадні роботи</div>
+
+  <div class="fieldGrid">
+    <div class="fieldLabel">Номер наряду</div>
+    <div><input id="fasadOrder"></div>
+
+    <div class="fieldLabel">Підстава</div>
+    <div class="radio-group">
+      <label class="radio-label"><input type="radio" name="reason" value="РП 26"> РП 26</label>
+      <label class="radio-label"><input type="radio" name="reason" value="Заміна короба"> Заміна короба</label>
+      <label class="radio-label"><input type="radio" name="reason" value="ПП"> ПП</label>
+    </div>
+
+    <div class="fieldLabel">Дільниця</div>
+    <div class="radio-group">
+      <label class="radio-label"><input type="radio" name="area" value="ПОФ"> ПОФ</label>
+      <label class="radio-label"><input type="radio" name="area" value="Нові Санжари"> Нові Санжари</label>
+      <label class="radio-label"><input type="radio" name="area" value="Диканька"> Диканька</label>
+      <label class="radio-label"><input type="radio" name="area" value="Карлівка"> Карлівка</label>
+      <label class="radio-label"><input type="radio" name="area" value="Решетилівка"> Решетилівка</label>
+    </div>
+
+    <div class="fieldLabel">Фазність</div>
+    <div class="radio-group">
+      <label class="radio-label"><input type="radio" name="phase" value="1" onchange="setPhase(1)"> 1</label>
+      <label class="radio-label"><input type="radio" name="phase" value="3" onchange="setPhase(3)"> 3</label>
+    </div>
+
+    <div class="fieldLabel">Тип обліку</div>
+    <div class="radio-group">
+      <label class="radio-label"><input type="radio" name="type" value="Комерційний"> Комерційний</label>
+      <label class="radio-label"><input type="radio" name="type" value="Технічний"> Технічний</label>
+    </div>
+  </div>
+
+  <button class="btn-save actionBtn" onclick="goFasadStep2()">Далі</button>
+  <button class="btn-back actionBtn" onclick="goBack()">Назад</button>
+</div>
+
+<!-- =====================================================
+  ФОРМА ФАСАДНІ РОБОТИ — СТОРІНКА 2 (МАТЕРІАЛИ)
+===================================================== -->
+<div class="card hidden" id="fasadStep2">
+  <div class="blockTitle">Витрачені матеріали</div>
+
+  <!-- МАТЕРІАЛИ 1Ф -->
+  <div id="mat1f" class="hidden">
+    <div class="material-row"><div class="material-name">Фасадний короб 1Ф</div><div class="material-input"><input id="f1_box" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Номінал 1р ВА, А</div><div class="material-input"><input id="f1_nom"></div></div>
+    <div class="material-row"><div class="material-name">AsXSn 2х16, м.</div><div class="material-input"><input id="f1_asxsn" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Затискач натяжний ЗН 1.1, шт.</div><div class="material-input"><input id="f1_zn" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Затискач відгалудж. ЗВ 1.2.2, шт.</div><div class="material-input"><input id="f1_zv" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Кабель ВВГнг 2х4, м.</div><div class="material-input"><input id="f1_cable" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Гофра d25, м.</div><div class="material-input"><input id="f1_gofra" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Кріплення для гофри d25, шт.</div><div class="material-input"><input id="f1_clip" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Гак анкерний, шт.</div><div class="material-input"><input id="f1_anker" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Дюбель-гриб, шт.</div><div class="material-input"><input id="f1_dubel" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Розподільча коробка, шт.</div><div class="material-input"><input id="f1_boxk" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Стяжка кабельна, шт.</div><div class="material-input"><input id="f1_styajka" type="number"></div></div>
+    <div style="margin-top: 10px;"><b>Інше:</b><textarea id="f1_other"></textarea></div>
+  </div>
+
+  <!-- МАТЕРІАЛИ 3Ф -->
+  <div id="mat3f" class="hidden">
+    <div class="material-row"><div class="material-name">Фасадний короб 3Ф</div><div class="material-input"><input id="f3_box" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Номінал 3р ВА, А</div><div class="material-input"><input id="f3_nom"></div></div>
+    <div class="material-row"><div class="material-name">AsXSn 4х16, м.</div><div class="material-input"><input id="f3_asxsn" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Затискач натяжний ЗН 2.1, шт.</div><div class="material-input"><input id="f3_zn" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Затискач відгалудж. ЗВ 1.2.2, шт.</div><div class="material-input"><input id="f3_zv" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Кабель ВВГнг 2х4, м.</div><div class="material-input"><input id="f3_cable" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Гофра d32, м.</div><div class="material-input"><input id="f3_gofra" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Кріплення для гофри d32, шт.</div><div class="material-input"><input id="f3_clip" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Гак анкерний, шт.</div><div class="material-input"><input id="f3_anker" type="number"></div></div>
+    <div class="material-row"><div class="material-input"><input id="f3_dubel" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Розподільча коробка, шт.</div><div class="material-input"><input id="f3_boxk" type="number"></div></div>
+    <div class="material-row"><div class="material-name">Стяжка кабельна, шт.</div><div class="material-input"><input id="f3_styajka" type="number"></div></div>
+    <div style="margin-top: 10px;"><b>Інше:</b><textarea id="f3_other"></textarea></div>
+  </div>
+
+  <button class="btn-save actionBtn" onclick="goFasadStep3()">Далі</button>
+  <button class="btn-back actionBtn" onclick="backToFasad1()">Назад</button>
+</div>
+
+<!-- =====================================================
+  ФОРМА ФАСАДНІ РОБОТИ — СТОРІНКА 3 (ДЕМОНТАЖ)
+===================================================== -->
+<div class="card hidden" id="fasadStep3">
+  <div class="blockTitle">Демонтований ввід</div>
+
+  <div class="fieldGrid">
+    <div class="fieldLabel">Марка та переріз демонтованого вводу</div>
+    <div>
+      <select id="fasadDemoMark" class="fasadSelect">
+        <option value="">Вибрати</option>
+        <option value="AsXSn 2х16">AsXSn 2х16</option>
+        <option value="AsXSn 4х16">AsXSn 4х16</option>
+        <option value="АПВ 1х10">АПВ 1х10</option>
+        <option value="АПВ 2х10">АПВ 2х10</option>
+        <option value="СІП 2х16">СІП 2х16</option>
+        <option value="СІП 4х16">СІП 4х16</option>
+        <option value="ВВГ 2х4">ВВГ 2х4</option>
+        <option value="Інше">Інше</option>
+      </select>
+    </div>
+
+    <div class="fieldLabel">Метраж демонтованого вводу</div>
+    <div><input id="fasadDemoLength" type="number"></div>
+
+    <div class="fieldLabel">Ввід демонтували</div>
+    <div class="radio-group">
+      <label class="radio-label"><input type="radio" name="fasadDemoBy" value="ОРБ"> ОРБ</label>
+    </div>
+  </div>
+
+  <button class="btn-save actionBtn" onclick="goFasadStep4()">Далі до заміни лічильника</button>
+  <button class="btn-back actionBtn" onclick="backToFasad2()">Назад</button>
+</div>
+
+<!-- =====================================================
+  ФОРМА Виходу з профіля
+  ===================================================== -->
+<div id="logoutModal" class="modal hidden">
+  <div class="modalBox">
+    <div class="modalText">Вийти з профілю?</div>
+
+    <div class="row">
+      <button onclick="confirmLogout()">Так</button>
+      <button class="btn-back actionBtn" onclick="closeLogoutModal()">Ні</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+ГЛОБАЛЬНІ ЗМІННІ
+========================================================= */
+let worker = "";
+let workerName = "";
+let selectedWork = "";
+let hintTimer = null;
+let scanner = null;
+let meterTypes = [];
+let isFasadFlow = false;
+
+/* =========================================================
+АВТОВХІД ПРИ ЗАПУСКУ
+========================================================= */
+window.onload = function(){
+
+  google.script.run
+.withSuccessHandler(function(list){
+  meterTypes = list || [];
+})
+.getMeterTypes();
+
+  const savedWorker = localStorage.getItem("worker");
+
+  if(!savedWorker) return;
+
+  if(navigator.onLine){
+
+    google.script.run.withSuccessHandler(res=>{
+
+      if(res.ok){
+        worker = savedWorker;
+        workerName = res.name || "";
+        afterLogin();
+      }else{
+        localStorage.clear();
       }
 
-      scanner.render(
-        function(decodedText) {
-          // Коли зловили штрихкод:
-          document.getElementById("barcodeValue").value = decodedText;
-          scanner.clear().then(() => {
-            readerDiv.style.display = "none";
-            alert("✅ Успішно відскановано: " + decodedText);
-          });
-        },
-        function(error) { /* ігноруємо помилки фокусу */ }
-      );
+    }).checkWorker(savedWorker);
+
+  }else{
+
+    worker = savedWorker;
+    workerName = "Офлайн";
+    afterLogin();
+
+  }
+};
+
+/* =========================================================
+ФУНКЦІЯ ВХОДУ
+========================================================= */
+function doLogin(){
+
+  const tab = document.getElementById("tab").value.trim();
+  const pass = document.getElementById("pass").value.trim();
+
+  if(!tab){
+    alert("Введіть табельний номер");
+    return;
+  }
+
+  if(navigator.onLine){
+
+    if(!pass){
+      alert("Введіть пароль");
+      return;
     }
-  </script>
+
+    google.script.run.withSuccessHandler(res=>{
+
+      if(res.success){
+        worker = tab;
+        workerName = res.name || "";
+        afterLogin();
+      }else{
+        alert(res.message);
+      }
+
+    }).login(tab,pass);
+
+  }else{
+
+    worker = tab;
+    workerName = "Офлайн";
+    alert("Офлайн режим");
+    afterLogin();
+
+  }
+}
+
+/* =========================================================
+ПІСЛЯ УСПІШНОГО ВХОДУ
+========================================================= */
+function afterLogin(){
+
+  localStorage.setItem("worker",worker);
+  localStorage.setItem("workerName",workerName);
+
+  const passInput = document.getElementById("pass");
+  if(passInput && passInput.value){
+    localStorage.setItem("workerPass",passInput.value);
+  }
+
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+
+  document.getElementById("who").innerHTML =
+    "Т/н: <b>"+worker+"</b> "+workerName;
+}
+
+/* =========================================================
+ВИБІР ВИДУ РОБІТ
+========================================================= */
+function selectWork(btn,type){
+
+  document.querySelectorAll(".work-btn").forEach(b=>{
+    b.classList.remove("active");
+  });
+
+  btn.classList.add("active");
+  selectedWork = type;
+}
+
+/* =========================================================
+АВТОПОШУК РАХУНКІВ
+========================================================= */
+function autoSearch(){
+
+  const value = document.getElementById("account").value.trim();
+
+  if(value.length < 4){
+    document.getElementById("accountHints").innerHTML="";
+    return;
+  }
+
+  clearTimeout(hintTimer);
+
+  hintTimer = setTimeout(()=>{
+    google.script.run
+      .withSuccessHandler(showHints)
+      .searchAccounts(value);
+  },400);
+}
+
+/* =========================================================
+ПОКАЗ ПІДКАЗОК
+========================================================= */
+function showHints(list){
+
+  const box = document.getElementById("accountHints");
+  box.innerHTML="";
+
+  list.forEach(acc=>{
+
+    const div = document.createElement("div");
+    div.className="hintItem";
+    div.textContent=acc;
+
+    div.onclick=function(){
+      document.getElementById("account").value=acc;
+      box.innerHTML="";
+    };
+
+    box.appendChild(div);
+  });
+}
+
+/* =========================================================
+ПОШУК РАХУНКУ
+========================================================= */
+function search(){
+
+  const acc = document.getElementById("account").value.trim();
+
+  if(!selectedWork){
+    alert("Оберіть вид робіт");
+    return;
+  }
+
+  if(!/^\d{10}$/.test(acc)){
+    alert("Особовий рахунок повинен містити 10 цифр");
+    return;
+  }
+
+  google.script.run.withSuccessHandler(res=>{
+
+    if(res.found){
+      fillFields(res.data);
+    }else{
+      alert("Не знайдено");
+    }
+
+  }).findAccountFast(acc);
+}
+
+/* =========================================================
+ЗАПОВНЕННЯ ФОРМИ
+========================================================= */
+function fillFields(d){
+
+  const formType = openSelectedWorkForm();
+  if(!formType) return;
+
+  if(formType === "tech"){
+    fillTechCheck(d);
+    return;
+  }
+
+  if(formType === "replace"){
+    fillReplaceStep1(d);
+    return;
+  }
+
+  if(formType === "control"){
+    fillControlCheck(d);
+    return;
+  }
+}
+
+/* =========================================================
+ОФЛАЙН РЕЖИМ
+========================================================= */
+function offlineMode(){
+
+  const acc = document.getElementById("account").value.trim();
+
+  if(!selectedWork){
+    alert("Оберіть вид робіт");
+    return;
+  }
+
+  if(!/^\d{10}$/.test(acc)){
+    alert("Введіть 10 цифр особового рахунку");
+    return;
+  }
+
+  const formType = openWorkForm();
+  if(!formType) return;
+
+  if(formType === "tech"){
+    document.getElementById("workerTab").innerText = worker;
+    document.getElementById("workerName").innerText = workerName;
+    document.getElementById("workTypeView").innerText = selectedWork || "";
+
+    document.getElementById("accountView").innerText = acc;
+    document.getElementById("pibView").innerText = "";
+    document.getElementById("addressView").innerText = "";
+    document.getElementById("meterType").value = "";
+    document.getElementById("meterNumber").value = "";
+
+    document.getElementById("removedLichil").value = "";
+    document.getElementById("removedOptop").value = "";
+    document.getElementById("removedFasad1").value = "";
+    document.getElementById("removedFasad2").value = "";
+    document.getElementById("removedVkp").value = "";
+    document.getElementById("removedImp1").value = "";
+    document.getElementById("removedImp2").value = "";
+    document.getElementById("removedImp3").value = "";
+    document.getElementById("removedOther").value = "";
+    document.getElementById("installedLichil").value = "";
+    document.getElementById("installedOptop").value = "";
+    document.getElementById("installedFasad1").value = "";
+    document.getElementById("installedFasad2").value = "";
+    document.getElementById("installedVkp").value = "";
+    document.getElementById("installedImp1").value = "";
+    document.getElementById("installedImp2").value = "";
+    document.getElementById("installedImp3").value = "";
+    document.getElementById("installedOther").value = "";
+    document.getElementById("t0").value = "";
+    document.getElementById("t1").value = "";
+    document.getElementById("t2").value = "";
+    document.getElementById("t3").value = "";
+    resizeTextarea(document.getElementById("removedOther"));
+    resizeTextarea(document.getElementById("installedOther"));
+    return;
+  }
+
+  if(formType === "replace"){
+    document.getElementById("replaceWorkerTab1").innerText = worker;
+    document.getElementById("replaceWorkerName1").innerText = workerName;
+    document.getElementById("replaceAccountView1").innerText = acc;
+    document.getElementById("replacePibView1").innerText = "";
+    document.getElementById("replaceAddressView1").innerText = "";
+    document.getElementById("replaceRemovedMeterType").value = "";
+    document.getElementById("replaceRemovedMeterNumber").value = "";
+    document.getElementById("replaceRemovedLichil").value = "";
+    document.getElementById("replaceRemovedOptop").value = "";
+    document.getElementById("replaceRemovedFasad1").value = "";
+    document.getElementById("replaceRemovedFasad2").value = "";
+    document.getElementById("replaceRemovedVkp").value = "";
+    document.getElementById("replaceRemovedImp1").value = "";
+    document.getElementById("replaceRemovedImp2").value = "";
+    document.getElementById("replaceRemovedImp3").value = "";
+    document.getElementById("replaceRemovedOther").value = "";
+    document.getElementById("replaceRemovedT0").value = "";
+    document.getElementById("replaceRemovedT1").value = "";
+    document.getElementById("replaceRemovedT2").value = "";
+    document.getElementById("replaceRemovedT3").value = "";
+    resizeTextarea(document.getElementById("replaceRemovedOther"));
+    return;
+  }
+
+  if(formType === "control"){
+    document.getElementById("controlWorkerTab").innerText = worker;
+    document.getElementById("controlWorkerName").innerText = workerName;
+    document.getElementById("controlAccountView").innerText = acc;
+    document.getElementById("controlPibView").innerText = "";
+    document.getElementById("controlAddressView").innerText = "";
+    document.getElementById("controlMeterType").value = "";
+    document.getElementById("controlMeterNumber").value = "";
+    document.getElementById("controlInstalledLichil").value = "";
+    document.getElementById("controlInstalledOptop").value = "";
+    document.getElementById("controlInstalledFasad1").value = "";
+    document.getElementById("controlInstalledFasad2").value = "";
+    document.getElementById("controlInstalledVkp").value = "";
+    document.getElementById("controlInstalledImp1").value = "";
+    document.getElementById("controlInstalledImp2").value = "";
+    document.getElementById("controlInstalledImp3").value = "";
+    document.getElementById("controlInstalledOther").value = "";
+    document.getElementById("controlT0").value = "";
+    document.getElementById("controlT1").value = "";
+    document.getElementById("controlT2").value = "";
+    document.getElementById("controlT3").value = "";
+    resizeTextarea(document.getElementById("controlInstalledOther"));
+  }
+}
+
+
+/* =========================================================
+НАЗАД
+========================================================= */
+function goBack(){
+  showSearchBlock();
+  document.getElementById("fasadStep1").classList.add("hidden");
+  document.getElementById("fasadStep2").classList.add("hidden");
+  document.getElementById("fasadStep3").classList.add("hidden");
+}
+
+
+/* =========================================================
+СКАНЕР QR / ШТРИХКОДУ
+========================================================= */
+function startScanner(){
+
+  document.getElementById("scannerBox").style.display="block";
+
+  scanner = new Html5Qrcode("scanner");
+
+  scanner.start(
+    { facingMode:"environment" },
+    {
+      fps:15,
+      qrbox:{width:300,height:140},
+      aspectRatio:1.777
+    },
+    function(decodedText){
+      scanner.stop();
+      document.getElementById("scannerBox").style.display="none";
+      document.getElementById("account").value = decodedText;
+      search();
+    },
+    function(error){}
+  );
+}
+
+function stopScanner(){
+  if(scanner){
+    scanner.stop().then(()=>{
+      document.getElementById("scannerBox").style.display="none";
+    });
+  }
+}
+
+/* =========================================================
+ЗБЕРЕЖЕННЯ ДАНИХ
+========================================================= */
+function save(){
+  const data = collectTechData();
+  sendDataToServer(data, "saveHint", ["techCheckForm"]);
+}
+
+function saveReplaceData(){
+    if(isFasadFlow){
+    saveFasadData();
+    return;
+    }
+  const data = collectReplaceData();
+  sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
+}
+
+
+/* =========================================================
+   ЗБЕРЕЖЕННЯ — КОНТРОЛЬНИЙ ОГЛЯД
+========================================================= */
+
+function saveControlCheck(){
+  const data = collectControlData();
+  sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);
+}
+
+/* =========================================================
+ОФЛАЙН ЗБЕРЕЖЕННЯ
+========================================================= */
+function saveOffline(data){
+
+  let list = JSON.parse(localStorage.getItem("offlineData") || "[]");
+  list.push(data);
+  localStorage.setItem("offlineData",JSON.stringify(list));
+
+  document.getElementById("saveHint").textContent="Збережено офлайн";
+}
+
+/* =========================================================
+?????????????????
+========================================================= */
+
+function confirmLogout(){
+
+  localStorage.removeItem("worker");
+  localStorage.removeItem("workerName");
+  localStorage.removeItem("workerPass");
+
+  document.getElementById("logoutModal").classList.add("hidden");
+
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("login").classList.remove("hidden");
+
+  showSearchBlock();
+
+  document.getElementById("tab").value = "";
+  document.getElementById("pass").value = "";
+  document.getElementById("account").value = "";
+  document.getElementById("accountHints").innerHTML = "";
+
+  worker = "";
+  workerName = "";
+  selectedWork = "";
+
+  document.querySelectorAll(".work-btn").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+}
+
+/* =========================================================
+АВТО-ВИСОТА TEXTAREA
+========================================================= */
+function resizeTextarea(el){
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+/* =========================================================
+функції для списку
+========================================================= */
+function showMeterTypes(){
+
+  const box = document.getElementById("meterTypeHints");
+  if(!box) return;
+
+  box.innerHTML = "";
+       
+  meterTypes.slice(0, 150)/*скільки елементів показувати*/.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "meterTypeItem";
+    div.textContent = item;
+
+    div.onclick = function(){
+      document.getElementById("replaceInstalledMeterType").value = item;
+      box.classList.add("hidden");
+    };
+
+    box.appendChild(div);
+  });
+
+  if(meterTypes.length){
+    box.classList.remove("hidden");
+  }
+}
+
+function filterMeterTypes(value){
+
+  const box = document.getElementById("meterTypeHints");
+  if(!box) return;
+
+  const q = String(value || "").trim().toLowerCase();
+
+  box.innerHTML = "";
+
+  let filtered = meterTypes;
+
+  if(q){
+    filtered = meterTypes.filter(item =>
+      item.toLowerCase().includes(q)
+    );
+  }
+
+  filtered.slice(0, 150)./*скільки елементів показувати*/forEach(item => {
+    const div = document.createElement("div");
+    div.className = "meterTypeItem";
+    div.textContent = item;
+
+    div.onclick = function(){
+      document.getElementById("replaceInstalledMeterType").value = item;
+      box.classList.add("hidden");
+    };
+
+    box.appendChild(div);
+  });
+
+  if(filtered.length){
+    box.classList.remove("hidden");
+  }else{
+    box.classList.add("hidden");
+  }
+}
+
+document.addEventListener("click", function(e){
+
+  const input = document.getElementById("replaceInstalledMeterType");
+  const box = document.getElementById("meterTypeHints");
+
+  if(!input || !box) return;
+
+  if(e.target !== input && !box.contains(e.target)){
+    box.classList.add("hidden");
+  }
+});
+
+
+function resizeTextarea(el){
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+/* =========================================================
+НОРМАЛІЗАЦІЯ НОМЕРА ПЛОМБИ
+Наприклад:
+C 81139998 -> C81139998
+========================================================= */
+function normalizePlombNumber(entry){
+  const m = String(entry || "").trim().match(/^([A-Za-zА-Яа-яІіЇїЄєҐґСМ]{0,2})\s*(\d{6,})/);
+  if(!m) return "";
+  return (m[1] || "") + (m[2] || "");
+}
+
+function parsePlombs(plombText){
+
+  const result = {
+    lichil: "",
+    optop: "",
+    fasad: ["", ""],
+    vkp: "",
+    imp: ["", "", ""],
+    other: []
+  };
+
+  let text = String(plombText || "").replace(/\s+/g, " ").trim();
+  if(!text) return result;
+
+  const entryRegex = /((?:[A-Za-zА-Яа-яІіЇїЄєҐґСМ]{0,2}\s*)?\d{6,}.*?)(?=(?:\s+(?:[A-Za-zА-Яа-яІіЇїЄєҐґСМ]{0,2}\s*)?\d{6,}\b)|$)/g;
+
+  const entries = [];
+  let match;
+
+  while((match = entryRegex.exec(text)) !== null){
+    const item = match[1].trim();
+    if(item) entries.push(item);
+  }
+
+  entries.forEach(item => {
+
+    const low = item.toLowerCase();
+    const num = normalizePlombNumber(item);
+
+    if(!num){
+      result.other.push(item);
+      return;
+    }
+
+    if(low.includes("лічил")){
+      if(!result.lichil) result.lichil = num;
+      else result.other.push(item);
+      return;
+    }
+
+    if(low.includes("оптоп")){
+      if(!result.optop) result.optop = num;
+      else result.other.push(item);
+      return;
+    }
+
+    if(low.includes("фасад")){
+      const idx = result.fasad.findIndex(v => !v);
+      if(idx !== -1) result.fasad[idx] = num;
+      else result.other.push(item);
+      return;
+    }
+
+    if(low.includes("вкп") || low.includes("ввідн")){
+      if(!result.vkp) result.vkp = num;
+      else result.other.push(item);
+      return;
+    }
+
+    if(
+      low.includes("імп") ||
+      low.includes("корпу") ||
+      low.includes("кожух")
+    ){
+      const idx = result.imp.findIndex(v => !v);
+      if(idx !== -1) result.imp[idx] = num;
+      else result.other.push(item);
+      return;
+    }
+
+    result.other.push(item);
+  });
+
+  result.other = result.other.join("\n");
+
+  return result;
+}
+
+function openSelectedWorkForm(){
+  // Спочатку ховаємо блок пошуку!
+  document.getElementById("searchBlock").style.display = "none";
+
+  if(selectedWork === "Технічна перевірка"){
+    document.getElementById("techCheckForm").classList.remove("hidden");
+    window.scrollTo(0,0); // Прокручуємо вгору
+    return true;
+  }
+
+  if(selectedWork === "Фасадні роботи"){
+    document.getElementById("fasadStep1").classList.remove("hidden");
+    window.scrollTo(0,0);
+    return true;
+  }
+
+  if(selectedWork === "Заміна лічильника"){
+    document.getElementById("meterReplaceStep1").classList.remove("hidden");
+    window.scrollTo(0,0);
+    return true;
+  }
+
+  if(selectedWork === "Контрольний огляд"){
+    document.getElementById("controlCheckForm").classList.remove("hidden");
+    window.scrollTo(0,0);
+    return true;
+  }
+
+  // Якщо нічого не вибрано - повертаємо пошук
+  document.getElementById("searchBlock").style.display = "block";
+  alert("Форма для цього виду робіт ще не налаштована");
+  return false;
+}
+
+
+function openReplaceStep1Form(){
+  document.getElementById("meterReplaceStep1").classList.remove("hidden");
+  return true;
+}
+
+function fillReplaceStep1(d){
+
+  document.getElementById("replaceWorkerTab1").innerText = worker;
+  document.getElementById("replaceWorkerName1").innerText = workerName;
+
+  document.getElementById("replaceAccountView1").innerText = d.account || "";
+  document.getElementById("replacePibView1").innerText = d.pib || "";
+  document.getElementById("replaceAddressView1").innerText = buildAddress(d);
+
+  document.getElementById("replaceRemovedMeterType").value = d.type || "";
+  document.getElementById("replaceRemovedMeterNumber").value = d.meter || "";
+
+  const plombs = parsePlombs(d.plomb || "");
+
+  document.getElementById("replaceRemovedLichil").value = plombs.lichil;
+  document.getElementById("replaceRemovedOptop").value = plombs.optop;
+  document.getElementById("replaceRemovedFasad1").value = plombs.fasad[0];
+  document.getElementById("replaceRemovedFasad2").value = plombs.fasad[1];
+  document.getElementById("replaceRemovedVkp").value = plombs.vkp;
+  document.getElementById("replaceRemovedImp1").value = plombs.imp[0];
+  document.getElementById("replaceRemovedImp2").value = plombs.imp[1];
+  document.getElementById("replaceRemovedImp3").value = plombs.imp[2];
+  document.getElementById("replaceRemovedOther").value = plombs.other;
+  resizeTextarea(document.getElementById("replaceRemovedOther"));
+
+  document.getElementById("replaceRemovedT0").value = "";
+  document.getElementById("replaceRemovedT1").value = "";
+  document.getElementById("replaceRemovedT2").value = "";
+  document.getElementById("replaceRemovedT3").value = "";
+}
+
+function goBackReplaceStep1(){
+  showSearchBlock();
+}
+
+function goToReplaceStep2(){
+
+  document.getElementById("meterReplaceStep1").classList.add("hidden");
+  document.getElementById("meterReplaceStep2").classList.remove("hidden");
+
+  document.getElementById("replaceWorkerTab2").innerText =
+    document.getElementById("replaceWorkerTab1").innerText;
+
+  document.getElementById("replaceWorkerName2").innerText =
+    document.getElementById("replaceWorkerName1").innerText;
+
+  document.getElementById("replaceAccountView2").innerText =
+    document.getElementById("replaceAccountView1").innerText;
+
+  document.getElementById("replacePibView2").innerText =
+    document.getElementById("replacePibView1").innerText;
+
+  document.getElementById("replaceAddressView2").innerText =
+    document.getElementById("replaceAddressView1").innerText;
+
+  document.getElementById("replaceInstalledMeterType").value = "";
+  document.getElementById("replaceInstalledMeterNumber").value = "";
+
+  document.getElementById("replaceInstalledLichil").value = "";
+  document.getElementById("replaceInstalledOptop").value = "";
+  document.getElementById("replaceInstalledFasad1").value = "";
+  document.getElementById("replaceInstalledFasad2").value = "";
+  document.getElementById("replaceInstalledVkp").value = "";
+  document.getElementById("replaceInstalledImp1").value = "";
+  document.getElementById("replaceInstalledImp2").value = "";
+  document.getElementById("replaceInstalledImp3").value = "";
+  document.getElementById("replaceInstalledOther").value = "";
+  resizeTextarea(document.getElementById("replaceInstalledOther"));
+
+  document.getElementById("replaceInstalledT0").value = "";
+  document.getElementById("replaceInstalledT1").value = "";
+  document.getElementById("replaceInstalledT2").value = "";
+  document.getElementById("replaceInstalledT3").value = "";
+}
+
+function goBackReplaceStep2(){
+  document.getElementById("meterReplaceStep2").classList.add("hidden");
+  document.getElementById("meterReplaceStep1").classList.remove("hidden");
+}
+
+
+function hideAllForms(){
+  document.getElementById("techCheckForm").classList.add("hidden");
+  document.getElementById("meterReplaceStep1").classList.add("hidden");
+  document.getElementById("meterReplaceStep2").classList.add("hidden");
+  document.getElementById("controlCheckForm").classList.add("hidden");
+}
+
+function showSearchBlock(){
+  hideAllForms(); // Ховаємо всі відкриті форми
+  document.getElementById("searchBlock").style.display = "block"; // ПОКАЗУЄМО ПОШУК
+  
+  // Очищаємо інпути пошуку
+  document.getElementById("account").value = "";
+  if(document.getElementById("accountHints")) {
+    document.getElementById("accountHints").innerHTML = "";
+  }
+  window.scrollTo(0,0);
+}
+
+
+function buildAddress(d){
+  let addr = d.street || "";
+  if(d.house) addr += " буд. " + d.house;
+  if(d.flat) addr += " кв. " + d.flat;
+  return addr;
+}
+/* =========================================================
+функцію для техперевірки
+========================================================= */
+function fillTechCheck(d){
+
+  document.getElementById("workerTab").innerText = worker;
+  document.getElementById("workerName").innerText = workerName;
+  document.getElementById("workTypeView").innerText = selectedWork || "";
+
+  document.getElementById("accountView").innerText = d.account || "";
+  document.getElementById("pibView").innerText = d.pib || "";
+  document.getElementById("addressView").innerText = buildAddress(d);
+
+  document.getElementById("meterType").value = d.type || "";
+  document.getElementById("meterNumber").value = d.meter || "";
+
+  const plombs = parsePlombs(d.plomb || "");
+
+  document.getElementById("removedLichil").value = plombs.lichil;
+  document.getElementById("removedOptop").value = plombs.optop;
+  document.getElementById("removedFasad1").value = plombs.fasad[0];
+  document.getElementById("removedFasad2").value = plombs.fasad[1];
+  document.getElementById("removedVkp").value = plombs.vkp;
+  document.getElementById("removedImp1").value = plombs.imp[0];
+  document.getElementById("removedImp2").value = plombs.imp[1];
+  document.getElementById("removedImp3").value = plombs.imp[2];
+  document.getElementById("removedOther").value = plombs.other;
+  resizeTextarea(document.getElementById("removedOther"));
+
+  document.getElementById("installedLichil").value = "";
+  document.getElementById("installedOptop").value = "";
+  document.getElementById("installedFasad1").value = "";
+  document.getElementById("installedFasad2").value = "";
+  document.getElementById("installedVkp").value = "";
+  document.getElementById("installedImp1").value = "";
+  document.getElementById("installedImp2").value = "";
+  document.getElementById("installedImp3").value = "";
+  document.getElementById("installedOther").value = "";
+  resizeTextarea(document.getElementById("installedOther"));
+
+  document.getElementById("t0").value = "";
+  document.getElementById("t1").value = "";
+  document.getElementById("t2").value = "";
+  document.getElementById("t3").value = "";
+}
+/* =========================================================
+функцію для контрольного огляду
+========================================================= */
+function fillControlCheck(d){
+
+  document.getElementById("controlWorkerTab").innerText = worker;
+  document.getElementById("controlWorkerName").innerText = workerName;
+
+  document.getElementById("controlAccountView").innerText = d.account || "";
+  document.getElementById("controlPibView").innerText = d.pib || "";
+  document.getElementById("controlAddressView").innerText = buildAddress(d);
+
+  document.getElementById("controlMeterType").value = d.type || "";
+  document.getElementById("controlMeterNumber").value = d.meter || "";
+
+  const plombs = parsePlombs(d.plomb || "");
+
+  document.getElementById("controlInstalledLichil").value = plombs.lichil;
+  document.getElementById("controlInstalledOptop").value = plombs.optop;
+  document.getElementById("controlInstalledFasad1").value = plombs.fasad[0];
+  document.getElementById("controlInstalledFasad2").value = plombs.fasad[1];
+  document.getElementById("controlInstalledVkp").value = plombs.vkp;
+  document.getElementById("controlInstalledImp1").value = plombs.imp[0];
+  document.getElementById("controlInstalledImp2").value = plombs.imp[1];
+  document.getElementById("controlInstalledImp3").value = plombs.imp[2];
+  document.getElementById("controlInstalledOther").value = "";
+  resizeTextarea(document.getElementById("controlInstalledOther"));
+
+  document.getElementById("controlT0").value = "";
+  document.getElementById("controlT1").value = "";
+  document.getElementById("controlT2").value = "";
+  document.getElementById("controlT3").value = "";
+}
+
+/* =========================================================
+Блок збереження
+========================================================= */
+function sendDataToServer(data, hintId, formsToHide){
+
+  const pass = localStorage.getItem("workerPass");
+
+  if(navigator.onLine){
+
+    google.script.run.withSuccessHandler(function(res){
+
+      if(res.success){
+
+        google.script.run.withSuccessHandler(function(){
+
+          if(hintId){
+            document.getElementById(hintId).textContent = "Збережено";
+          }
+
+          document.getElementById("searchBlock").style.display = "block";
+
+          formsToHide.forEach(function(id){
+            const el = document.getElementById(id);
+            if(el) el.classList.add("hidden");
+          });
+
+          document.getElementById("account").value = "";
+          document.getElementById("accountHints").innerHTML = "";
+
+        }).saveData(data);
+
+      }else{
+        alert("Пароль змінено. Увійдіть знову");
+        localStorage.clear();
+        location.reload();
+      }
+
+    }).login(worker, pass);
+
+  }else{
+
+    saveOffline(data);
+
+    if(hintId){
+      document.getElementById(hintId).textContent = "Збережено офлайн";
+    }
+
+    document.getElementById("searchBlock").style.display = "block";
+
+    formsToHide.forEach(function(id){
+      const el = document.getElementById(id);
+      if(el) el.classList.add("hidden");
+    });
+
+    document.getElementById("account").value = "";
+    document.getElementById("accountHints").innerHTML = "";
+  }
+}
+
+function collectTechData(){
+  return {
+    worker: worker,
+    workType: selectedWork,
+
+    account: document.getElementById("accountView").innerText,
+    pib: document.getElementById("pibView").innerText,
+
+    meterType: document.getElementById("meterType").value.trim(),
+    meterNumber: document.getElementById("meterNumber").value.trim(),
+
+    t0: document.getElementById("t0").value.trim(),
+    t1: document.getElementById("t1").value.trim(),
+    t2: document.getElementById("t2").value.trim(),
+    t3: document.getElementById("t3").value.trim(),
+
+    removedLichil: document.getElementById("removedLichil").value.trim(),
+    installedLichil: document.getElementById("installedLichil").value.trim(),
+
+    removedFasad1: document.getElementById("removedFasad1").value.trim(),
+    installedFasad1: document.getElementById("installedFasad1").value.trim(),
+
+    removedFasad2: document.getElementById("removedFasad2").value.trim(),
+    installedFasad2: document.getElementById("installedFasad2").value.trim(),
+
+    removedVkp: document.getElementById("removedVkp").value.trim(),
+    installedVkp: document.getElementById("installedVkp").value.trim(),
+
+    removedOptop: document.getElementById("removedOptop").value.trim(),
+    installedOptop: document.getElementById("installedOptop").value.trim(),
+
+    removedImp1: document.getElementById("removedImp1").value.trim(),
+    installedImp1: document.getElementById("installedImp1").value.trim(),
+
+    removedImp2: document.getElementById("removedImp2").value.trim(),
+    installedImp2: document.getElementById("installedImp2").value.trim(),
+
+    removedImp3: document.getElementById("removedImp3").value.trim(),
+    installedImp3: document.getElementById("installedImp3").value.trim(),
+
+    removedOther: document.getElementById("removedOther").value.trim(),
+    installedOther: document.getElementById("installedOther").value.trim()
+  };
+}
+
+function collectReplaceData(){
+  return {
+    worker: worker,
+    workType: selectedWork,
+    mode: "replace",
+
+    account: document.getElementById("replaceAccountView2").innerText,
+    pib: document.getElementById("replacePibView2").innerText,
+
+    removedMeterType: document.getElementById("replaceRemovedMeterType").value.trim(),
+    removedMeterNumber: document.getElementById("replaceRemovedMeterNumber").value.trim(),
+
+    removedT0: document.getElementById("replaceRemovedT0").value.trim(),
+    removedT1: document.getElementById("replaceRemovedT1").value.trim(),
+    removedT2: document.getElementById("replaceRemovedT2").value.trim(),
+    removedT3: document.getElementById("replaceRemovedT3").value.trim(),
+
+    removedLichil: document.getElementById("replaceRemovedLichil").value.trim(),
+    removedFasad1: document.getElementById("replaceRemovedFasad1").value.trim(),
+    removedFasad2: document.getElementById("replaceRemovedFasad2").value.trim(),
+    removedVkp: document.getElementById("replaceRemovedVkp").value.trim(),
+    removedOptop: document.getElementById("replaceRemovedOptop").value.trim(),
+    removedImp1: document.getElementById("replaceRemovedImp1").value.trim(),
+    removedImp2: document.getElementById("replaceRemovedImp2").value.trim(),
+    removedImp3: document.getElementById("replaceRemovedImp3").value.trim(),
+    removedOther: document.getElementById("replaceRemovedOther").value.trim(),
+
+    installedMeterType: document.getElementById("replaceInstalledMeterType").value.trim(),
+    installedMeterNumber: document.getElementById("replaceInstalledMeterNumber").value.trim(),
+
+    installedT0: document.getElementById("replaceInstalledT0").value.trim(),
+    installedT1: document.getElementById("replaceInstalledT1").value.trim(),
+    installedT2: document.getElementById("replaceInstalledT2").value.trim(),
+    installedT3: document.getElementById("replaceInstalledT3").value.trim(),
+
+    installedLichil: document.getElementById("replaceInstalledLichil").value.trim(),
+    installedFasad1: document.getElementById("replaceInstalledFasad1").value.trim(),
+    installedFasad2: document.getElementById("replaceInstalledFasad2").value.trim(),
+    installedVkp: document.getElementById("replaceInstalledVkp").value.trim(),
+    installedOptop: document.getElementById("replaceInstalledOptop").value.trim(),
+    installedImp1: document.getElementById("replaceInstalledImp1").value.trim(),
+    installedImp2: document.getElementById("replaceInstalledImp2").value.trim(),
+    installedImp3: document.getElementById("replaceInstalledImp3").value.trim(),
+    installedOther: document.getElementById("replaceInstalledOther").value.trim()
+  };
+}
+
+function collectControlData(){
+  return {
+    worker: worker,
+    workType: selectedWork,
+    mode: "control",
+
+    account: document.getElementById("controlAccountView").innerText,
+    pib: document.getElementById("controlPibView").innerText,
+
+    meterType: document.getElementById("controlMeterType").value.trim(),
+    meterNumber: document.getElementById("controlMeterNumber").value.trim(),
+
+    t0: document.getElementById("controlT0").value.trim(),
+    t1: document.getElementById("controlT1").value.trim(),
+    t2: document.getElementById("controlT2").value.trim(),
+    t3: document.getElementById("controlT3").value.trim(),
+
+    installedLichil: document.getElementById("controlInstalledLichil").value.trim(),
+    installedOptop: document.getElementById("controlInstalledOptop").value.trim(),
+    installedFasad1: document.getElementById("controlInstalledFasad1").value.trim(),
+    installedFasad2: document.getElementById("controlInstalledFasad2").value.trim(),
+    installedVkp: document.getElementById("controlInstalledVkp").value.trim(),
+    installedImp1: document.getElementById("controlInstalledImp1").value.trim(),
+    installedImp2: document.getElementById("controlInstalledImp2").value.trim(),
+    installedImp3: document.getElementById("controlInstalledImp3").value.trim(),
+    installedOther: document.getElementById("controlInstalledOther").value.trim()
+  };
+}
+
+function sendDataToServer(data, hintId, formsToHide){
+
+  const pass = localStorage.getItem("workerPass");
+
+  if(navigator.onLine){
+
+    google.script.run.withSuccessHandler(function(res){
+
+      if(res.success){
+
+        google.script.run.withSuccessHandler(function(){
+
+          if(hintId){
+            document.getElementById(hintId).textContent = "Збережено";
+          }
+
+          showSearchBlock();
+
+          formsToHide.forEach(function(id){
+            const el = document.getElementById(id);
+            if(el) el.classList.add("hidden");
+          });
+
+          document.getElementById("account").value = "";
+          document.getElementById("accountHints").innerHTML = "";
+
+        }).saveData(data);
+
+      }else{
+        alert("Пароль змінено. Увійдіть знову");
+        localStorage.clear();
+        location.reload();
+      }
+
+    }).login(worker, pass);
+
+  }else{
+
+    saveOffline(data);
+
+    if(hintId){
+      document.getElementById(hintId).textContent = "Збережено офлайн";
+    }
+
+    showSearchBlock();
+
+    formsToHide.forEach(function(id){
+      const el = document.getElementById(id);
+      if(el) el.classList.add("hidden");
+    });
+
+    document.getElementById("account").value = "";
+    document.getElementById("accountHints").innerHTML = "";
+  }
+}
+
+function collectTechData(){
+  return {
+    worker: worker,
+    workType: selectedWork,
+
+    account: document.getElementById("accountView").innerText,
+    pib: document.getElementById("pibView").innerText,
+
+    meterType: document.getElementById("meterType").value.trim(),
+    meterNumber: document.getElementById("meterNumber").value.trim(),
+
+    t0: document.getElementById("t0").value.trim(),
+    t1: document.getElementById("t1").value.trim(),
+    t2: document.getElementById("t2").value.trim(),
+    t3: document.getElementById("t3").value.trim(),
+
+    removedLichil: document.getElementById("removedLichil").value.trim(),
+    installedLichil: document.getElementById("installedLichil").value.trim(),
+
+    removedFasad1: document.getElementById("removedFasad1").value.trim(),
+    installedFasad1: document.getElementById("installedFasad1").value.trim(),
+
+    removedFasad2: document.getElementById("removedFasad2").value.trim(),
+    installedFasad2: document.getElementById("installedFasad2").value.trim(),
+
+    removedVkp: document.getElementById("removedVkp").value.trim(),
+    installedVkp: document.getElementById("installedVkp").value.trim(),
+
+    removedOptop: document.getElementById("removedOptop").value.trim(),
+    installedOptop: document.getElementById("installedOptop").value.trim(),
+
+    removedImp1: document.getElementById("removedImp1").value.trim(),
+    installedImp1: document.getElementById("installedImp1").value.trim(),
+
+    removedImp2: document.getElementById("removedImp2").value.trim(),
+    installedImp2: document.getElementById("installedImp2").value.trim(),
+
+    removedImp3: document.getElementById("removedImp3").value.trim(),
+    installedImp3: document.getElementById("installedImp3").value.trim(),
+
+    removedOther: document.getElementById("removedOther").value.trim(),
+    installedOther: document.getElementById("installedOther").value.trim()
+  };
+}
+
+function collectReplaceData(){
+  return {
+    worker: worker,
+    workType: selectedWork,
+    mode: "replace",
+
+    account: document.getElementById("replaceAccountView2").innerText,
+    pib: document.getElementById("replacePibView2").innerText,
+
+    removedMeterType: document.getElementById("replaceRemovedMeterType").value.trim(),
+    removedMeterNumber: document.getElementById("replaceRemovedMeterNumber").value.trim(),
+
+    removedT0: document.getElementById("replaceRemovedT0").value.trim(),
+    removedT1: document.getElementById("replaceRemovedT1").value.trim(),
+    removedT2: document.getElementById("replaceRemovedT2").value.trim(),
+    removedT3: document.getElementById("replaceRemovedT3").value.trim(),
+
+    removedLichil: document.getElementById("replaceRemovedLichil").value.trim(),
+    removedFasad1: document.getElementById("replaceRemovedFasad1").value.trim(),
+    removedFasad2: document.getElementById("replaceRemovedFasad2").value.trim(),
+    removedVkp: document.getElementById("replaceRemovedVkp").value.trim(),
+    removedOptop: document.getElementById("replaceRemovedOptop").value.trim(),
+    removedImp1: document.getElementById("replaceRemovedImp1").value.trim(),
+    removedImp2: document.getElementById("replaceRemovedImp2").value.trim(),
+    removedImp3: document.getElementById("replaceRemovedImp3").value.trim(),
+    removedOther: document.getElementById("replaceRemovedOther").value.trim(),
+
+    installedMeterType: document.getElementById("replaceInstalledMeterType").value.trim(),
+    installedMeterNumber: document.getElementById("replaceInstalledMeterNumber").value.trim(),
+
+    installedT0: document.getElementById("replaceInstalledT0").value.trim(),
+    installedT1: document.getElementById("replaceInstalledT1").value.trim(),
+    installedT2: document.getElementById("replaceInstalledT2").value.trim(),
+    installedT3: document.getElementById("replaceInstalledT3").value.trim(),
+
+    installedLichil: document.getElementById("replaceInstalledLichil").value.trim(),
+    installedFasad1: document.getElementById("replaceInstalledFasad1").value.trim(),
+    installedFasad2: document.getElementById("replaceInstalledFasad2").value.trim(),
+    installedVkp: document.getElementById("replaceInstalledVkp").value.trim(),
+    installedOptop: document.getElementById("replaceInstalledOptop").value.trim(),
+    installedImp1: document.getElementById("replaceInstalledImp1").value.trim(),
+    installedImp2: document.getElementById("replaceInstalledImp2").value.trim(),
+    installedImp3: document.getElementById("replaceInstalledImp3").value.trim(),
+    installedOther: document.getElementById("replaceInstalledOther").value.trim()
+  };
+}
+
+function collectControlData(){
+  return {
+    worker: worker,
+    workType: selectedWork,
+    mode: "control",
+
+    account: document.getElementById("controlAccountView").innerText,
+    pib: document.getElementById("controlPibView").innerText,
+
+    meterType: document.getElementById("controlMeterType").value.trim(),
+    meterNumber: document.getElementById("controlMeterNumber").value.trim(),
+
+    t0: document.getElementById("controlT0").value.trim(),
+    t1: document.getElementById("controlT1").value.trim(),
+    t2: document.getElementById("controlT2").value.trim(),
+    t3: document.getElementById("controlT3").value.trim(),
+
+    installedLichil: document.getElementById("controlInstalledLichil").value.trim(),
+    installedOptop: document.getElementById("controlInstalledOptop").value.trim(),
+    installedFasad1: document.getElementById("controlInstalledFasad1").value.trim(),
+    installedFasad2: document.getElementById("controlInstalledFasad2").value.trim(),
+    installedVkp: document.getElementById("controlInstalledVkp").value.trim(),
+    installedImp1: document.getElementById("controlInstalledImp1").value.trim(),
+    installedImp2: document.getElementById("controlInstalledImp2").value.trim(),
+    installedImp3: document.getElementById("controlInstalledImp3").value.trim(),
+    installedOther: document.getElementById("controlInstalledOther").value.trim()
+  };
+}
+
+let fasadPhase = null;
+
+function setPhase(p){
+  fasadPhase = p;
+}
+
+function goFasadStep2(){
+
+  const order = document.getElementById("fasadOrder").value.trim();
+  const phase = document.querySelector('input[name="phase"]:checked');
+
+  if(!order || !phase){
+    alert("Заповніть всі поля");
+    return;
+  }
+
+  document.getElementById("fasadStep1").classList.add("hidden");
+  document.getElementById("fasadStep2").classList.remove("hidden");
+
+  if(fasadPhase == 1){
+    document.getElementById("mat1f").classList.remove("hidden");
+    document.getElementById("mat3f").classList.add("hidden");
+  }else{
+    document.getElementById("mat3f").classList.remove("hidden");
+    document.getElementById("mat1f").classList.add("hidden");
+  }
+}
+
+function backToFasad1(){
+  document.getElementById("fasadStep2").classList.add("hidden");
+  document.getElementById("fasadStep1").classList.remove("hidden");
+}
+
+function goFasadStep3(){
+  document.getElementById("fasadStep2").classList.add("hidden");
+  document.getElementById("fasadStep3").classList.remove("hidden");
+}
+
+function backToFasad2(){
+  document.getElementById("fasadStep3").classList.add("hidden");
+  document.getElementById("fasadStep2").classList.remove("hidden");
+}
+
+function goFasadStep4(){
+
+  const mark = document.getElementById("fasadDemoMark").value.trim();
+  const length = document.getElementById("fasadDemoLength").value.trim();
+  const demoBy = document.querySelector('input[name="fasadDemoBy"]:checked');
+
+  if(!mark || !length || !demoBy){
+    alert("Заповніть демонтаж");
+    return;
+  }
+
+  isFasadFlow = true;
+
+  const acc = document.getElementById("account").value.trim();
+
+  document.getElementById("fasadStep3").classList.add("hidden");
+
+  if(navigator.onLine){
+
+    google.script.run.withSuccessHandler(res=>{
+      if(res.found){
+        openReplaceFromFasad(res.data);
+      }else{
+        alert("Не знайдено");
+      }
+    }).findAccountFast(acc);
+
+  }else{
+
+    openReplaceFromFasad({
+      account: acc,
+      pib: "",
+      street: "",
+      house: "",
+      flat: "",
+      type: "",
+      meter: "",
+      plomb: ""
+    });
+
+  }
+}
+
+function openReplaceFromFasad(d){
+
+  document.getElementById("meterReplaceStep1").classList.remove("hidden");
+
+  document.getElementById("replaceWorkerTab1").innerText = worker;
+  document.getElementById("replaceWorkerName1").innerText = workerName;
+
+  document.getElementById("replaceAccountView1").innerText = d.account || "";
+  document.getElementById("replacePibView1").innerText = d.pib || "";
+
+  document.getElementById("replaceAddressView1").innerText =
+    (d.street || "") + " буд. " + (d.house || "") + " кв. " + (d.flat || "");
+
+  document.getElementById("replaceRemovedMeterType").value = d.type || "";
+  document.getElementById("replaceRemovedMeterNumber").value = d.meter || "";
+
+  const plombs = parsePlombs(d.plomb || "");
+
+  document.getElementById("replaceRemovedLichil").value = plombs.lichil;
+  document.getElementById("replaceRemovedOptop").value = plombs.optop;
+
+  document.getElementById("replaceRemovedFasad1").value = plombs.fasad[0];
+  document.getElementById("replaceRemovedFasad2").value = plombs.fasad[1];
+
+  document.getElementById("replaceRemovedVkp").value = plombs.vkp;
+
+  document.getElementById("replaceRemovedImp1").value = plombs.imp[0];
+  document.getElementById("replaceRemovedImp2").value = plombs.imp[1];
+  document.getElementById("replaceRemovedImp3").value = plombs.imp[2];
+
+  document.getElementById("replaceRemovedOther").value = plombs.other;
+  resizeTextarea(document.getElementById("replaceRemovedOther"));
+
+  document.getElementById("replaceRemovedT0").value = "";
+  document.getElementById("replaceRemovedT1").value = "";
+  document.getElementById("replaceRemovedT2").value = "";
+  document.getElementById("replaceRemovedT3").value = "";
+}
+
+function backFromReplace1(){
+
+  if(isFasadFlow){
+    document.getElementById("meterReplaceStep1").classList.add("hidden");
+    document.getElementById("fasadStep3").classList.remove("hidden");
+    return;
+  }
+
+  // стандартна логіка
+  document.getElementById("meterReplaceStep1").classList.add("hidden");
+  showSearchBlock();
+}
+
+function backFromReplace2(){
+
+  if(isFasadFlow){
+    document.getElementById("meterReplaceStep2").classList.add("hidden");
+    document.getElementById("meterReplaceStep1").classList.remove("hidden");
+    return;
+  }
+
+  document.getElementById("meterReplaceStep2").classList.add("hidden");
+  document.getElementById("meterReplaceStep1").classList.remove("hidden");
+}
+
+function saveFasadData() {
+  const is1F = (fasadPhase == 1);
+  const data = Object.assign(collectReplaceData(), {
+    mode: "fasad_replace", // Спеціальний маркер для Code.gs
+
+    fasadOrder: document.getElementById("fasadOrder").value.trim(),
+    fasadReason: document.querySelector('input[name="reason"]:checked')?.value || "",
+    fasadArea: document.querySelector('input[name="area"]:checked')?.value || "",
+    fasadPhase: fasadPhase,
+    fasadType: document.querySelector('input[name="type"]:checked')?.value || "",
+
+    // Демонтаж
+    demoMark: document.getElementById("fasadDemoMark").value,
+    demoLength: document.getElementById("fasadDemoLength").value,
+    demoBy: document.querySelector('input[name="fasadDemoBy"]:checked')?.value || "",
+
+    // Матеріали 1Ф
+    f1_box: is1F ? document.getElementById("f1_box").value : "",
+    f1_nom: is1F ? document.getElementById("f1_nom").value : "",
+    f1_asxsn: is1F ? document.getElementById("f1_asxsn").value : "",
+    f1_zn: is1F ? document.getElementById("f1_zn").value : "",
+    f1_zv: is1F ? document.getElementById("f1_zv").value : "",
+    f1_cable: is1F ? document.getElementById("f1_cable").value : "",
+    f1_gofra: is1F ? document.getElementById("f1_gofra").value : "",
+    f1_clip: is1F ? document.getElementById("f1_clip").value : "",
+    f1_anker: is1F ? document.getElementById("f1_anker").value : "",
+    f1_dubel: is1F ? document.getElementById("f1_dubel").value : "",
+    f1_boxk: is1F ? document.getElementById("f1_boxk").value : "",
+    f1_styajka: is1F ? document.getElementById("f1_styajka").value : "",
+    f1_other: is1F ? document.getElementById("f1_other").value : "",
+
+    // Матеріали 3Ф
+    f3_box: !is1F ? document.getElementById("f3_box").value : "",
+    f3_nom: !is1F ? document.getElementById("f3_nom").value : "",
+    f3_asxsn: !is1F ? document.getElementById("f3_asxsn").value : "",
+    f3_zn: !is1F ? document.getElementById("f3_zn").value : "",
+    f3_zv: !is1F ? document.getElementById("f3_zv").value : "",
+    f3_cable: !is1F ? document.getElementById("f3_cable").value : "",
+    f3_gofra: !is1F ? document.getElementById("f3_gofra").value : "",
+    f3_clip: !is1F ? document.getElementById("f3_clip").value : "",
+    f3_anker: !is1F ? document.getElementById("f3_anker").value : "",
+    f3_dubel: !is1F ? document.getElementById("f3_dubel").value : "",
+    f3_boxk: !is1F ? document.getElementById("f3_boxk").value : "",
+    f3_styajka: !is1F ? document.getElementById("f3_styajka").value : "",
+    f3_other: !is1F ? document.getElementById("f3_other").value : ""
+  });
+
+  // Відправляємо на сервер
+  sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
+  isFasadFlow = false; // Скидаємо прапорець
+}
+
+function askLogout(){
+  document.getElementById("logoutModal").classList.remove("hidden");
+}
+
+function goBackControlCheck(){
+  document.getElementById("controlCheckForm").classList.add("hidden");
+  showSearchBlock();
+}
+
+function closeLogoutModal(){
+  document.getElementById("logoutModal").classList.add("hidden");
+}
+
+</script>
 
 </body>
 </html>
