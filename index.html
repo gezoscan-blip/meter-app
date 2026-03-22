@@ -537,8 +537,7 @@ textarea { resize: none; overflow: hidden; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ОСТАННЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbz7_dFtVLR-hRwTMAkGgzPDyhY7yHY56GNOmUldRhfQeWyuAbSsnWuGQaZwNqoTu5gQ/exec";
-const beep = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycby7wtdTerMoejfv_g-ZsU3xhAtPqDP-Fck-NWVjAaKNjxQdDcao1l4kvDIdF9jUxEJd/exec";
   
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -671,7 +670,7 @@ function showHints(list){
     box.appendChild(div);
   });
 }
-
+const beep = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
 let scanner = null;
 
 async function startScanner(){
