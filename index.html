@@ -14,525 +14,72 @@
 
 <style>
 /* =====================================================
-ЗАГАЛЬНИЙ СТИЛЬ ТА ШРИФТИ
+ЗАГАЛЬНИЙ СТИЛЬ ТА ШРИФТИ (Компактні)
 ===================================================== */
-body {
-  font-family: Arial, sans-serif;
-  background: #f0f2f5;
-  margin: 0;
-  padding: 8px;
-  color: #111;
-  font-size: 26px; 
-}
-
-.container {
-  padding: 10px;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.card {
-  background: #fff;
-  padding: 20px; 
-  border-radius: 16px;
-  margin-top: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
+body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 5px; color: #111; font-size: 16px; }
+.container { padding: 5px; width: 100%; max-width: 100%; box-sizing: border-box; }
+.card { background: #fff; padding: 15px; border-radius: 12px; margin-top: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .hidden { display: none !important; }
 
-/* =====================================================
-КНОПКИ
-===================================================== */
-button {
-  width: 100%;
-  min-height: 80px; 
-  border: none;
-  border-radius: 14px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #fff;
-  margin-top: 15px;
-  transition: transform 0.1s;
-}
+/* КНОПКИ */
+button { width: 100%; min-height: 48px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; color: #fff; margin-top: 10px; transition: transform 0.1s; }
 button:active { transform: scale(0.97); }
-
 .actionBtn { background: #2196F3; }
 .btn-save { background: #FF9800; }
 .btn-back { background: #9E9E9E; }
-.logoutBtn {
-  width: 60px; height: 60px; min-height: 60px;
-  border-radius: 50%;
-  background: #d32f2f;
-  font-size: 24px;
-}
+.logoutBtn { width: 40px; height: 40px; min-height: 40px; border-radius: 50%; background: #d32f2f; font-size: 18px; padding: 0;}
+.work-btn { background: #efefef; color: #111; border: 1px solid #ccc; min-height: 48px; font-size: 16px; font-weight: bold; margin-top: 8px; }
+.work-btn.active { background: #4CAF50; color: #fff; border-color: #4CAF50; }
 
-.work-btn {
-  background: #efefef;
-  color: #111;
-  border: 1px solid #ccc;
-  min-height: 70px;
-  font-size: 24px;
-  font-weight: bold;
-  margin-top: 10px;
-}
-.work-btn.active {
-  background: #4CAF50;
-  color: #fff;
-  border-color: #4CAF50;
-}
+/* ІНПУТИ */
+input, select, textarea { width: 100%; min-height: 44px; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; box-sizing: border-box; font-weight: bold; margin: 0; }
+textarea { resize: none; overflow: hidden; font-size: 14px; }
 
-/* =====================================================
-ІНПУТИ (ПОЛЯ ВВЕДЕННЯ)
-===================================================== */
-input, select, textarea {
-  width: 100%;
-  min-height: 70px; 
-  padding: 15px;
-  font-size: 28px; 
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  background: #fff;
-  box-sizing: border-box;
-  font-weight: bold;
-}
-textarea { resize: none; overflow: hidden; }
+/* СКАНЕР ТА ПОШУК */
+.account-box { position: relative; margin-top: 10px; }
+.account-box input { padding-right: 55px; }
+.scan-inline { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; min-height: 44px; background: #4CAF50; border-radius: 8px; font-size: 20px; margin: 0; padding: 0; }
 
-/* =====================================================
-ПОЛЕ РАХУНКУ ТА СКАНЕР
-===================================================== */
-.account-box { position: relative; margin-top: 15px; }
-.account-box input { padding-right: 80px; }
-.scan-inline {
-  position: absolute;
-  right: 8px; top: 50%;
-  transform: translateY(-50%);
-  width: 60px; height: 60px; min-height: 60px;
-  background: #4CAF50;
-  border-radius: 12px;
-  font-size: 30px;
-  margin: 0; padding: 0;
-}
-
-/* =====================================================
-ІНФОРМАЦІЯ ПРО АБОНЕНТА ТА ПРАЦІВНИКА
-===================================================== */
-.workerCard {
-  background: #e3f2fd;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 20px;
-  font-size: 24px;
-}
-.topInfoRow {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  font-size: 30px;
-  font-weight: bold;
-}
-.accountRight { color: #d32f2f; }
-.info { font-size: 26px; margin-bottom: 10px; line-height: 1.3; }
+/* ІНФО БЛОКИ (Шапка форми) */
+.workerCard { background: #e3f2fd; border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 16px; }
+.topInfoRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 18px; font-weight: bold; }
+.accountRight { color: #d32f2f; font-size: 18px; }
+.info { font-size: 16px; margin-bottom: 6px; line-height: 1.2; }
 .valueBold { font-weight: bold; color: #1565c0; }
+.sectionLine { border-top: 2px solid #eee; margin: 15px 0; }
+.blockTitle { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #333; }
+.fieldGrid { display: flex; flex-direction: column; gap: 8px; }
+.fieldLabel { font-size: 14px; font-weight: normal; margin-bottom: -4px; color: #555; }
 
-.sectionLine { border-top: 2px solid #eee; margin: 20px 0; }
-.blockTitle { font-size: 32px; font-weight: bold; margin-bottom: 15px; color: #333; }
-
-.fieldGrid { display: flex; flex-direction: column; gap: 15px; }
-.fieldLabel { font-size: 28px; font-weight: normal; margin-bottom: -10px; }
-
-/* =====================================================
-РАДІОКНОПКИ ТА ЧЕКБОКСИ (ФАСАДНІ РОБОТИ)
-===================================================== */
-.radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; 
-  margin-top: 10px;
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-}
-.radio-label {
-  display: flex;
-  align-items: center;
-  font-size: 28px; 
-  cursor: pointer;
-}
-.radio-label input[type="radio"], 
-.radio-label input[type="checkbox"] {
-  width: 40px !important; 
-  height: 40px !important;
-  min-height: 40px !important;
-  margin: 0 15px 0 0 !important;
-  flex-shrink: 0;
-}
-
-/* =====================================================
-ТАБЛИЦЯ МАТЕРІАЛІВ
-===================================================== */
-.material-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 0;
-  border-bottom: 1px solid #e0e0e0;
-}
-.material-name { font-size: 24px; width: 65%; line-height: 1.2; }
+/* РАДІОКНОПКИ ТА МАТЕРІАЛИ (Для Фасадних робіт) */
+.radio-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+.radio-label { display: flex; align-items: center; font-size: 16px; cursor: pointer; }
+.radio-label input { width: 24px !important; height: 24px !important; margin: 0 10px 0 0 !important; flex-shrink: 0; }
+.material-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e0e0e0; }
+.material-name { font-size: 14px; width: 65%; line-height: 1.2; }
 .material-input { width: 35%; }
-.material-input input { min-height: 60px; font-size: 28px; text-align: center; }
+.material-input input { min-height: 40px; font-size: 16px; text-align: center; padding: 5px; }
 
-/* =====================================================
-ПЛОМБИ ТА ПОКАЗИ
-===================================================== */
-.plombRow {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-.plombPlace { flex: 0 0 35%; font-size: 26px; }
+/* ПЛОМБИ ТА ПОКАЗИ (Виправлено для екрану) */
+.plombHeaderRow { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; text-align: center;}
+.plombRow { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.plombPlace { flex: 0 0 32%; font-size: 13px; line-height: 1.1; }
 .plombField { flex: 1; }
-.plombField input { text-align: center; }
+.plombField input { text-align: center; font-size: 15px; padding: 8px 4px; min-height: 40px; }
+.plombField textarea { font-size: 14px; padding: 8px 4px; min-height: 40px; line-height: 1.2;}
 
-.meterRow {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
+.meterRow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .meterBox { text-align: center; }
-.meterBox label { display: block; font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-.meterBox input { text-align: center; font-size: 26px; padding: 10px 5px; }
+.meterBox label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #444; }
+.meterBox input { text-align: center; font-size: 16px; padding: 8px 2px; min-height: 44px;}
 
-/* Підказки */
-.hintBox { background: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 4px; max-height: 180px; overflow: auto; }
-.hintItem { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 28px; }
+/* ПІДКАЗКИ */
+.hintBox { background: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 4px; max-height: 150px; overflow: auto; }
+.hintItem { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 16px; }
 .hintItem:hover { background: #f5f5f5; }
-
-.meterTypeHints { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid #d9d9d9; border-radius: 10px; max-height: 420px; overflow: auto; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-.meterTypeItem { padding: 10px 12px; font-size: 24px; cursor: pointer; border-bottom: 1px solid #eee; background: #fff; }
+.meterTypeHints { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid #d9d9d9; border-radius: 8px; max-height: 250px; overflow: auto; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.meterTypeItem { padding: 12px; font-size: 16px; cursor: pointer; border-bottom: 1px solid #eee; background: #fff; }
 </style>
-
-</head>
-
-<body>
-
-<!-- =====================================================
-ЕКРАН ВХОДУ
-===================================================== -->
-<div class="container" id="login">
-  <div class="card">
-    <h3>Вхід</h3>
-    <input id="tab" placeholder="Табельний номер">
-    <input id="pass" type="password" placeholder="Пароль">
-    <button onclick="doLogin()">Увійти</button>
-  </div>
-</div>
-
-<!-- =====================================================
-ГОЛОВНИЙ ДОДАТОК
-===================================================== -->
-<div class="container hidden" id="app">
-
-  <!-- БЛОК ПОШУКУ -->
-  <div class="card" id="searchBlock">
-    <div class="statusBar">
-      <div class="status" id="who"></div>
-      <button class="logoutBtn" onclick="askLogout()">✖</button>
-    </div>
-
-    <div class="work-buttons">
-      <button class="work-btn" onclick="selectWork(this,'Технічна перевірка')">Технічна перевірка</button>
-      <button class="work-btn" onclick="selectWork(this,'Фасадні роботи')">Фасадні роботи</button>
-      <button class="work-btn" onclick="selectWork(this,'Заміна лічильника')">Заміна лічильника</button>
-      <button class="work-btn" onclick="selectWork(this,'Контрольний огляд')">Контрольний огляд</button>
-      <button class="work-btn" onclick="selectWork(this,'Закриття о/р з демонтажем')">Закриття о/р з демонтажем</button>
-    </div>
-
-    <div class="account-box">
-      <input id="account" placeholder="Особовий рахунок" autocomplete="off" inputmode="numeric" oninput="autoSearch()">
-      <button class="scan-inline" onclick="startScanner()">📷</button>
-    </div>
-    
-    <div id="reader" style="width: 100%; margin-top: 15px; display: none; border-radius: 10px; overflow: hidden; background: black;"></div>
-
-    <div id="accountHints" class="hintBox"></div>
-
-    <div class="row">
-      <button class="actionBtn" onclick="search()">Знайти</button>
-      <button class="actionBtn" onclick="offlineMode()">Офлайн режим</button>
-    </div>
-  </div>
-
-  <!-- ФОРМА Техперевірки -->
-  <div class="card hidden" id="techCheckForm">
-    <div class="workerCard">Т/н: <span id="workerTab"></span> <span id="workerName"></span></div>
-    <div class="topInfoRow"><div class="workTypeLeft"><span id="workTypeView"></span></div><div class="accountRight">О/р: <span id="accountView"></span></div></div>
-    <div class="info"><span class="label">Споживач:</span> <span id="pibView" class="valueBold"></span></div>
-    <div class="info"><span class="label">Адреса:</span> <span id="addressView" class="valueBold"></span></div>
-    <div class="sectionLine"></div>
-
-    <div class="blockTitle">Встановлений лічильник</div>
-    <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="meterType"></div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="meterNumber"></div>
-    </div>
-    <div class="sectionLine"></div>
-
-    <div class="plombHeaderRow">
-      <div class="plombPlaceHead">Місце пломбування</div><div class="plombNumHead">№ Знятої пломби</div><div class="plombNumHead">№ Встановленої пломби</div>
-    </div>
-    <div class="plombRow"><div class="plombPlace">Клемна кришка</div><div class="plombField"><input id="removedLichil" maxlength="9"></div><div class="plombField"><input id="installedLichil" maxlength="9"></div></div>
-    <div class="plombRow"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="removedFasad1" maxlength="9"></div><div class="plombField"><input id="installedFasad1" maxlength="9"></div></div>
-    <div class="plombRow"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="removedFasad2" maxlength="9"></div><div class="plombField"><input id="installedFasad2" maxlength="9"></div></div>
-    <div class="plombRow"><div class="plombPlace">ВКП</div><div class="plombField"><input id="removedVkp" maxlength="9"></div><div class="plombField"><input id="installedVkp" maxlength="9"></div></div>
-    <div class="plombRow"><div class="plombPlace">Оптопорт</div><div class="plombField"><input id="removedOptop" maxlength="9"></div><div class="plombField"><input id="installedOptop" maxlength="9"></div></div>
-    <div class="plombRow"><div class="plombPlace">ІМП</div><div class="plombField"><input id="removedImp1" maxlength="9"></div><div class="plombField"><input id="installedImp1" maxlength="9"></div></div>
-    <div class="plombRow"><div class="plombPlace">ІМП</div><div class="plombField"><input id="removedImp2" maxlength="9"></div><div class="plombField"><input id="installedImp2" maxlength="9"></div></div>
-    <div class="plombRow"><div class="plombPlace">ІМП</div><div class="plombField"><input id="removedImp3" maxlength="9"></div><div class="plombField"><input id="installedImp3" maxlength="9"></div></div>
-    <div class="plombRow plombRowOther"><div class="plombPlace">Інше</div><div class="plombField"><textarea id="removedOther" rows="1" oninput="resizeTextarea(this)"></textarea></div><div class="plombField"><textarea id="installedOther" rows="1" oninput="resizeTextarea(this)"></textarea></div></div>
-
-    <div class="sectionLine"></div>
-    <div class="meterTitle">Покази лічильника</div>
-    <div class="meterRow">
-      <div class="meterBox"><label>T</label><input id="t0" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
-      <div class="meterBox"><label>T1</label><input id="t1" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
-      <div class="meterBox"><label>T2</label><input id="t2" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
-      <div class="meterBox"><label>T3</label><input id="t3" maxlength="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
-    </div>
-    <button class="btn-save actionBtn" onclick="save()">Зберегти</button>
-    <button class="btn-back actionBtn" onclick="goBack()">Назад</button>
-    <div id="saveHint"></div>
-  </div>
-
-  <!-- ФОРМА Заміни лічильника Крок 1 -->
-  <div class="card hidden" id="meterReplaceStep1">
-    <div class="workerCard">Т/н: <span id="replaceWorkerTab1"></span> <span id="replaceWorkerName1"></span></div>
-    <div class="topInfoRow"><div class="workTypeLeft"><span>Заміна лічильника</span></div><div class="accountRight">О/р: <span id="replaceAccountView1"></span></div></div>
-    <div class="info"><span class="label">Споживач:</span><span id="replacePibView1" class="valueBold"></span></div>
-    <div class="info"><span class="label">Адреса:</span><span id="replaceAddressView1" class="valueBold"></span></div>
-    <div class="sectionLine"></div>
-
-    <div class="blockTitle">Знятий лічильник</div>
-    <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="replaceRemovedMeterType"></div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="replaceRemovedMeterNumber"></div>
-    </div>
-    <div class="sectionLine"></div>
-
-    <div class="blockTitle">Зняті пломби</div>
-    <div class="plombHeaderRow replaceHeader2"><div class="plombPlaceHead">Місце пломбування</div><div class="plombNumHead">№ Знятої пломби</div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Клемна кришка</div><div class="plombField"><input id="replaceRemovedLichil" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="replaceRemovedFasad1" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="replaceRemovedFasad2" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ВКП</div><div class="plombField"><input id="replaceRemovedVkp" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Оптопорт</div><div class="plombField"><input id="replaceRemovedOptop" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="replaceRemovedImp1" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="replaceRemovedImp2" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="replaceRemovedImp3" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2 replaceRowOther2"><div class="plombPlace">Інше</div><div class="plombField"><textarea id="replaceRemovedOther" rows="1" oninput="resizeTextarea(this)"></textarea></div></div>
-    <div class="sectionLine"></div>
-
-    <div class="meterTitle">Покази знятого лічильника</div>
-    <div class="meterRow">
-      <div class="meterBox"><label>T</label><input id="replaceRemovedT0" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T1</label><input id="replaceRemovedT1" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T2</label><input id="replaceRemovedT2" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T3</label><input id="replaceRemovedT3" maxlength="7" inputmode="numeric"></div>
-    </div>
-    <button class="btn-save actionBtn" onclick="goToReplaceStep2()">Далі</button>
-    <button class="btn-back actionBtn" onclick="backFromReplace1()">Назад</button>
-  </div>
-
-  <!-- ФОРМА Заміни лічильника Крок 2 -->
-  <div class="card hidden" id="meterReplaceStep2">
-    <div class="workerCard">Т/н: <span id="replaceWorkerTab2"></span> <span id="replaceWorkerName2"></span></div>
-    <div class="topInfoRow"><div class="workTypeLeft"><span>Заміна лічильника</span></div><div class="accountRight">О/р: <span id="replaceAccountView2"></span></div></div>
-    <div class="info"><span class="label">Споживач:</span><span id="replacePibView2" class="valueBold"></span></div>
-    <div class="info"><span class="label">Адреса:</span><span id="replaceAddressView2" class="valueBold"></span></div>
-    <div class="sectionLine"></div>
-
-    <div class="blockTitle">Встановлений лічильник</div>
-    <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div>
-      <div class="meterTypeBox"><input id="replaceInstalledMeterType" autocomplete="off" onfocus="showMeterTypes()" oninput="filterMeterTypes(this.value)"><div id="meterTypeHints" class="meterTypeHints hidden"></div></div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="replaceInstalledMeterNumber"></div>
-    </div>
-    <div class="sectionLine"></div>
-
-    <div class="blockTitle">Встановлені пломби</div>
-    <div class="plombHeaderRow replaceHeader2"><div class="plombPlaceHead">Місце пломбування</div><div class="plombNumHead">№ Встановленої пломби</div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Клемна кришка</div><div class="plombField"><input id="replaceInstalledLichil" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="replaceInstalledFasad1" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="replaceInstalledFasad2" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ВКП</div><div class="plombField"><input id="replaceInstalledVkp" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Оптопорт</div><div class="plombField"><input id="replaceInstalledOptop" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="replaceInstalledImp1" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="replaceInstalledImp2" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="replaceInstalledImp3" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2 replaceRowOther2"><div class="plombPlace">Інше</div><div class="plombField"><textarea id="replaceInstalledOther" rows="1" oninput="resizeTextarea(this)"></textarea></div></div>
-    <div class="sectionLine"></div>
-
-    <div class="meterTitle">Покази встановленого лічильника</div>
-    <div class="meterRow">
-      <div class="meterBox"><label>T</label><input id="replaceInstalledT0" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T1</label><input id="replaceInstalledT1" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T2</label><input id="replaceInstalledT2" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T3</label><input id="replaceInstalledT3" maxlength="7" inputmode="numeric"></div>
-    </div>
-    <button class="btn-save actionBtn" onclick="saveReplaceData()">Зберегти</button>
-    <button class="btn-back actionBtn" onclick="backFromReplace2()">Назад</button>
-    <div id="replaceSaveHint"></div>
-  </div>
-
-  <!-- ФОРМА Контрольного огляду -->
-  <div class="card hidden" id="controlCheckForm">
-    <div class="workerCard">Т/н: <span id="controlWorkerTab"></span> <span id="controlWorkerName"></span></div>
-    <div class="topInfoRow"><div class="workTypeLeft"><span>Контрольний огляд</span></div><div class="accountRight">О/р: <span id="controlAccountView"></span></div></div>
-    <div class="info"><span class="label">Споживач:</span><span id="controlPibView" class="valueBold"></span></div>
-    <div class="info"><span class="label">Адреса:</span><span id="controlAddressView" class="valueBold"></span></div>
-    <div class="sectionLine"></div>
-
-    <div class="blockTitle">Встановлений лічильник</div>
-    <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="controlMeterType"></div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="controlMeterNumber"></div>
-    </div>
-    <div class="sectionLine"></div>
-
-    <div class="blockTitle">Встановлені пломби</div>
-    <div class="plombHeaderRow replaceHeader2"><div class="plombPlaceHead">Місце пломбування</div><div class="plombNumHead">№ Встановленої пломби</div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Клемна кришка</div><div class="plombField"><input id="controlInstalledLichil" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="controlInstalledFasad1" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Шафа обліку</div><div class="plombField"><input id="controlInstalledFasad2" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ВКП</div><div class="plombField"><input id="controlInstalledVkp" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">Оптопорт</div><div class="plombField"><input id="controlInstalledOptop" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="controlInstalledImp1" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="controlInstalledImp2" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2"><div class="plombPlace">ІМП</div><div class="plombField"><input id="controlInstalledImp3" maxlength="9"></div></div>
-    <div class="plombRow replaceRow2 replaceRowOther2"><div class="plombPlace">Інше</div><div class="plombField"><textarea id="controlInstalledOther" rows="1" oninput="resizeTextarea(this)"></textarea></div></div>
-    <div class="sectionLine"></div>
-
-    <div class="meterTitle">Покази встановленого лічильника</div>
-    <div class="meterRow">
-      <div class="meterBox"><label>T</label><input id="controlT0" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T1</label><input id="controlT1" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T2</label><input id="controlT2" maxlength="7" inputmode="numeric"></div>
-      <div class="meterBox"><label>T3</label><input id="controlT3" maxlength="7" inputmode="numeric"></div>
-    </div>
-    <button class="btn-save actionBtn" onclick="saveControlCheck()">Зберегти</button>
-    <button class="btn-back actionBtn" onclick="goBackControlCheck()">Назад</button>
-    <div id="controlSaveHint"></div>
-  </div>
-
-  <!-- ФОРМА ФАСАДНІ РОБОТИ — СТОРІНКА 1 -->
-  <div class="card hidden" id="fasadStep1">
-    <div class="workerCard">Т/н: <span id="fasadWorkerTab"></span> <span id="fasadWorkerName"></span></div>
-    <div class="blockTitle">Фасадні роботи</div>
-    <div class="fieldGrid">
-      <div class="fieldLabel">Номер наряду</div><div><input id="fasadOrder"></div>
-      <div class="fieldLabel">Підстава</div>
-      <div class="radio-group">
-        <label class="radio-label"><input type="radio" name="reason" value="РП 26"> РП 26</label>
-        <label class="radio-label"><input type="radio" name="reason" value="Заміна короба"> Заміна короба</label>
-        <label class="radio-label"><input type="radio" name="reason" value="ПП"> ПП</label>
-      </div>
-      <div class="fieldLabel">Дільниця</div>
-      <div class="radio-group">
-        <label class="radio-label"><input type="radio" name="area" value="ПОФ"> ПОФ</label>
-        <label class="radio-label"><input type="radio" name="area" value="Нові Санжари"> Нові Санжари</label>
-        <label class="radio-label"><input type="radio" name="area" value="Диканька"> Диканька</label>
-        <label class="radio-label"><input type="radio" name="area" value="Карлівка"> Карлівка</label>
-        <label class="radio-label"><input type="radio" name="area" value="Решетилівка"> Решетилівка</label>
-      </div>
-      <div class="fieldLabel">Фазність</div>
-      <div class="radio-group">
-        <label class="radio-label"><input type="radio" name="phase" value="1" onchange="setPhase(1)"> 1</label>
-        <label class="radio-label"><input type="radio" name="phase" value="3" onchange="setPhase(3)"> 3</label>
-      </div>
-      <div class="fieldLabel">Тип обліку</div>
-      <div class="radio-group">
-        <label class="radio-label"><input type="radio" name="type" value="Комерційний"> Комерційний</label>
-        <label class="radio-label"><input type="radio" name="type" value="Технічний"> Технічний</label>
-      </div>
-    </div>
-    <button class="btn-save actionBtn" onclick="goFasadStep2()">Далі</button>
-    <button class="btn-back actionBtn" onclick="goBack()">Назад</button>
-  </div>
-
-  <!-- ФОРМА ФАСАДНІ РОБОТИ — СТОРІНКА 2 (МАТЕРІАЛИ) -->
-  <div class="card hidden" id="fasadStep2">
-    <div class="blockTitle">Витрачені матеріали</div>
-    <!-- МАТЕРІАЛИ 1Ф -->
-    <div id="mat1f" class="hidden">
-      <div class="material-row"><div class="material-name">Фасадний короб 1Ф</div><div class="material-input"><input id="f1_box" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Номінал 1р ВА, А</div><div class="material-input"><input id="f1_nom"></div></div>
-      <div class="material-row"><div class="material-name">AsXSn 2х16, м.</div><div class="material-input"><input id="f1_asxsn" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Затискач натяжний ЗН 1.1, шт.</div><div class="material-input"><input id="f1_zn" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Затискач відгалудж. ЗВ 1.2.2, шт.</div><div class="material-input"><input id="f1_zv" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Кабель ВВГнг 2х4, м.</div><div class="material-input"><input id="f1_cable" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Гофра d25, м.</div><div class="material-input"><input id="f1_gofra" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Кріплення для гофри d25, шт.</div><div class="material-input"><input id="f1_clip" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Гак анкерний, шт.</div><div class="material-input"><input id="f1_anker" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Дюбель-гриб, шт.</div><div class="material-input"><input id="f1_dubel" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Розподільча коробка, шт.</div><div class="material-input"><input id="f1_boxk" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Стяжка кабельна, шт.</div><div class="material-input"><input id="f1_styajka" type="number"></div></div>
-      <div style="margin-top: 10px;"><b>Інше:</b><textarea id="f1_other"></textarea></div>
-    </div>
-    <!-- МАТЕРІАЛИ 3Ф -->
-    <div id="mat3f" class="hidden">
-      <div class="material-row"><div class="material-name">Фасадний короб 3Ф</div><div class="material-input"><input id="f3_box" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Номінал 3р ВА, А</div><div class="material-input"><input id="f3_nom"></div></div>
-      <div class="material-row"><div class="material-name">AsXSn 4х16, м.</div><div class="material-input"><input id="f3_asxsn" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Затискач натяжний ЗН 2.1, шт.</div><div class="material-input"><input id="f3_zn" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Затискач відгалудж. ЗВ 1.2.2, шт.</div><div class="material-input"><input id="f3_zv" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Кабель ВВГнг 2х4, м.</div><div class="material-input"><input id="f3_cable" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Гофра d32, м.</div><div class="material-input"><input id="f3_gofra" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Кріплення для гофри d32, шт.</div><div class="material-input"><input id="f3_clip" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Гак анкерний, шт.</div><div class="material-input"><input id="f3_anker" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Дюбель-гриб, шт.</div><div class="material-input"><input id="f3_dubel" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Розподільча коробка, шт.</div><div class="material-input"><input id="f3_boxk" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Стяжка кабельна, шт.</div><div class="material-input"><input id="f3_styajka" type="number"></div></div>
-      <div style="margin-top: 10px;"><b>Інше:</b><textarea id="f3_other"></textarea></div>
-    </div>
-    <button class="btn-save actionBtn" onclick="goFasadStep3()">Далі</button>
-    <button class="btn-back actionBtn" onclick="backToFasad1()">Назад</button>
-  </div>
-
-  <!-- ФОРМА ФАСАДНІ РОБОТИ — СТОРІНКА 3 (ДЕМОНТАЖ) -->
-  <div class="card hidden" id="fasadStep3">
-    <div class="blockTitle">Демонтований ввід</div>
-    <div class="fieldGrid">
-      <div class="fieldLabel">Марка та переріз демонтованого вводу</div>
-      <div>
-        <select id="fasadDemoMark" class="fasadSelect" style="width:100%;height:70px;font-size:24px;">
-          <option value="">Вибрати</option><option value="AsXSn 2х16">AsXSn 2х16</option><option value="AsXSn 4х16">AsXSn 4х16</option><option value="АПВ 1х10">АПВ 1х10</option><option value="АПВ 2х10">АПВ 2х10</option><option value="СІП 2х16">СІП 2х16</option><option value="СІП 4х16">СІП 4х16</option><option value="ВВГ 2х4">ВВГ 2х4</option><option value="Інше">Інше</option>
-        </select>
-      </div>
-      <div class="fieldLabel">Метраж демонтованого вводу</div><div><input id="fasadDemoLength" type="number"></div>
-      <div class="fieldLabel">Ввід демонтували</div>
-      <div class="radio-group"><label class="radio-label"><input type="radio" name="fasadDemoBy" value="ОРБ"> ОРБ</label></div>
-    </div>
-    <button class="btn-save actionBtn" onclick="goFasadStep4()">Далі до заміни лічильника</button>
-    <button class="btn-back actionBtn" onclick="backToFasad2()">Назад</button>
-  </div>
-
-  <!-- ФОРМА Виходу з профіля -->
-  <div id="logoutModal" class="modal hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:9999;">
-    <div class="modalBox" style="background:#fff;padding:30px;border-radius:16px;text-align:center;width:80%;">
-      <div class="modalText" style="font-size:32px;font-weight:bold;">Вийти з профілю?</div>
-      <div class="row">
-        <button onclick="confirmLogout()" style="background:#d32f2f;">Так</button>
-        <button class="btn-back actionBtn" onclick="closeLogoutModal()">Ні</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<script>
 /* =========================================================
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
