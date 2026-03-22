@@ -979,6 +979,66 @@ z-index:9999;
 </div>
 
 <script>
+
+  <script>
+/* =========================================================
+   МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
+========================================================= */
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxC9wgjFxGWFLxxNX_S4_K6sm3KwBhS3qj2JHADJerOVh2XJy2PqSpi5-6YYA0gFgmH/exec";
+
+const google = {
+  script: {
+    run: {
+      withSuccessHandler: function(callback) {
+        return {
+          login: (tab, pass) => sendRequest("login", {tab, pass}, callback),
+          checkWorker: (tab) => sendRequest("checkWorker", {tab}, callback),
+          findAccountFast: (account) => sendRequest("findAccountFast", {account}, callback),
+          searchAccounts: (part) => sendRequest("searchAccounts", {part}, callback),
+          getMeterTypes: () => sendRequest("getMeterTypes", {}, callback),
+          saveData: (data) => sendRequest("saveData", {data}, callback)
+        };
+      },
+      saveData: (data) => sendRequest("saveData", {data}, null)
+    }
+  }
+};
+
+function sendRequest(action, payload, callback) {
+  fetch(GOOGLE_API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: action, ...payload }),
+    headers: { "Content-Type": "text/plain;charset=utf-8" } // Обхід CORS
+  })
+  .then(res => res.json())
+  .then(data => { if(callback) callback(data); })
+  .catch(err => console.error("Помилка зв'язку:", err));
+}
+
+/* =========================================================
+   ЛОГІКА ЖИВОГО СКАНЕРА
+========================================================= */
+let scanner = null;
+function startScanner() {
+  const readerDiv = document.getElementById("reader");
+  readerDiv.style.display = "block";
+  if (!scanner) {
+    scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: { width: 250, height: 100 }, rememberLastUsedCamera: true }, false);
+  }
+  scanner.render(
+    function(decodedText) {
+      document.getElementById("account").value = decodedText;
+      scanner.clear().then(() => {
+        readerDiv.style.display = "none";
+        search(); // Автоматично шукаємо абонента!
+      });
+    },
+    function(error) {} // Ігноруємо втрату фокусу
+  );
+}
+
+// ... ДАЛІ ЙДЕ ВЕСЬ ТВІЙ ЗВИЧАЙНИЙ КОД (let worker = ""; function doLogin() і т.д.)
+  
 /* =========================================================
 ГЛОБАЛЬНІ ЗМІННІ
 ========================================================= */
