@@ -7,7 +7,7 @@
 <base target="_top">
 
 <!-- БІБЛІОТЕКА СКАНЕРА -->
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 
 <style>
 /* ЗАГАЛЬНИЙ СТИЛЬ */
@@ -75,22 +75,14 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 .meterTypeHints { position: absolute; left: 0; right: 0; top: 100%; margin-top: 2px; background: #fff; border: 1px solid #d9d9d9; border-radius: 8px; max-height: 250px; overflow-y: auto; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
 .meterTypeItem { padding: 12px; font-size: 16px; cursor: pointer; border-bottom: 1px solid #eee; background: #fff; }
 
-/* ІДЕАЛЬНИЙ СКАНЕР ПО ЦЕНТРУ ЕКРАНА */
-#scanner-wrapper { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; }
-#scanner-box { background: white; width: 95%; max-width: 400px; padding: 15px; border-radius: 16px; position: relative; }
-#reader { width: 100%; border-radius: 8px; overflow: hidden; position: relative; background: #000; min-height: 250px;}
-.close-scan-btn { position: absolute; top: -15px; right: -15px; width: 40px; height: 40px; background: #d32f2f; color: white; border-radius: 50%; font-size: 20px; border: 2px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001;}
-
-/* Візуальна лінія лазера */
-.laser-line {
-  position: absolute;
-  top: 50%; left: 5%; width: 90%; height: 2px;
-  background: rgba(255, 0, 0, 0.8);
-  box-shadow: 0 0 15px 2px red;
-  z-index: 10;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
+/* ПРОФЕСІЙНИЙ СКАНЕР (ZXing) */
+#scanner-wrapper { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; flex-direction: column; }
+#scanner-box { width: 95%; max-width: 400px; position: relative; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+#video { width: 100%; height: 300px; object-fit: cover; display: block; }
+.laser-line { position: absolute; top: 50%; left: 10%; width: 80%; height: 3px; background: rgba(255, 0, 0, 0.9); box-shadow: 0 0 15px 2px red; transform: translateY(-50%); z-index: 10; animation: scan 2s infinite linear; }
+@keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
+.close-scan-btn { position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; background: #d32f2f; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; }
+#scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
 
 <!-- ЕКРАН ВХОДУ -->
 <div class="container" id="login">
@@ -137,9 +129,10 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
   <div id="scanner-wrapper">
     <div id="scanner-box">
       <button class="close-scan-btn" onclick="stopScanner()">✖</button>
-      <div id="reader"></div>
-      <p style="text-align: center; margin: 10px 0 0 0; font-size: 14px; color: #555;">Наведіть камеру на штрихкод. Камера сфокусується автоматично.</p>
+      <video id="video"></video>
+      <div class="laser-line"></div>
     </div>
+    <div id="scan-hint">Наведіть червону лінію на штрихкод лічильника.<br>Камера (1x) сфокусується автоматично.</div>
   </div>
 
   <!-- ФОРМА Техперевірки -->
@@ -574,62 +567,65 @@ function search(){
 }
 
 /* =========================================================
-ЖИВИЙ СКАНЕР (Full HD + Лазер + Відстань 20 см)
+ЖИВИЙ СКАНЕР (ZXing - Без "Ширика", Тільки 1x Камера)
 ========================================================= */
+let codeReader = null;
+
 function startScanner() {
-  const readerWrapper = document.getElementById("scanner-wrapper");
-  const readerDiv = document.getElementById("reader");
-  readerWrapper.style.display = "flex";
+  document.getElementById("scanner-wrapper").style.display = "flex";
 
-  // Додаємо візуальний лазер, якщо його ще немає
-  if (!document.getElementById("laser-aim")) {
-    const laser = document.createElement("div");
-    laser.id = "laser-aim";
-    laser.className = "laser-line";
-    readerDiv.appendChild(laser);
-  }
+  // Використовуємо MultiFormatReader (він чудово читає лінійні штрихкоди)
+  codeReader = new ZXing.BrowserMultiFormatReader();
 
-  if (scanner) scanner.clear();
+  // Шукаємо всі камери на телефоні
+  codeReader.listVideoInputDevices()
+    .then((videoInputDevices) => {
+      if (videoInputDevices.length === 0) {
+        alert("❌ Камеру не знайдено!");
+        stopScanner();
+        return;
+      }
 
-  // Використовуємо базовий клас Html5Qrcode (він дає більше контролю)
-  scanner = new Html5Qrcode("reader");
+      let selectedDeviceId = videoInputDevices[0].deviceId; // Беремо першу по замовчуванню
 
-  scanner.start(
-    { 
-      facingMode: "environment",
-      // Примусово просимо високу роздільну здатність, щоб читати штрихкод здалеку!
-      advanced: [{ focusMode: "continuous" }]
-    },
-    {
-      fps: 15,
-      // МИ ВИДАЛИЛИ qrbox! Тепер сканується ВЕСЬ кадр. Можна тримати телефон далеко.
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A
-      ]
-    },
-    function(decodedText) {
-      // Успішне сканування
-      document.getElementById("account").value = decodedText;
+      // ХИТРІСТЬ ДЛЯ ТЕЛЕФОНІВ З БАГАТЬМА КАМЕРАМИ:
+      // Ми перебираємо камери і шукаємо ТУ САМУ (Основну задню 1x), 
+      // ігноруючи ширококутні (ultrawide, 0.6x) та фронтальні.
+      for (let i = 0; i < videoInputDevices.length; i++) {
+        let label = videoInputDevices[i].label.toLowerCase();
+        if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
+          // Якщо в назві є слова "широка", "wide", "0", ми її пропускаємо
+          if (!label.includes("wide") && !label.includes("0.")) {
+            selectedDeviceId = videoInputDevices[i].deviceId;
+            break; // Знайшли ідеальну камеру, зупиняємо пошук
+          }
+        }
+      }
+
+      // Запускаємо відео з обраної камери
+      codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+        if (result) {
+          // ШТРИХКОД ЗЛОВИЛИ!
+          document.getElementById("account").value = result.text;
+          stopScanner();
+          search(); // Автопошук
+        }
+        if (err && !(err instanceof ZXing.NotFoundException)) {
+          // Ігноруємо помилки, коли код просто ще не знайдено
+        }
+      });
+    })
+    .catch((err) => {
+      alert("❌ Помилка камери: " + err);
       stopScanner();
-      search(); // Автопошук
-    },
-    function(error) {
-      // Ігноруємо технічні попередження фокусу
-    }
-  ).catch(err => {
-    alert("❌ Помилка камери! Надайте дозвіл у браузері.");
-    stopScanner();
-  });
+    });
 }
 
 function stopScanner() {
   document.getElementById("scanner-wrapper").style.display = "none";
-  if (scanner) {
-    scanner.stop().then(() => { scanner.clear(); }).catch(e => console.log(e));
+  if (codeReader) {
+    codeReader.reset(); // Вимикає камеру
+    codeReader = null;
   }
 }
 
