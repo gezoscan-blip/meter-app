@@ -13,6 +13,7 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
+<style>
 /* =====================================================
 ЗАГАЛЬНИЙ СТИЛЬ ТА ШРИФТИ (Компактні)
 ===================================================== */
@@ -27,7 +28,7 @@ button:active { transform: scale(0.97); }
 .actionBtn { background: #2196F3; }
 .btn-save { background: #FF9800; }
 .btn-back { background: #9E9E9E; }
-.logoutBtn { width: 40px; height: 40px; min-height: 40px; border-radius: 50%; background: #d32f2f; font-size: 18px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: white;}
+.logoutBtn { width: 40px; height: 40px; min-height: 40px; border-radius: 50%; background: #d32f2f; font-size: 20px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: white; }
 .work-btn { background: #efefef; color: #111; border: 1px solid #ccc; min-height: 48px; font-size: 16px; font-weight: bold; margin-top: 8px; }
 .work-btn.active { background: #4CAF50; color: #fff; border-color: #4CAF50; }
 
@@ -38,12 +39,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 /* СКАНЕР ТА ПОШУК */
 .account-box { position: relative; margin-top: 10px; }
 .account-box input { padding-right: 55px; }
-.scan-inline { 
-  position: absolute; right: 5px; top: 50%; transform: translateY(-50%); 
-  width: 44px; height: 44px; min-height: 44px; background: #4CAF50; color: white;
-  border-radius: 8px; font-size: 20px; font-weight: 900; letter-spacing: -1px; /* Стискає палички разом */
-  margin: 0; padding: 0; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center;
-}
+.scan-inline { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; min-height: 44px; background: #4CAF50; color: white; border-radius: 8px; font-size: 18px; font-weight: 900; letter-spacing: -1px; margin: 0; padding: 0; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
 /* ІНФО БЛОКИ (Шапка форми) */
 .workerCard { background: #e3f2fd; border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 16px; }
@@ -56,7 +52,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 .fieldGrid { display: flex; flex-direction: column; gap: 8px; }
 .fieldLabel { font-size: 14px; font-weight: normal; margin-bottom: -4px; color: #555; }
 
-/* РАДІОКНОПКИ ТА МАТЕРІАЛИ (Для Фасадних робіт) */
+/* РАДІОКНОПКИ ТА МАТЕРІАЛИ */
 .radio-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
 .radio-label { display: flex; align-items: center; font-size: 16px; cursor: pointer; }
 .radio-label input { width: 24px !important; height: 24px !important; margin: 0 10px 0 0 !important; flex-shrink: 0; }
@@ -65,7 +61,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 .material-input { width: 35%; }
 .material-input input { min-height: 40px; font-size: 16px; text-align: center; padding: 5px; }
 
-/* ПЛОМБИ ТА ПОКАЗИ (Виправлено для екрану) */
+/* ПЛОМБИ ТА ПОКАЗИ */
 .plombHeaderRow { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; text-align: center;}
 .plombRow { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
 .plombPlace { flex: 0 0 32%; font-size: 13px; line-height: 1.1; }
@@ -82,12 +78,26 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 .hintBox { background: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 4px; max-height: 150px; overflow: auto; }
 .hintItem { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 16px; }
 .hintItem:hover { background: #f5f5f5; }
-.meterTypeHints { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid #d9d9d9; border-radius: 8px; max-height: 250px; overflow: auto; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
-.meterTypeItem { padding: 12px; font-size: 16px; cursor: pointer; border-bottom: 1px solid #eee; background: #fff; }
-
-/* СПИСКИ ЛІЧИЛЬНИКІВ */
 .meterTypeBox { position: relative; margin-top: 5px; }
 .meterTypeHints { position: absolute; left: 0; right: 0; top: 100%; margin-top: 2px; background: #fff; border: 1px solid #d9d9d9; border-radius: 8px; max-height: 250px; overflow-y: auto; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.meterTypeItem { padding: 12px; font-size: 16px; cursor: pointer; border-bottom: 1px solid #eee; background: #fff; }
+
+/* ІДЕАЛЬНИЙ СКАНЕР ПО ЦЕНТРУ ЕКРАНА */
+#scanner-wrapper {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+  background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;
+}
+#scanner-box {
+  background: white; width: 90%; max-width: 400px; padding: 15px; border-radius: 16px; position: relative;
+}
+#reader { width: 100%; border-radius: 8px; overflow: hidden; }
+.close-scan-btn {
+  position: absolute; top: -15px; right: -15px; width: 40px; height: 40px; background: #d32f2f;
+  color: white; border-radius: 50%; font-size: 20px; border: 2px solid white; cursor: pointer; 
+  display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;
+}
+/* Приховуємо зайві меню бібліотеки сканера */
+#reader__dashboard_section_csr span, #reader__dashboard_section_swaplink { display: none !important; }
 
 </style>
 
@@ -113,9 +123,9 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 <div class="container hidden" id="app">
 
   <!-- БЛОК ПОШУКУ -->
-  <div class="card" id="searchBlock">
-    <div class="statusBar">
+ <div class="statusBar">
       <div class="status" id="who"></div>
+      <!-- Кнопка виходу -->
       <button class="logoutBtn" onclick="askLogout()">✖</button>
     </div>
 
@@ -129,22 +139,18 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="account-box">
       <input id="account" placeholder="Особовий рахунок" autocomplete="off" inputmode="numeric" oninput="autoSearch()">
+      <!-- Кнопка зі стильною іконкою штрихкоду -->
       <button class="scan-inline" onclick="startScanner()">||| | | ||</button>
     </div>
-    
-    <!-- Контейнер для ідеального сканера по центру екрана -->
-<div id="reader" style="
-  display: none; 
-  position: fixed; 
-  top: 50%; left: 50%; 
-  transform: translate(-50%, -50%); 
-  width: 90%; max-width: 400px; 
-  background: white; 
-  padding: 10px; 
-  border-radius: 16px; 
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-  z-index: 10000;
-"></div>
+
+    <!-- Обгортка для нового ідеального сканера -->
+    <div id="scanner-wrapper">
+      <div id="scanner-box">
+        <button class="close-scan-btn" onclick="stopScanner()">✖</button>
+        <div id="reader"></div>
+        <p style="text-align: center; margin: 10px 0 0 0; font-size: 14px; color: #555;">Наведіть камеру на штрихкод лічильника</p>
+      </div>
+    </div>
 
     <div id="accountHints" class="hintBox"></div>
 
@@ -560,52 +566,52 @@ function showHints(list){
 }
 
 /* =========================================================
-ЖИВИЙ СКАНЕР (Вдосконалений для лінійних штрихкодів)
+   ЖИВИЙ СКАНЕР (Оптимізований для штрихкодів)
 ========================================================= */
-function startScanner() {
-  const readerDiv = document.getElementById("reader");
-  readerDiv.style.display = "block";
+let html5QrCode = null;
 
-  // Якщо сканер вже створювався - очищаємо його
-  if (scanner) {
-    scanner.clear();
+function startScanner() {
+  document.getElementById("scanner-wrapper").style.display = "flex";
+
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
   }
 
-  // Створюємо новий сканер БЕЗ панелі налаштувань (disableFlip)
-  scanner = new Html5QrcodeScanner(
-    "reader", 
-    { 
-      fps: 20, // Збільшуємо швидкість до 20 кадрів
-      qrbox: { width: 300, height: 150 }, // Робимо широке вікно для довгих штрихкодів
-      aspectRatio: 1.0, // Квадратний відеопотік для центрування
-      disableFlip: true, // Прибирає зайву кнопку перевертання
+  // Запускаємо відразу задню камеру (минаючи стартове меню)
+  html5QrCode.start(
+    { facingMode: "environment" }, 
+    {
+      fps: 20, 
+      qrbox: { width: 300, height: 100 }, // Вузьке вікно для ідеального фокусу на штрихкоді
+      aspectRatio: 1.0,
       formatsToSupport: [
         Html5QrcodeSupportedFormats.CODE_128,
         Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.CODE_93,
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.QR_CODE
-      ] // Змушуємо його читати ВСІ існуючі типи штрихкодів
-    }, 
-    false // Приховує панель вибору камери (одразу бере основну)
-  );
-
-  scanner.render(
-    function(decodedText) {
-      // Щойно зловили штрихкод (будь-якої довжини)
-      document.getElementById("account").value = decodedText;
-      scanner.clear().then(() => {
-        readerDiv.style.display = "none";
-        search(); // Автопошук
-      });
+        Html5QrcodeSupportedFormats.UPC_A
+      ] // Відключили QR, тепер він шукає ТІЛЬКИ лінійні штрихкоди (дуже швидко!)
     },
-    function(error) {
-      // Ігноруємо технічні помилки фокусування
+    function(decodedText) {
+      // Коли зловили штрихкод
+      document.getElementById("account").value = decodedText;
+      stopScanner(); // Закриваємо камеру
+      search();      // Відразу запускаємо пошук по базі
+    },
+    function(errorMessage) {
+      // Ігноруємо технічні попередження
     }
-  );
+  ).catch(err => {
+    alert("❌ Помилка камери! Надайте браузеру дозвіл на використання камери.");
+    stopScanner();
+  });
+}
+
+function stopScanner() {
+  document.getElementById("scanner-wrapper").style.display = "none";
+  if (html5QrCode) {
+    html5QrCode.stop().catch(err => console.log(err));
+  }
 }
 
 function search(){
