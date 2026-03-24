@@ -522,15 +522,31 @@ const google = {
   
 
 /* =========================================================
-ГЛОБАЛЬНІ ЗМІННІ ТА УТИЛІТИ
+ГЛОБАЛЬНІ ЗМІННІ ТА БЕЗПЕЧНІ УТИЛІТИ (Без падіння коду)
 ========================================================= */
 let worker = ""; let workerName = ""; let selectedWork = "";
-let hintTimer = null; let scanner = null; let meterTypes = [];
+let hintTimer = null; let meterTypes = [];
 let isFasadFlow = false;
 
 function getVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; }
 function getInner(id) { const el = document.getElementById(id); return el ? el.innerText.trim() : ""; }
-function resizeTextarea(el){ el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
+
+// БЕЗПЕЧНЕ ВСТАНОВЛЕННЯ ЗНАЧЕНЬ (Запобігає помилці "Cannot set properties of null")
+function setInner(id, text) { 
+  const el = document.getElementById(id); 
+  if (el) el.innerHTML = text; 
+  else console.warn("Не знайдено текстовий блок: " + id);
+}
+
+function setVal(id, text) { 
+  const el = document.getElementById(id); 
+  if (el) el.value = text; 
+  else console.warn("Не знайдено поле вводу: " + id);
+}
+
+function resizeTextarea(el){ 
+  if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } 
+}
 
 /* =========================================================
 АВТОВХІД ПРИ ЗАПУСКУ
@@ -840,35 +856,35 @@ document.addEventListener("click", function(e){
 ЗАПОВНЕННЯ ФОРМ ДАНИМИ (Деталі)
 ========================================================= */
 function fillTechCheck(d){
-  document.getElementById("workerTab").innerText = worker; document.getElementById("workerName").innerText = workerName; document.getElementById("workTypeView").innerText = selectedWork || ""; document.getElementById("accountView").innerText = d.account || ""; document.getElementById("pibView").innerText = d.pib || ""; document.getElementById("addressView").innerText = buildAddress(d); document.getElementById("meterType").value = d.type || ""; document.getElementById("meterNumber").value = d.meter || "";
+  setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork || ""); setInner("accountView", d.account || ""); setInner("pibView", d.pib || ""); setInner("addressView", buildAddress(d)); setVal("meterType", d.type || ""); setVal("meterNumber", d.meter || "");
   const plombs = parsePlombs(d.plomb || "");
-  document.getElementById("removedLichil").value = plombs.lichil; document.getElementById("removedOptop").value = plombs.optop; document.getElementById("removedFasad1").value = plombs.fasad[0]; document.getElementById("removedFasad2").value = plombs.fasad[1]; document.getElementById("removedVkp").value = plombs.vkp; document.getElementById("removedImp1").value = plombs.imp[0]; document.getElementById("removedImp2").value = plombs.imp[1]; document.getElementById("removedImp3").value = plombs.imp[2]; document.getElementById("removedOther").value = plombs.other; resizeTextarea(document.getElementById("removedOther"));
-  document.getElementById("installedLichil").value = ""; document.getElementById("installedOptop").value = ""; document.getElementById("installedFasad1").value = ""; document.getElementById("installedFasad2").value = ""; document.getElementById("installedVkp").value = ""; document.getElementById("installedImp1").value = ""; document.getElementById("installedImp2").value = ""; document.getElementById("installedImp3").value = ""; document.getElementById("installedOther").value = ""; resizeTextarea(document.getElementById("installedOther"));
-  document.getElementById("t0").value = ""; document.getElementById("t1").value = ""; document.getElementById("t2").value = ""; document.getElementById("t3").value = "";
+  setVal("removedLichil", plombs.lichil); setVal("removedOptop", plombs.optop); setVal("removedFasad1", plombs.fasad[0]); setVal("removedFasad2", plombs.fasad[1]); setVal("removedVkp", plombs.vkp); setVal("removedImp1", plombs.imp[0]); setVal("removedImp2", plombs.imp[1]); setVal("removedImp3", plombs.imp[2]); setVal("removedOther", plombs.other); resizeTextarea(document.getElementById("removedOther"));
+  setVal("installedLichil", ""); setVal("installedOptop", ""); setVal("installedFasad1", ""); setVal("installedFasad2", ""); setVal("installedVkp", ""); setVal("installedImp1", ""); setVal("installedImp2", ""); setVal("installedImp3", ""); setVal("installedOther", ""); resizeTextarea(document.getElementById("installedOther"));
+  setVal("t0", ""); setVal("t1", ""); setVal("t2", ""); setVal("t3", "");
 }
 
 function fillReplaceStep1(d){
-  document.getElementById("replaceWorkerTab1").innerText = worker; document.getElementById("replaceWorkerName1").innerText = workerName; document.getElementById("replaceAccountView1").innerText = d.account || ""; document.getElementById("replacePibView1").innerText = d.pib || ""; document.getElementById("replaceAddressView1").innerText = buildAddress(d); document.getElementById("replaceRemovedMeterType").value = d.type || ""; document.getElementById("replaceRemovedMeterNumber").value = d.meter || "";
+  setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", d.account || ""); setInner("replacePibView1", d.pib || ""); setInner("replaceAddressView1", buildAddress(d)); setVal("replaceRemovedMeterType", d.type || ""); setVal("replaceRemovedMeterNumber", d.meter || "");
   const plombs = parsePlombs(d.plomb || "");
-  document.getElementById("replaceRemovedLichil").value = plombs.lichil; document.getElementById("replaceRemovedOptop").value = plombs.optop; document.getElementById("replaceRemovedFasad1").value = plombs.fasad[0]; document.getElementById("replaceRemovedFasad2").value = plombs.fasad[1]; document.getElementById("replaceRemovedVkp").value = plombs.vkp; document.getElementById("replaceRemovedImp1").value = plombs.imp[0]; document.getElementById("replaceRemovedImp2").value = plombs.imp[1]; document.getElementById("replaceRemovedImp3").value = plombs.imp[2]; document.getElementById("replaceRemovedOther").value = plombs.other; resizeTextarea(document.getElementById("replaceRemovedOther"));
-  document.getElementById("replaceRemovedT0").value = ""; document.getElementById("replaceRemovedT1").value = ""; document.getElementById("replaceRemovedT2").value = ""; document.getElementById("replaceRemovedT3").value = "";
+  setVal("replaceRemovedLichil", plombs.lichil); setVal("replaceRemovedOptop", plombs.optop); setVal("replaceRemovedFasad1", plombs.fasad[0]); setVal("replaceRemovedFasad2", plombs.fasad[1]); setVal("replaceRemovedVkp", plombs.vkp); setVal("replaceRemovedImp1", plombs.imp[0]); setVal("replaceRemovedImp2", plombs.imp[1]); setVal("replaceRemovedImp3", plombs.imp[2]); setVal("replaceRemovedOther", plombs.other); resizeTextarea(document.getElementById("replaceRemovedOther"));
+  setVal("replaceRemovedT0", ""); setVal("replaceRemovedT1", ""); setVal("replaceRemovedT2", ""); setVal("replaceRemovedT3", "");
 }
 
 function goToReplaceStep2(){
   document.getElementById("meterReplaceStep1").classList.add("hidden"); document.getElementById("meterReplaceStep2").classList.remove("hidden");
-  document.getElementById("replaceWorkerTab2").innerText = document.getElementById("replaceWorkerTab1").innerText; document.getElementById("replaceWorkerName2").innerText = document.getElementById("replaceWorkerName1").innerText; document.getElementById("replaceAccountView2").innerText = document.getElementById("replaceAccountView1").innerText; document.getElementById("replacePibView2").innerText = document.getElementById("replacePibView1").innerText; document.getElementById("replaceAddressView2").innerText = document.getElementById("replaceAddressView1").innerText;
-  document.getElementById("replaceInstalledMeterType").value = ""; document.getElementById("replaceInstalledMeterNumber").value = ""; document.getElementById("replaceInstalledLichil").value = ""; document.getElementById("replaceInstalledOptop").value = ""; document.getElementById("replaceInstalledFasad1").value = ""; document.getElementById("replaceInstalledFasad2").value = ""; document.getElementById("replaceInstalledVkp").value = ""; document.getElementById("replaceInstalledImp1").value = ""; document.getElementById("replaceInstalledImp2").value = ""; document.getElementById("replaceInstalledImp3").value = ""; document.getElementById("replaceInstalledOther").value = ""; resizeTextarea(document.getElementById("replaceInstalledOther"));
-  document.getElementById("replaceInstalledT0").value = ""; document.getElementById("replaceInstalledT1").value = ""; document.getElementById("replaceInstalledT2").value = ""; document.getElementById("replaceInstalledT3").value = "";
+  setInner("replaceWorkerTab2", getInner("replaceWorkerTab1")); setInner("replaceWorkerName2", getInner("replaceWorkerName1")); setInner("replaceAccountView2", getInner("replaceAccountView1")); setInner("replacePibView2", getInner("replacePibView1")); setInner("replaceAddressView2", getInner("replaceAddressView1"));
+  setVal("replaceInstalledMeterType", ""); setVal("replaceInstalledMeterNumber", ""); setVal("replaceInstalledLichil", ""); setVal("replaceInstalledOptop", ""); setVal("replaceInstalledFasad1", ""); setVal("replaceInstalledFasad2", ""); setVal("replaceInstalledVkp", ""); setVal("replaceInstalledImp1", ""); setVal("replaceInstalledImp2", ""); setVal("replaceInstalledImp3", ""); setVal("replaceInstalledOther", ""); resizeTextarea(document.getElementById("replaceInstalledOther"));
+  setVal("replaceInstalledT0", ""); setVal("replaceInstalledT1", ""); setVal("replaceInstalledT2", ""); setVal("replaceInstalledT3", "");
 }
 
 function backFromReplace1(){ if(isFasadFlow){ document.getElementById("meterReplaceStep1").classList.add("hidden"); document.getElementById("fasadStep3").classList.remove("hidden"); } else { showSearchBlock(); } }
 function backFromReplace2(){ document.getElementById("meterReplaceStep2").classList.add("hidden"); document.getElementById("meterReplaceStep1").classList.remove("hidden"); }
 
 function fillControlCheck(d){
-  document.getElementById("controlWorkerTab").innerText = worker; document.getElementById("controlWorkerName").innerText = workerName; document.getElementById("controlAccountView").innerText = d.account || ""; document.getElementById("controlPibView").innerText = d.pib || ""; document.getElementById("controlAddressView").innerText = buildAddress(d); document.getElementById("controlMeterType").value = d.type || ""; document.getElementById("controlMeterNumber").value = d.meter || "";
+  setInner("controlWorkerTab", worker); setInner("controlWorkerName", workerName); setInner("controlAccountView", d.account || ""); setInner("controlPibView", d.pib || ""); setInner("controlAddressView", buildAddress(d)); setVal("controlMeterType", d.type || ""); setVal("controlMeterNumber", d.meter || "");
   const plombs = parsePlombs(d.plomb || "");
-  document.getElementById("controlInstalledLichil").value = plombs.lichil; document.getElementById("controlInstalledOptop").value = plombs.optop; document.getElementById("controlInstalledFasad1").value = plombs.fasad[0]; document.getElementById("controlInstalledFasad2").value = plombs.fasad[1]; document.getElementById("controlInstalledVkp").value = plombs.vkp; document.getElementById("controlInstalledImp1").value = plombs.imp[0]; document.getElementById("controlInstalledImp2").value = plombs.imp[1]; document.getElementById("controlInstalledImp3").value = plombs.imp[2]; document.getElementById("controlInstalledOther").value = ""; resizeTextarea(document.getElementById("controlInstalledOther"));
-  document.getElementById("controlT0").value = ""; document.getElementById("controlT1").value = ""; document.getElementById("controlT2").value = ""; document.getElementById("controlT3").value = "";
+  setVal("controlInstalledLichil", plombs.lichil); setVal("controlInstalledOptop", plombs.optop); setVal("controlInstalledFasad1", plombs.fasad[0]); setVal("controlInstalledFasad2", plombs.fasad[1]); setVal("controlInstalledVkp", plombs.vkp); setVal("controlInstalledImp1", plombs.imp[0]); setVal("controlInstalledImp2", plombs.imp[1]); setVal("controlInstalledImp3", plombs.imp[2]); setVal("controlInstalledOther", ""); resizeTextarea(document.getElementById("controlInstalledOther"));
+  setVal("controlT0", ""); setVal("controlT1", ""); setVal("controlT2", ""); setVal("controlT3", "");
 }
 function goBackControlCheck(){ document.getElementById("controlCheckForm").classList.add("hidden"); showSearchBlock(); }
 
