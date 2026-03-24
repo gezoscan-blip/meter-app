@@ -30,52 +30,14 @@ button:active { transform: scale(0.97); }
 input, select, textarea { width: 100%; min-height: 44px; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; box-sizing: border-box; font-weight: bold; margin: 0; }
 textarea { resize: none; overflow: hidden; font-size: 14px; }
 
-/* =====================================================
-ДИЗАЙН ПОЛЯ ІЗ ЗОВНІШНЬОЮ КНОПКОЮ (Як на скріншоті)
-===================================================== */
-.input-with-scanner {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Відстань між полем і кнопкою */
-  width: 100%;
-}
-.input-with-scanner input {
-  flex: 1; /* Поле займає весь вільний простір */
-  min-height: 50px;
-  padding: 10px 15px;
-  font-size: 18px;
-  border-radius: 8px;
-  border: 2px solid #e0e0e0;
-  box-sizing: border-box;
-  font-weight: bold;
-}
-.input-with-scanner input:focus {
-  border-color: #FF9800; /* Колір рамки при натисканні (як на скріні) */
-  outline: none;
-}
-.scan-btn-outer {
-  flex: 0 0 50px; /* Кнопка має фіксований розмір 50x50px */
-  height: 50px;
-  background: #333; /* Темний фон (як на скріні) */
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0;
-  margin: 0;
-  transition: transform 0.1s;
-}
-.scan-btn-outer:active {
-  transform: scale(0.92);
-}
-/* Іконка штрихкоду всередині кнопки (взято з SVG) */
-.scan-icon {
-  width: 32px;
-  height: 32px;
-  fill: #FF9800; /* Помаранчевий колір іконки (як на скріні) */
-}
+/* ДИЗАЙН ПОЛЯ ІЗ ЗОВНІШНЬОЮ КНОПКОЮ */
+.input-with-scanner { display: flex; align-items: center; gap: 10px; width: 100%; }
+.input-with-scanner input { flex: 1; min-height: 50px; padding: 10px 15px; font-size: 18px; border-radius: 8px; border: 2px solid #e0e0e0; box-sizing: border-box; font-weight: bold; }
+.input-with-scanner input:focus { border-color: #FF9800; outline: none; }
+.scan-btn-outer { flex: 0 0 50px; height: 50px; background: #333; border-radius: 8px; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 0; margin: 0; transition: transform 0.1s; }
+.scan-btn-outer:active { transform: scale(0.92); }
+.scan-icon { width: 32px; height: 32px; fill: #FF9800; }
+
 /* ІНФО БЛОКИ */
 .workerCard { background: #e3f2fd; border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 16px; }
 .topInfoRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 18px; font-weight: bold; }
@@ -158,20 +120,17 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div class="input-with-scanner" style="margin-top: 15px;">
       <input id="account" placeholder="Особовий рахунок" autocomplete="off" inputmode="numeric" oninput="autoSearch()">
       <button class="scan-btn-outer" onclick="startScanner('account', true)">
-        <!-- SVG-іконка красивого штрихкоду -->
-        <svg class="scan-icon" viewBox="0 0 24 24">
-          <path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/>
-        </svg>
+        <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
       </button>
     </div>
-     <!-- БЛОК ДЛЯ АВТОПОШУКУ -->
+    
     <div id="accountHints" class="hintBox"></div>
 
-    <!-- "ЗНАЙТИ" ТА "ОФЛАЙН" -->
     <div style="display: flex; gap: 10px; margin-top: 15px;">
       <button class="actionBtn" onclick="search()" id="btnSearch">Знайти</button>
       <button class="actionBtn" onclick="offlineMode()" style="background:#607d8b;">Офлайн</button>
     </div>
+  </div>
 
   <!-- СКАНЕР (ВІКНО) -->
   <div id="scanner-wrapper">
@@ -179,7 +138,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <button class="close-scan-btn" onclick="stopScanner()">✖</button>
       <video id="video"></video>
     </div>
-    <div id="scan-hint">Наведіть на штрихкод.<br>Камера (1x) сфокусується автоматично.</div>
+    <div id="scan-hint">Наведіть камеру на штрихкод.<br>Камера (1x) сфокусується автоматично.</div>
   </div>
 
   <!-- ФОРМА Техперевірки -->
@@ -192,10 +151,10 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><="meterType"></div>
+      <div class="fieldLabel">Тип</div><div><input id="meterType"></div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
-        <input id="techMeterNumber">
+        <input id="meterNumber">
         <button class="scan-btn-outer" onclick="startScanner('meterNumber', false)">
           <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
         </button>
@@ -205,7 +164,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Пломби</div>
     <div class="plombHeaderRow"><div>Місце пломбування</div><div>Знята</div><div>Встановлена</div></div>
-    <div class="plombRow"><div class="plombPlace">Клемна кришка</div><div class="plombField"><="removedLichil"></div><div class="plombField"><input id="installedLichil"></div></div>
+    <div class="plombRow"><div class="plombPlace">Клемна кришка</div><div class="plombField"><input id="removedLichil"></div><div class="plombField"><input id="installedLichil"></div></div>
     <div class="plombRow"><div class="plombPlace">Шафа обліку 1</div><div class="plombField"><input id="removedFasad1"></div><div class="plombField"><input id="installedFasad1"></div></div>
     <div class="plombRow"><div class="plombPlace">Шафа обліку 2</div><div class="plombField"><input id="removedFasad2"></div><div class="plombField"><input id="installedFasad2"></div></div>
     <div class="plombRow"><div class="plombPlace">ВКП</div><div class="plombField"><input id="removedVkp"></div><div class="plombField"><input id="installedVkp"></div></div>
@@ -426,7 +385,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <div class="material-row"><div class="material-name">Гофра d32, м.</div><div class="material-input"><input id="f3_gofra" type="number"></div></div>
       <div class="material-row"><div class="material-name">Кріплення для гофри d32, шт.</div><div class="material-input"><input id="f3_clip" type="number"></div></div>
       <div class="material-row"><div class="material-name">Гак анкерний, шт.</div><div class="material-input"><input id="f3_anker" type="number"></div></div>
-      <div class="material-row"><div class="material-input"><input id="f3_dubel" type="number"></div></div>
+      <div class="material-row"><div class="material-name">Дюбель-гриб, шт.</div><div class="material-input"><input id="f3_dubel" type="number"></div></div>
       <div class="material-row"><div class="material-name">Розподільча коробка, шт.</div><div class="material-input"><input id="f3_boxk" type="number"></div></div>
       <div class="material-row"><div class="material-name">Стяжка кабельна, шт.</div><div class="material-input"><input id="f3_styajka" type="number"></div></div>
       <div style="margin-top: 10px;"><b>Інше:</b><textarea id="f3_other"></textarea></div>
@@ -471,13 +430,12 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <button onclick="closeLogoutModal()" style="background:#9E9E9E; min-height:45px;">Ні</button>
   </div>
 </div>
-  
-<script>
+  <script>
 /* =========================================================
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyDv3rK_PMYvMslG7H51CbS-zEe51P1vWK15RjpQZZQHieIDfXh2qZoGjU1d2tkQKsO/exec";
+const GOOGLE_API_URL = "ТУТ_МАЄ_БУТИ_ТВОЄ_ПОСИЛАННЯ_З_GOOGLE/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -527,7 +485,6 @@ const google = {
     }
   }
 };
-  
 
 /* =========================================================
 ГЛОБАЛЬНІ ЗМІННІ ТА БЕЗПЕЧНІ УТИЛІТИ (Без падіння коду)
@@ -539,7 +496,6 @@ let isFasadFlow = false;
 function getVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; }
 function getInner(id) { const el = document.getElementById(id); return el ? el.innerText.trim() : ""; }
 
-// БЕЗПЕЧНЕ ВСТАНОВЛЕННЯ ЗНАЧЕНЬ (Запобігає помилці "Cannot set properties of null")
 function setInner(id, text) { 
   const el = document.getElementById(id); 
   if (el) el.innerHTML = text; 
@@ -623,16 +579,10 @@ function autoSearch(){
   const accInput = document.getElementById("account");
   const hintBox = document.getElementById("accountHints");
   
-  if (!accInput) return;
+  if (!accInput || !hintBox) return;
   const value = accInput.value.trim();
 
-  // Якщо видалили блок підказок з HTML - просто нічого не робимо, але не падаємо
-  if (!hintBox) return;
-
-  if (value.length < 4) { 
-    hintBox.innerHTML = ""; 
-    return; 
-  }
+  if (value.length < 4) { hintBox.innerHTML = ""; return; }
   
   clearTimeout(hintTimer);
   hintTimer = setTimeout(() => { 
@@ -642,7 +592,7 @@ function autoSearch(){
 
 function showHints(list){
   const box = document.getElementById("accountHints"); 
-  if (!box) return; // Захист від падіння
+  if (!box) return; 
 
   box.innerHTML = "";
   if (!list || list.length === 0) return;
@@ -659,19 +609,12 @@ function showHints(list){
   });
 }
 
-// ЦЯ ФУНКЦІЯ ПОВЕРТАЄ РОБОТУ КНОПЦІ "ЗНАЙТИ"
 function search() {
   const accInput = document.getElementById("account");
   const acc = accInput ? accInput.value.trim() : "";
 
-  if (!selectedWork) {
-    alert("❌ Спочатку оберіть вид робіт (натисніть на одну з кнопок зверху)!");
-    return;
-  }
-  if (!acc) {
-    alert("❌ Введіть особовий рахунок!");
-    return;
-  }
+  if (!selectedWork) { alert("❌ Спочатку оберіть вид робіт (натисніть на одну з кнопок зверху)!"); return; }
+  if (!acc) { alert("❌ Введіть особовий рахунок!"); return; }
   if(!/^\d{10}$/.test(acc)){ alert("Особовий рахунок повинен містити 10 цифр"); return; }
 
   const btn = document.getElementById("btnSearch");
@@ -679,19 +622,19 @@ function search() {
   btn.innerText = "⏳ Пошук...";
   btn.disabled = true;
 
-  // Виклик функції пошуку в Google Таблиці
-  google.script.run.withSuccessHandler(function(res) {
+  if (navigator.onLine) {
+    google.script.run.withSuccessHandler(function(res) {
+      btn.innerText = oldText;
+      btn.disabled = false;
+      if (res && res.found) { fillFields(res.data); } else { alert("⚠️ Абонента не знайдено!"); }
+    }).findAccountFast(acc);
+  } else {
     btn.innerText = oldText;
     btn.disabled = false;
-    
-    if (res && res.found) {
-      fillFields(res.data); // Ця функція відкриє потрібну форму і заповнить її
-    } else {
-      alert("⚠️ Абонента з таким рахунком не знайдено!");
-    }
-  }).findAccountFast(acc);
+    offlineMode();
+  }
 }
-  
+
 /* =========================================================
 ЗВУК СКАНЕРА
 ========================================================= */
@@ -700,32 +643,25 @@ function playBeep() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    
     oscillator.type = 'sine'; 
-    oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); // Класичний "пік" сканера
-    
+    oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); 
     gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-    
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-    
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 0.1); 
-  } catch (e) {
-    console.log("Звук не підтримується", e);
-  }
+  } catch (e) {}
 }
 
 /* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР
+УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (ТІЛЬКИ ШТРИХКОДИ)
 ========================================================= */
 let codeReader = null;
-let currentScanTargetId = ""; // Пам'ятає, яке поле ми зараз заповнюємо
-let autoSearchAfterScan = false; // Чи треба шукати абонента після сканування
+let currentScanTargetId = ""; 
+let autoSearchAfterScan = false; 
 
 function startScanner(targetFieldId, doSearch) {
-  // Зберігаємо налаштування для поточного сканування
   currentScanTargetId = targetFieldId;
   autoSearchAfterScan = doSearch;
 
@@ -746,7 +682,6 @@ function startScanner(targetFieldId, doSearch) {
 
       let selectedDeviceId = videoInputDevices[0].deviceId;
 
-      // Шукаємо основну задню камеру
       for (let i = 0; i < videoInputDevices.length; i++) {
         let label = videoInputDevices[i].label.toLowerCase();
         if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
@@ -768,22 +703,12 @@ function startScanner(targetFieldId, doSearch) {
 
       codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
         if (result) {
-          // 1. УСПІХ! ЗЛОВИЛИ ШТРИХКОД
-          playBeep(); // Лунає "ПІК"
-          
-          // 2. Вставляємо результат у потрібне поле
+          playBeep(); 
           document.getElementById(currentScanTargetId).value = result.text;
-          
-          // 3. Закриваємо сканер і робимо автопошук (якщо потрібно)
           setTimeout(() => {
             stopScanner();
-            if (autoSearchAfterScan) {
-              search(); 
-            }
+            if (autoSearchAfterScan) search(); 
           }, 300);
-        }
-        if (err && !(err instanceof ZXing.NotFoundException)) {
-          // Ігноруємо технічні помилки фокусу
         }
       });
     })
@@ -904,7 +829,7 @@ document.addEventListener("click", function(e){
 });
 
 /* =========================================================
-ЗАПОВНЕННЯ ФОРМ ДАНИМИ (Деталі)
+БЕЗПЕЧНЕ ЗАПОВНЕННЯ ФОРМ ДАНИМИ
 ========================================================= */
 function fillTechCheck(d){
   setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork || ""); setInner("accountView", d.account || ""); setInner("pibView", d.pib || ""); setInner("addressView", buildAddress(d)); setVal("meterType", d.type || ""); setVal("meterNumber", d.meter || "");
@@ -967,8 +892,8 @@ function goFasadStep4(){
 
 function openReplaceFromFasad(d){
   document.getElementById("meterReplaceStep1").classList.remove("hidden");
-  document.getElementById("replaceWorkerTab1").innerText = worker; document.getElementById("replaceWorkerName1").innerText = workerName; document.getElementById("replaceAccountView1").innerText = d.account || ""; document.getElementById("replacePibView1").innerText = d.pib || ""; document.getElementById("replaceAddressView1").innerText = (d.street || "") + " " + (d.house || "") + " " + (d.flat || ""); document.getElementById("replaceRemovedMeterType").value = d.type || ""; document.getElementById("replaceRemovedMeterNumber").value = d.meter || "";
-  const plombs = parsePlombs(d.plomb || ""); document.getElementById("replaceRemovedLichil").value = plombs.lichil; document.getElementById("replaceRemovedOptop").value = plombs.optop; document.getElementById("replaceRemovedFasad1").value = plombs.fasad[0]; document.getElementById("replaceRemovedFasad2").value = plombs.fasad[1]; document.getElementById("replaceRemovedVkp").value = plombs.vkp; document.getElementById("replaceRemovedImp1").value = plombs.imp[0]; document.getElementById("replaceRemovedImp2").value = plombs.imp[1]; document.getElementById("replaceRemovedImp3").value = plombs.imp[2]; document.getElementById("replaceRemovedOther").value = plombs.other; resizeTextarea(document.getElementById("replaceRemovedOther")); document.getElementById("replaceRemovedT0").value = ""; document.getElementById("replaceRemovedT1").value = ""; document.getElementById("replaceRemovedT2").value = ""; document.getElementById("replaceRemovedT3").value = "";
+  setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", d.account || ""); setInner("replacePibView1", d.pib || ""); setInner("replaceAddressView1", (d.street || "") + " " + (d.house || "") + " " + (d.flat || "")); setVal("replaceRemovedMeterType", d.type || ""); setVal("replaceRemovedMeterNumber", d.meter || "");
+  const plombs = parsePlombs(d.plomb || ""); setVal("replaceRemovedLichil", plombs.lichil); setVal("replaceRemovedOptop", plombs.optop); setVal("replaceRemovedFasad1", plombs.fasad[0]); setVal("replaceRemovedFasad2", plombs.fasad[1]); setVal("replaceRemovedVkp", plombs.vkp); setVal("replaceRemovedImp1", plombs.imp[0]); setVal("replaceRemovedImp2", plombs.imp[1]); setVal("replaceRemovedImp3", plombs.imp[2]); setVal("replaceRemovedOther", plombs.other); resizeTextarea(document.getElementById("replaceRemovedOther")); setVal("replaceRemovedT0", ""); setVal("replaceRemovedT1", ""); setVal("replaceRemovedT2", ""); setVal("replaceRemovedT3", "");
 }
 
 /* =========================================================
@@ -981,30 +906,35 @@ function offlineMode(){
   const formType = openSelectedWorkForm();
   if(!formType) return;
   
-  if(formType === "tech"){ document.getElementById("workerTab").innerText = worker; document.getElementById("workerName").innerText = workerName; document.getElementById("workTypeView").innerText = selectedWork; document.getElementById("accountView").innerText = acc; document.getElementById("pibView").innerText = ""; document.getElementById("addressView").innerText = ""; document.getElementById("meterType").value = ""; document.getElementById("meterNumber").value = ""; document.getElementById("removedLichil").value = ""; document.getElementById("installedLichil").value = ""; document.getElementById("t0").value = ""; }
-  else if(formType === "replace"){ document.getElementById("replaceWorkerTab1").innerText = worker; document.getElementById("replaceWorkerName1").innerText = workerName; document.getElementById("replaceAccountView1").innerText = acc; document.getElementById("replacePibView1").innerText = ""; document.getElementById("replaceAddressView1").innerText = ""; document.getElementById("replaceRemovedMeterType").value = ""; document.getElementById("replaceRemovedMeterNumber").value = ""; }
-  else if(formType === "control"){ document.getElementById("controlWorkerTab").innerText = worker; document.getElementById("controlWorkerName").innerText = workerName; document.getElementById("controlAccountView").innerText = acc; document.getElementById("controlPibView").innerText = ""; document.getElementById("controlAddressView").innerText = ""; document.getElementById("controlMeterType").value = ""; document.getElementById("controlMeterNumber").value = ""; }
+  if(formType === "tech"){ setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork); setInner("accountView", acc); setInner("pibView", ""); setInner("addressView", ""); setVal("meterType", ""); setVal("meterNumber", ""); setVal("removedLichil", ""); setVal("installedLichil", ""); setVal("t0", ""); }
+  else if(formType === "replace"){ setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", acc); setInner("replacePibView1", ""); setInner("replaceAddressView1", ""); setVal("replaceRemovedMeterType", ""); setVal("replaceRemovedMeterNumber", ""); }
+  else if(formType === "control"){ setInner("controlWorkerTab", worker); setInner("controlWorkerName", workerName); setInner("controlAccountView", acc); setInner("controlPibView", ""); setInner("controlAddressView", ""); setVal("controlMeterType", ""); setVal("controlMeterNumber", ""); }
 }
 
 /* =========================================================
-ЗБІР І ВІДПРАВКА ДАНИХ
+ЗБІР І ВІДПРАВКА ДАНИХ (БЕЗ ПАДІНЬ)
 ========================================================= */
 function save(){ try{const data = collectTechData(); sendDataToServer(data, "saveHint", ["techCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
 function saveControlCheck(){ try{const data = collectControlData(); sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
 function saveReplaceData(){ try{if(isFasadFlow){ saveFasadData(); return; } const data = collectReplaceData(); sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
 
 function saveFasadData() {
-  const is1F = (fasadPhase == 1);
-  const data = Object.assign(collectReplaceData(), {
-    mode: "fasad_replace", fasadOrder: getVal("fasadOrder"),
-    fasadReason: document.querySelector('input[name="reason"]:checked')?.value || "", fasadArea: document.querySelector('input[name="area"]:checked')?.value || "",
-    fasadPhase: fasadPhase, fasadType: document.querySelector('input[name="type"]:checked')?.value || "",
-    demoMark: getVal("fasadDemoMark"), demoLength: getVal("fasadDemoLength"), demoBy: document.querySelector('input[name="fasadDemoBy"]:checked')?.value || "",
-    f1_box: is1F ? getVal("f1_box") : "", f1_nom: is1F ? getVal("f1_nom") : "", f1_asxsn: is1F ? getVal("f1_asxsn") : "", f1_zn: is1F ? getVal("f1_zn") : "", f1_zv: is1F ? getVal("f1_zv") : "", f1_cable: is1F ? getVal("f1_cable") : "", f1_gofra: is1F ? getVal("f1_gofra") : "", f1_clip: is1F ? getVal("f1_clip") : "", f1_anker: is1F ? getVal("f1_anker") : "", f1_dubel: is1F ? getVal("f1_dubel") : "", f1_boxk: is1F ? getVal("f1_boxk") : "", f1_styajka: is1F ? getVal("f1_styajka") : "", f1_other: is1F ? getVal("f1_other") : "",
-    f3_box: !is1F ? getVal("f3_box") : "", f3_nom: !is1F ? getVal("f3_nom") : "", f3_asxsn: !is1F ? getVal("f3_asxsn") : "", f3_zn: !is1F ? getVal("f3_zn") : "", f3_zv: !is1F ? getVal("f3_zv") : "", f3_cable: !is1F ? getVal("f3_cable") : "", f3_gofra: !is1F ? getVal("f3_gofra") : "", f3_clip: !is1F ? getVal("f3_clip") : "", f3_anker: !is1F ? getVal("f3_anker") : "", f3_dubel: !is1F ? getVal("f3_dubel") : "", f3_boxk: !is1F ? getVal("f3_boxk") : "", f3_styajka: !is1F ? getVal("f3_styajka") : "", f3_other: !is1F ? getVal("f3_other") : ""
-  });
-  sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
-  isFasadFlow = false;
+  try {
+    const is1F = (fasadPhase == 1);
+    const data = Object.assign(collectReplaceData(), {
+      mode: "fasad_replace", fasadOrder: getVal("fasadOrder"),
+      fasadReason: document.querySelector('input[name="reason"]:checked') ? document.querySelector('input[name="reason"]:checked').value : "", 
+      fasadArea: document.querySelector('input[name="area"]:checked') ? document.querySelector('input[name="area"]:checked').value : "",
+      fasadPhase: fasadPhase, 
+      fasadType: document.querySelector('input[name="type"]:checked') ? document.querySelector('input[name="type"]:checked').value : "",
+      demoMark: getVal("fasadDemoMark"), demoLength: getVal("fasadDemoLength"), 
+      demoBy: document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "",
+      f1_box: is1F ? getVal("f1_box") : "", f1_nom: is1F ? getVal("f1_nom") : "", f1_asxsn: is1F ? getVal("f1_asxsn") : "", f1_zn: is1F ? getVal("f1_zn") : "", f1_zv: is1F ? getVal("f1_zv") : "", f1_cable: is1F ? getVal("f1_cable") : "", f1_gofra: is1F ? getVal("f1_gofra") : "", f1_clip: is1F ? getVal("f1_clip") : "", f1_anker: is1F ? getVal("f1_anker") : "", f1_dubel: is1F ? getVal("f1_dubel") : "", f1_boxk: is1F ? getVal("f1_boxk") : "", f1_styajka: is1F ? getVal("f1_styajka") : "", f1_other: is1F ? getVal("f1_other") : "",
+      f3_box: !is1F ? getVal("f3_box") : "", f3_nom: !is1F ? getVal("f3_nom") : "", f3_asxsn: !is1F ? getVal("f3_asxsn") : "", f3_zn: !is1F ? getVal("f3_zn") : "", f3_zv: !is1F ? getVal("f3_zv") : "", f3_cable: !is1F ? getVal("f3_cable") : "", f3_gofra: !is1F ? getVal("f3_gofra") : "", f3_clip: !is1F ? getVal("f3_clip") : "", f3_anker: !is1F ? getVal("f3_anker") : "", f3_dubel: !is1F ? getVal("f3_dubel") : "", f3_boxk: !is1F ? getVal("f3_boxk") : "", f3_styajka: !is1F ? getVal("f3_styajka") : "", f3_other: !is1F ? getVal("f3_other") : ""
+    });
+    sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
+    isFasadFlow = false;
+  } catch (e) { alert("❌ Помилка збору фасаду:\n" + e.message); }
 }
 
 function sendDataToServer(data, hintId, formsToHide){
