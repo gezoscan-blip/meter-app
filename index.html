@@ -192,10 +192,10 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="meterType"></div>
+      <div class="fieldLabel">Тип</div><div><="meterType"></div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
-        <input id="replaceInstalledMeterNumber">
+        <input id="techMeterNumber">
         <button class="scan-btn-outer" onclick="startScanner('meterNumber', false)">
           <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
         </button>
@@ -205,7 +205,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Пломби</div>
     <div class="plombHeaderRow"><div>Місце пломбування</div><div>Знята</div><div>Встановлена</div></div>
-    <div class="plombRow"><div class="plombPlace">Клемна кришка</div><div class="plombField"><input id="removedLichil"></div><div class="plombField"><input id="installedLichil"></div></div>
+    <div class="plombRow"><div class="plombPlace">Клемна кришка</div><div class="plombField"><="removedLichil"></div><div class="plombField"><input id="installedLichil"></div></div>
     <div class="plombRow"><div class="plombPlace">Шафа обліку 1</div><div class="plombField"><input id="removedFasad1"></div><div class="plombField"><input id="installedFasad1"></div></div>
     <div class="plombRow"><div class="plombPlace">Шафа обліку 2</div><div class="plombField"><input id="removedFasad2"></div><div class="plombField"><input id="installedFasad2"></div></div>
     <div class="plombRow"><div class="plombPlace">ВКП</div><div class="plombField"><input id="removedVkp"></div><div class="plombField"><input id="installedVkp"></div></div>
@@ -329,7 +329,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <div class="fieldLabel">Тип</div><div><input id="controlMeterType"></div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
-        <input id="replaceInstalledMeterNumber">
+        <input id="controlMeterNumber">
         <button class="scan-btn-outer" onclick="startScanner('controlMeterNumber', false)">
           <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
         </button>
