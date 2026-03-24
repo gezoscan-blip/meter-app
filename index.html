@@ -659,6 +659,39 @@ function showHints(list){
   });
 }
 
+// ЦЯ ФУНКЦІЯ ПОВЕРТАЄ РОБОТУ КНОПЦІ "ЗНАЙТИ"
+function search() {
+  const accInput = document.getElementById("account");
+  const acc = accInput ? accInput.value.trim() : "";
+
+  if (!selectedWork) {
+    alert("❌ Спочатку оберіть вид робіт (натисніть на одну з кнопок зверху)!");
+    return;
+  }
+  if (!acc) {
+    alert("❌ Введіть особовий рахунок!");
+    return;
+  }
+  if(!/^\d{10}$/.test(acc)){ alert("Особовий рахунок повинен містити 10 цифр"); return; }
+
+  const btn = document.getElementById("btnSearch");
+  const oldText = btn.innerText;
+  btn.innerText = "⏳ Пошук...";
+  btn.disabled = true;
+
+  // Виклик функції пошуку в Google Таблиці
+  google.script.run.withSuccessHandler(function(res) {
+    btn.innerText = oldText;
+    btn.disabled = false;
+    
+    if (res && res.found) {
+      fillFields(res.data); // Ця функція відкриє потрібну форму і заповнить її
+    } else {
+      alert("⚠️ Абонента з таким рахунком не знайдено!");
+    }
+  }).findAccountFast(acc);
+}
+  
 /* =========================================================
 ЗВУК СКАНЕРА
 ========================================================= */
