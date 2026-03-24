@@ -5,9 +5,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2196F3">
 <base target="_top">
-<link rel="manifest" href="?f=manifest.json">
-<!-- БІБЛІОТЕКА СКАНЕРА -->
-  <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+
+<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (ZXing) -->
+<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 
 <style>
 /* ЗАГАЛЬНИЙ СТИЛЬ */
@@ -83,6 +83,9 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 @keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
 .close-scan-btn { position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; background: #d32f2f; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; }
 #scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
+</style>
+</head>
+<body>
 
 <!-- ЕКРАН ВХОДУ -->
 <div class="container" id="login">
@@ -361,7 +364,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <div class="material-row"><div class="material-name">Гофра d32, м.</div><div class="material-input"><input id="f3_gofra" type="number"></div></div>
       <div class="material-row"><div class="material-name">Кріплення для гофри d32, шт.</div><div class="material-input"><input id="f3_clip" type="number"></div></div>
       <div class="material-row"><div class="material-name">Гак анкерний, шт.</div><div class="material-input"><input id="f3_anker" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Дюбель-гриб, шт.</div><div class="material-input"><input id="f3_dubel" type="number"></div></div>
+      <div class="material-row"><div class="material-input"><input id="f3_dubel" type="number"></div></div>
       <div class="material-row"><div class="material-name">Розподільча коробка, шт.</div><div class="material-input"><input id="f3_boxk" type="number"></div></div>
       <div class="material-row"><div class="material-name">Стяжка кабельна, шт.</div><div class="material-input"><input id="f3_styajka" type="number"></div></div>
       <div style="margin-top: 10px;"><b>Інше:</b><textarea id="f3_other"></textarea></div>
@@ -406,6 +409,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <button onclick="closeLogoutModal()" style="background:#9E9E9E; min-height:45px;">Ні</button>
   </div>
 </div>
+  
 <script>
 /* =========================================================
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
@@ -574,10 +578,16 @@ let codeReader = null;
 function startScanner() {
   document.getElementById("scanner-wrapper").style.display = "flex";
 
-  // Використовуємо MultiFormatReader (він чудово читає лінійні штрихкоди)
+  // Візуальний червоний лазер
+  if (!document.getElementById("laser-aim")) {
+    const laser = document.createElement("div");
+    laser.id = "laser-aim";
+    laser.className = "laser-line";
+    document.getElementById("scanner-box").appendChild(laser);
+  }
+
   codeReader = new ZXing.BrowserMultiFormatReader();
 
-  // Шукаємо всі камери на телефоні
   codeReader.listVideoInputDevices()
     .then((videoInputDevices) => {
       if (videoInputDevices.length === 0) {
@@ -586,37 +596,42 @@ function startScanner() {
         return;
       }
 
-      let selectedDeviceId = videoInputDevices[0].deviceId; // Беремо першу по замовчуванню
+      let selectedDeviceId = videoInputDevices[0].deviceId;
 
-      // ХИТРІСТЬ ДЛЯ ТЕЛЕФОНІВ З БАГАТЬМА КАМЕРАМИ:
-      // Ми перебираємо камери і шукаємо ТУ САМУ (Основну задню 1x), 
-      // ігноруючи ширококутні (ultrawide, 0.6x) та фронтальні.
+      // Шукаємо основну задню камеру (відкидаємо 'wide', '0.6')
       for (let i = 0; i < videoInputDevices.length; i++) {
         let label = videoInputDevices[i].label.toLowerCase();
         if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
-          // Якщо в назві є слова "широка", "wide", "0", ми її пропускаємо
           if (!label.includes("wide") && !label.includes("0.")) {
             selectedDeviceId = videoInputDevices[i].deviceId;
-            break; // Знайшли ідеальну камеру, зупиняємо пошук
+            break;
           }
         }
       }
 
-      // Запускаємо відео з обраної камери
-      codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+      // Додаємо налаштування для зуму та фокусу (якщо браузер дозволить)
+      const constraints = {
+        video: {
+          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }]
+        }
+      };
+
+      codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
         if (result) {
-          // ШТРИХКОД ЗЛОВИЛИ!
           document.getElementById("account").value = result.text;
           stopScanner();
-          search(); // Автопошук
+          search();
         }
         if (err && !(err instanceof ZXing.NotFoundException)) {
-          // Ігноруємо помилки, коли код просто ще не знайдено
+          // Ігноруємо відсутність штрихкоду
         }
       });
     })
     .catch((err) => {
-      alert("❌ Помилка камери: " + err);
+      alert("❌ Надайте браузеру дозвіл на використання камери.");
       stopScanner();
     });
 }
@@ -624,7 +639,7 @@ function startScanner() {
 function stopScanner() {
   document.getElementById("scanner-wrapper").style.display = "none";
   if (codeReader) {
-    codeReader.reset(); // Вимикає камеру
+    codeReader.reset();
     codeReader = null;
   }
 }
@@ -857,5 +872,4 @@ function collectControlData(){ return { worker: worker, workType: selectedWork, 
 </script>
 </body>
 </html>
-
   
