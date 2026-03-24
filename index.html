@@ -30,11 +30,52 @@ button:active { transform: scale(0.97); }
 input, select, textarea { width: 100%; min-height: 44px; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; box-sizing: border-box; font-weight: bold; margin: 0; }
 textarea { resize: none; overflow: hidden; font-size: 14px; }
 
-/* СКАНЕР ТА ПОШУК */
-.account-box { position: relative; margin-top: 10px; }
-.account-box input { padding-right: 55px; }
-.scan-inline { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; min-height: 44px; background: #4CAF50; color: white; border-radius: 8px; font-size: 18px; font-weight: 900; letter-spacing: -1px; margin: 0; padding: 0; border: none; display: flex; justify-content: center; align-items: center; }
-
+/* =====================================================
+ДИЗАЙН ПОЛЯ ІЗ ЗОВНІШНЬОЮ КНОПКОЮ (Як на скріншоті)
+===================================================== */
+.input-with-scanner {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Відстань між полем і кнопкою */
+  width: 100%;
+}
+.input-with-scanner input {
+  flex: 1; /* Поле займає весь вільний простір */
+  min-height: 50px;
+  padding: 10px 15px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  box-sizing: border-box;
+  font-weight: bold;
+}
+.input-with-scanner input:focus {
+  border-color: #FF9800; /* Колір рамки при натисканні (як на скріні) */
+  outline: none;
+}
+.scan-btn-outer {
+  flex: 0 0 50px; /* Кнопка має фіксований розмір 50x50px */
+  height: 50px;
+  background: #333; /* Темний фон (як на скріні) */
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  transition: transform 0.1s;
+}
+.scan-btn-outer:active {
+  transform: scale(0.92);
+}
+/* Іконка штрихкоду всередині кнопки (взято з SVG) */
+.scan-icon {
+  width: 32px;
+  height: 32px;
+  fill: #FF9800; /* Помаранчевий колір іконки (як на скріні) */
+}
 /* ІНФО БЛОКИ */
 .workerCard { background: #e3f2fd; border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 16px; }
 .topInfoRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 18px; font-weight: bold; }
@@ -113,18 +154,16 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <button class="work-btn" onclick="selectWork(this,'Закриття о/р з демонтажем')">Закриття о/р з демонтажем</button>
     </div>
 
-    <div class="account-box">
+    <!-- Новий гарний дизайн з кнопкою збоку -->
+    <div class="input-with-scanner" style="margin-top: 15px;">
       <input id="account" placeholder="Особовий рахунок" autocomplete="off" inputmode="numeric" oninput="autoSearch()">
-      <button class="scan-inline" onclick="startScanner()">||| | | ||</button>
+      <button class="scan-btn-outer" onclick="startScanner('account', true)">
+        <!-- SVG-іконка красивого штрихкоду -->
+        <svg class="scan-icon" viewBox="0 0 24 24">
+          <path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/>
+        </svg>
+      </button>
     </div>
-    
-    <div id="accountHints" class="hintBox"></div>
-
-    <div style="display: flex; gap: 10px;">
-      <button class="actionBtn" onclick="search()" id="btnSearch">Знайти</button>
-      <button class="actionBtn" onclick="offlineMode()" style="background:#607d8b;">Офлайн</button>
-    </div>
-  </div>
 
   <!-- СКАНЕР (ВІКНО) -->
   <div id="scanner-wrapper">
@@ -146,7 +185,13 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
       <div class="fieldLabel">Тип</div><div><input id="meterType"></div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="meterNumber"></div>
+      <div class="fieldLabel">Заводський номер</div>
+      <div class="input-with-scanner">
+        <input id="replaceInstalledMeterNumber">
+        <button class="scan-btn-outer" onclick="startScanner('meterNumber', false)">
+          <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
+        </button>
+      </div>
     </div>
     <div class="sectionLine"></div>
 
@@ -229,7 +274,13 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
         <input id="replaceInstalledMeterType" autocomplete="off" onfocus="showMeterTypes()" oninput="filterMeterTypes(this.value)">
         <div id="meterTypeHints" class="meterTypeHints hidden"></div>
       </div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="replaceInstalledMeterNumber"></div>
+      <div class="fieldLabel">Заводський номер</div>
+      <div class="input-with-scanner">
+        <input id="replaceInstalledMeterNumber">
+        <button class="scan-btn-outer" onclick="startScanner('replaceInstalledMeterNumber', false)">
+          <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
+        </button>
+      </div>
     </div>
     <div class="sectionLine"></div>
 
@@ -268,7 +319,13 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
       <div class="fieldLabel">Тип</div><div><input id="controlMeterType"></div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="controlMeterNumber"></div>
+      <div class="fieldLabel">Заводський номер</div>
+      <div class="input-with-scanner">
+        <input id="replaceInstalledMeterNumber">
+        <button class="scan-btn-outer" onclick="startScanner('controlMeterNumber', false)">
+          <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
+        </button>
+      </div>
     </div>
     <div class="sectionLine"></div>
 
@@ -573,35 +630,49 @@ function search(){
 ========================================================= */
 let codeReader = null;
 
-// Функція генерації звуку "Пік" (як на касі)
+/* =========================================================
+ЗВУК СКАНЕРА
+========================================================= */
 function playBeep() {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
-    oscillator.type = 'sine'; // Чистий звук
-    oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); // Висока частота
+    oscillator.type = 'sine'; 
+    oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); // Класичний "пік" сканера
     
-    // Плавне загасання звуку
-    gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
     
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
     
     oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.1); // Звук триває 0.1 сек
+    oscillator.stop(audioCtx.currentTime + 0.1); 
   } catch (e) {
     console.log("Звук не підтримується", e);
   }
 }
 
-function startScanner() {
+/* =========================================================
+УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР
+========================================================= */
+let codeReader = null;
+let currentScanTargetId = ""; // Пам'ятає, яке поле ми зараз заповнюємо
+let autoSearchAfterScan = false; // Чи треба шукати абонента після сканування
+
+function startScanner(targetFieldId, doSearch) {
+  // Зберігаємо налаштування для поточного сканування
+  currentScanTargetId = targetFieldId;
+  autoSearchAfterScan = doSearch;
+
   const readerWrapper = document.getElementById("scanner-wrapper");
   readerWrapper.style.display = "flex";
 
-  codeReader = new ZXing.BrowserMultiFormatReader();
+  if (!codeReader) {
+    codeReader = new ZXing.BrowserMultiFormatReader();
+  }
 
   codeReader.listVideoInputDevices()
     .then((videoInputDevices) => {
@@ -633,22 +704,24 @@ function startScanner() {
         }
       };
 
-      // Запускаємо сканер
       codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
         if (result) {
-          // УСПІХ! ЗЛОВИЛИ ШТРИХКОД
-          playBeep(); // 🔊 Звук "ПІК"
+          // 1. УСПІХ! ЗЛОВИЛИ ШТРИХКОД
+          playBeep(); // Лунає "ПІК"
           
-          document.getElementById("account").value = result.text;
+          // 2. Вставляємо результат у потрібне поле
+          document.getElementById(currentScanTargetId).value = result.text;
           
-          // Даємо мілісекунду, щоб користувач побачив зелену рамку навколо штрихкоду (ZXing малює її сам)
+          // 3. Закриваємо сканер і робимо автопошук (якщо потрібно)
           setTimeout(() => {
             stopScanner();
-            search(); // Автопошук
+            if (autoSearchAfterScan) {
+              search(); 
+            }
           }, 300);
         }
         if (err && !(err instanceof ZXing.NotFoundException)) {
-          // Ігноруємо технічні помилки фокусування
+          // Ігноруємо технічні помилки фокусу
         }
       });
     })
@@ -662,7 +735,6 @@ function stopScanner() {
   document.getElementById("scanner-wrapper").style.display = "none";
   if (codeReader) {
     codeReader.reset();
-    codeReader = null;
   }
 }
 
