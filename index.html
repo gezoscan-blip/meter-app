@@ -164,6 +164,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
         </svg>
       </button>
     </div>
+     <div id="accountHints" class="hintBox"></div>
 
   <!-- СКАНЕР (ВІКНО) -->
   <div id="scanner-wrapper">
@@ -609,36 +610,46 @@ function selectWork(btn,type){
 }
 
 /* =========================================================
-ПОШУК ТА ПІДКАЗКИ
+ПОШУК ТА ПІДКАЗКИ (БЕЗПЕЧНІ)
 ========================================================= */
 function autoSearch(){
-  const value = document.getElementById("account").value.trim();
-  if(value.length < 4){ document.getElementById("accountHints").innerHTML=""; return; }
+  const accInput = document.getElementById("account");
+  const hintBox = document.getElementById("accountHints");
+  
+  if (!accInput) return;
+  const value = accInput.value.trim();
+
+  // Якщо видалили блок підказок з HTML - просто нічого не робимо, але не падаємо
+  if (!hintBox) return;
+
+  if (value.length < 4) { 
+    hintBox.innerHTML = ""; 
+    return; 
+  }
+  
   clearTimeout(hintTimer);
-  hintTimer = setTimeout(()=>{ google.script.run.withSuccessHandler(showHints).searchAccounts(value); },400);
+  hintTimer = setTimeout(() => { 
+    google.script.run.withSuccessHandler(showHints).searchAccounts(value); 
+  }, 400);
 }
 
 function showHints(list){
-  const box = document.getElementById("accountHints"); box.innerHTML="";
-  list.forEach(acc=>{
-    const div = document.createElement("div"); div.className="hintItem"; div.textContent=acc;
-    div.onclick=function(){ document.getElementById("account").value=acc; box.innerHTML=""; };
+  const box = document.getElementById("accountHints"); 
+  if (!box) return; // Захист від падіння
+
+  box.innerHTML = "";
+  if (!list || list.length === 0) return;
+
+  list.forEach(acc => {
+    const div = document.createElement("div"); 
+    div.className = "hintItem"; 
+    div.textContent = acc;
+    div.onclick = function() { 
+      document.getElementById("account").value = acc; 
+      box.innerHTML = ""; 
+    };
     box.appendChild(div);
   });
-}
-
-function search(){
-  const acc = document.getElementById("account").value.trim();
-  if(!selectedWork){ alert("Оберіть вид робіт"); return; }
-  if(!/^\d{10}$/.test(acc)){ alert("Особовий рахунок повинен містити 10 цифр"); return; }
-
-  if(navigator.onLine){
-    google.script.run.withSuccessHandler(res=>{
-      if(res.found){ fillFields(res.data); }else{ alert("Не знайдено"); }
-    }).findAccountFast(acc);
-  }else{
-    offlineMode();
-  }
 }
 
 /* =========================================================
