@@ -79,8 +79,6 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 #scanner-wrapper { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; flex-direction: column; }
 #scanner-box { width: 95%; max-width: 400px; position: relative; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 #video { width: 100%; height: 300px; object-fit: cover; display: block; }
-.laser-line { position: absolute; top: 50%; left: 10%; width: 80%; height: 3px; background: rgba(255, 0, 0, 0.9); box-shadow: 0 0 15px 2px red; transform: translateY(-50%); z-index: 10; animation: scan 2s infinite linear; }
-@keyframes scan { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
 .close-scan-btn { position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; background: #d32f2f; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; }
 #scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
 </style>
@@ -133,7 +131,6 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div id="scanner-box">
       <button class="close-scan-btn" onclick="stopScanner()">✖</button>
       <video id="video"></video>
-      <div class="laser-line"></div>
     </div>
     <div id="scan-hint">Наведіть червону лінію на штрихкод лічильника.<br>Камера (1x) сфокусується автоматично.</div>
   </div>
@@ -465,6 +462,7 @@ const google = {
     }
   }
 };
+  
 
 /* =========================================================
 ГЛОБАЛЬНІ ЗМІННІ ТА УТИЛІТИ
@@ -571,20 +569,37 @@ function search(){
 }
 
 /* =========================================================
-ЖИВИЙ СКАНЕР (ZXing - Без "Ширика", Тільки 1x Камера)
+ЖИВИЙ СКАНЕР (Автовідмальовування рамки + Звук "Пік")
 ========================================================= */
 let codeReader = null;
 
-function startScanner() {
-  document.getElementById("scanner-wrapper").style.display = "flex";
-
-  // Візуальний червоний лазер
-  if (!document.getElementById("laser-aim")) {
-    const laser = document.createElement("div");
-    laser.id = "laser-aim";
-    laser.className = "laser-line";
-    document.getElementById("scanner-box").appendChild(laser);
+// Функція генерації звуку "Пік" (як на касі)
+function playBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.type = 'sine'; // Чистий звук
+    oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); // Висока частота
+    
+    // Плавне загасання звуку
+    gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.1); // Звук триває 0.1 сек
+  } catch (e) {
+    console.log("Звук не підтримується", e);
   }
+}
+
+function startScanner() {
+  const readerWrapper = document.getElementById("scanner-wrapper");
+  readerWrapper.style.display = "flex";
 
   codeReader = new ZXing.BrowserMultiFormatReader();
 
@@ -598,7 +613,7 @@ function startScanner() {
 
       let selectedDeviceId = videoInputDevices[0].deviceId;
 
-      // Шукаємо основну задню камеру (відкидаємо 'wide', '0.6')
+      // Шукаємо основну задню камеру
       for (let i = 0; i < videoInputDevices.length; i++) {
         let label = videoInputDevices[i].label.toLowerCase();
         if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
@@ -609,7 +624,6 @@ function startScanner() {
         }
       }
 
-      // Додаємо налаштування для зуму та фокусу (якщо браузер дозволить)
       const constraints = {
         video: {
           deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
@@ -619,14 +633,22 @@ function startScanner() {
         }
       };
 
+      // Запускаємо сканер
       codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
         if (result) {
+          // УСПІХ! ЗЛОВИЛИ ШТРИХКОД
+          playBeep(); // 🔊 Звук "ПІК"
+          
           document.getElementById("account").value = result.text;
-          stopScanner();
-          search();
+          
+          // Даємо мілісекунду, щоб користувач побачив зелену рамку навколо штрихкоду (ZXing малює її сам)
+          setTimeout(() => {
+            stopScanner();
+            search(); // Автопошук
+          }, 300);
         }
         if (err && !(err instanceof ZXing.NotFoundException)) {
-          // Ігноруємо відсутність штрихкоду
+          // Ігноруємо технічні помилки фокусування
         }
       });
     })
