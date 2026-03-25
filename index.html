@@ -84,6 +84,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 #video { width: 100%; height: 300px; object-fit: cover; display: block; }
 .close-scan-btn { position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; background: #d32f2f; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; }
 #scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
+  .torch-btn { position: absolute; top: -15px; left: -15px; width: 45px; height: 45px; background: #FFc107; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; transition: background 0.2s; }
 </style>
 </head>
 <body>
@@ -136,6 +137,8 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
   <div id="scanner-wrapper">
     <div id="scanner-box">
       <button class="close-scan-btn" onclick="stopScanner()">✖</button>
+      <!-- Нова кнопка ліхтарика зліва вгорі -->
+      <button id="torch-btn" class="torch-btn" onclick="toggleTorch()">💡</button>
       <video id="video"></video>
     </div>
     <div id="scan-hint">Наведіть камеру на штрихкод.<br>Камера (1x) сфокусується автоматично.</div>
@@ -671,6 +674,32 @@ function playBeep() {
 УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (ТІЛЬКИ ШТРИХКОДИ)
 ========================================================= */
 let codeReader = null;
+    /* =========================================================
+ЛІХТАРИК ДЛЯ СКАНЕРА
+========================================================= */
+let isTorchOn = false;
+
+function toggleTorch() {
+  try {
+    const video = document.getElementById("video");
+    const track = video.srcObject.getVideoTracks()[0]; // Отримуємо потік з камери
+    
+    isTorchOn = !isTorchOn; // Перемикаємо стан
+    
+    // Даємо команду камері увімкнути/вимкнути спалах
+    track.applyConstraints({
+      advanced: [{ torch: isTorchOn }]
+    }).then(() => {
+      // Якщо успішно - міняємо колір кнопки на зелений
+      document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
+    }).catch(err => {
+      alert("На жаль, ваш телефон або браузер не підтримує ліхтарик.");
+      isTorchOn = false;
+    });
+  } catch(e) {
+    console.log("Помилка ліхтарика:", e);
+  }
+}
 let currentScanTargetId = ""; 
 let autoSearchAfterScan = false; 
 
@@ -705,13 +734,21 @@ function startScanner(targetFieldId, doSearch) {
         }
       }
 
+      // ПРОФЕСІЙНІ НАЛАШТУВАННЯ КАМЕРИ (Анти-мерехтіння + Автоекспозиція)
       const constraints = {
         video: {
           deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
           width: { ideal: 1920 },
           height: { ideal: 1080 },
-          advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }]
+          frameRate: { ideal: 30, max: 30 }, // Жорстко 30 кадрів для синхронізації з лампами 50Hz
+          advanced: [
+            { zoom: 2.0 }, 
+            { focusMode: "continuous" },
+            { exposureMode: "continuous" }, // Примусова автоекспозиція
+            { whiteBalanceMode: "continuous" } // Примусовий баланс білого
+          ]
         }
+      };
       };
 
       codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
@@ -736,6 +773,11 @@ function stopScanner() {
   if (codeReader) {
     codeReader.reset();
   }
+    // Скидаємо кнопку ліхтарика
+  isTorchOn = false;
+  const tBtn = document.getElementById("torch-btn");
+  if (tBtn) tBtn.style.background = "#FFc107";
+}
 }
 
 /* =========================================================
