@@ -857,52 +857,27 @@ function buildAddress(d){
 ПАРСИНГ ПЛОМБ (Оновлено під формат [Номер/Місце/Бригада])
 ========================================================= */
 function normalizePlombNumber(entry){
+  const m = String(entry || "").trim().match(/^([A-Za-zА-Яа-яІіЇїЄєҐґСМ]{0,2})\s*(\d{6,})/);
+  if(!m) return ""; return (m[1] || "") + (m[2] || "");
+}
+
+function parsePlombs(plombText){
   const result = { lichil: "", optop: "", fasad: ["", ""], vkp: "", imp: ["", "", ""], other: [] };
-  let text = String(plombText || "").trim();
+  let text = String(plombText || "").replace(/\s+/g, " ").trim();
   if(!text) return result;
-
-  // Шукаємо всі блоки у квадратних дужках, наприклад [С 81099073/Фасад/ППН 1-8]
-  const matches = text.match(/\[(.*?)\]/g);
-
-  if (matches) {
-    matches.forEach(m => {
-      // Прибираємо дужки [ і ]
-      let content = m.replace(/[\[\]]/g, "");
-      // Розбиваємо по слешу: parts[0] = "С 81099073", parts[1] = "Фасад"
-      let parts = content.split("/");
-      
-      let plombNum = cleanPlomb(parts[0]); // Робить "С81099073" (видаляє пробіли)
-      let location = (parts[1] || "").toLowerCase();
-
-      if (!plombNum) return;
-
-      if(location.includes("лічил")) { 
-        if(!result.lichil) result.lichil = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("оптоп")) { 
-        if(!result.optop) result.optop = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("фасад") || location.includes("шкаф") || location.includes("шафа") || location.includes("сходова")) { 
-        if(!result.fasad[0]) result.fasad[0] = plombNum; 
-        else if(!result.fasad[1]) result.fasad[1] = plombNum; 
-        else result.other.push(plombNum); 
-      }
-      else if(location.includes("вкп") || location.includes("ввідн") || location.includes("ввод")) { 
-        if(!result.vkp) result.vkp = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("імп") || location.includes("корпу") || location.includes("розпа")) { 
-        const idx = result.imp.findIndex(v => !v); 
-        if(idx !== -1) result.imp[idx] = plombNum; else result.other.push(plombNum); 
-      }
-      else {
-        result.other.push(plombNum);
-      }
-    });
-  } else {
-    // Якщо текст є, але він без квадратних дужок (старий формат), кидаємо все в "Інше"
-    result.other.push(text);
-  }
-
+  const entryRegex = /((?:[A-Za-zА-Яа-яІіЇїЄєҐґСМ]{0,2}\s*)?\d{6,}.*?)(?=(?:\s+(?:[A-Za-zА-Яа-яІіЇїЄєҐґСМ]{0,2}\s*)?\d{6,}\b)|$)/g;
+  const entries = []; let match;
+  while((match = entryRegex.exec(text)) !== null){ const item = match[1].trim(); if(item) entries.push(item); }
+  entries.forEach(item => {
+    const low = item.toLowerCase(); const num = normalizePlombNumber(item);
+    if(!num){ result.other.push(item); return; }
+    if(low.includes("лічил")){ if(!result.lichil) result.lichil = num; else result.other.push(item); return; }
+    if(low.includes("оптоп")){ if(!result.optop) result.optop = num; else result.other.push(item); return; }
+    if(low.includes("фасад")){ const idx = result.fasad.findIndex(v => !v); if(idx !== -1) result.fasad[idx] = num; else result.other.push(item); return; }
+    if(low.includes("вкп") || low.includes("ввідн")){ if(!result.vkp) result.vkp = num; else result.other.push(item); return; }
+    if(low.includes("імп") || low.includes("корпу") || low.includes("кожух")){ const idx = result.imp.findIndex(v => !v); if(idx !== -1) result.imp[idx] = num; else result.other.push(item); return; }
+    result.other.push(item);
+  });
   result.other = result.other.join("\n");
   return result;
 }
