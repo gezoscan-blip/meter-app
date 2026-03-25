@@ -930,29 +930,77 @@ function fillControlCheck(d){
 function goBackControlCheck(){ document.getElementById("controlCheckForm").classList.add("hidden"); showSearchBlock(); }
 
 /* =========================================================
-ФАСАДНА ЛОГІКА
+ФАСАДНА ЛОГІКА (З РОЗУМНИМИ ПЕРЕВІРКАМИ)
 ========================================================= */
 let fasadPhase = null;
 function setPhase(p){ fasadPhase = p; }
+
 function goFasadStep2(){
-  const order = document.getElementById("fasadOrder").value.trim(); const phase = document.querySelector('input[name="phase"]:checked');
-  if(!order || !phase){ alert("Заповніть номер наряду та фазність!"); return; }
-  document.getElementById("fasadStep1").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden");
-  if(fasadPhase == 1){ document.getElementById("mat1f").classList.remove("hidden"); document.getElementById("mat3f").classList.add("hidden"); }
-  else{ document.getElementById("mat3f").classList.remove("hidden"); document.getElementById("mat1f").classList.add("hidden"); }
+  // 1. ПЕРЕВІРКА НАРЯДУ
+  let orderInput = document.getElementById("fasadOrder");
+  let order = orderInput.value.trim();
+  const phase = document.querySelector('input[name="phase"]:checked');
+
+  // Міняємо всі коми на крапки
+  order = order.replace(/,/g, '.');
+  orderInput.value = order; // Одразу показуємо виправлений варіант в полі
+
+  // Перевірка формату XX.X (або X.X, XXX.X)
+  const orderRegex = /^\d+\.\d+$/;
+
+  if(!order || !phase){ 
+    alert("❌ Заповніть номер наряду та фазність!"); 
+    return; 
+  }
+  
+  if(!orderRegex.test(order)) {
+    alert("❌ Введіть номер наряду або розпорядження у форматі ХХ.Х (наприклад: 12.5)");
+    return;
+  }
+
+  document.getElementById("fasadStep1").classList.add("hidden"); 
+  document.getElementById("fasadStep2").classList.remove("hidden");
+  
+  if(fasadPhase == 1){ 
+    document.getElementById("mat1f").classList.remove("hidden"); 
+    document.getElementById("mat3f").classList.add("hidden"); 
+  } else { 
+    document.getElementById("mat3f").classList.remove("hidden"); 
+    document.getElementById("mat1f").classList.add("hidden"); 
+  }
 }
+
 function backToFasad1(){ document.getElementById("fasadStep2").classList.add("hidden"); document.getElementById("fasadStep1").classList.remove("hidden"); }
 function goFasadStep3(){ document.getElementById("fasadStep2").classList.add("hidden"); document.getElementById("fasadStep3").classList.remove("hidden"); }
 function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden"); }
 
 function goFasadStep4(){
-  const mark = document.getElementById("fasadDemoMark").value.trim(); const length = document.getElementById("fasadDemoLength").value.trim(); const demoBy = document.querySelector('input[name="fasadDemoBy"]:checked');
-  if(!mark || !length || !demoBy){ alert("Заповніть демонтаж!"); return; }
-  isFasadFlow = true; const acc = document.getElementById("account").value.trim();
+  // 2. ПЕРЕВІРКА ДЕМОНТАЖУ (Гнучка логіка)
+  const mark = document.getElementById("fasadDemoMark").value.trim(); 
+  const length = document.getElementById("fasadDemoLength").value.trim(); 
+  const demoBy = document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "";
+
+  // Якщо НЕ вибрано ОРБ і метраж БІЛЬШЕ 0 (або пустий), тоді марка і метраж - обов'язкові!
+  if (demoBy !== "ОРБ" && length !== "0") {
+    if (!mark || !length || !demoBy) {
+      alert("❌ Заповніть дані демонтажу!\nЯкщо знімала не ОРБ, марка та метраж обов'язкові.");
+      return;
+    }
+  }
+  // В усіх інших випадках (ОРБ, або метраж 0) - пускаємо далі без перевірок марки
+
+  isFasadFlow = true; 
+  const acc = document.getElementById("account").value.trim();
+  
   document.getElementById("fasadStep3").classList.add("hidden");
+  
   if(navigator.onLine){
-    google.script.run.withSuccessHandler(res=>{ if(res.found){ openReplaceFromFasad(res.data); }else{ alert("Не знайдено"); } }).findAccountFast(acc);
-  }else{ openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); }
+    google.script.run.withSuccessHandler(res=>{ 
+      if(res.found){ openReplaceFromFasad(res.data); }else{ alert("Не знайдено"); } 
+    }).findAccountFast(acc);
+  }else{ 
+    openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+  }
 }
 
 function openReplaceFromFasad(d){
@@ -960,7 +1008,7 @@ function openReplaceFromFasad(d){
   setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", d.account || ""); setInner("replacePibView1", d.pib || ""); setInner("replaceAddressView1", (d.street || "") + " " + (d.house || "") + " " + (d.flat || "")); setVal("replaceRemovedMeterType", d.type || ""); setVal("replaceRemovedMeterNumber", d.meter || "");
   const plombs = parsePlombs(d.plomb || ""); setVal("replaceRemovedLichil", plombs.lichil); setVal("replaceRemovedOptop", plombs.optop); setVal("replaceRemovedFasad1", plombs.fasad[0]); setVal("replaceRemovedFasad2", plombs.fasad[1]); setVal("replaceRemovedVkp", plombs.vkp); setVal("replaceRemovedImp1", plombs.imp[0]); setVal("replaceRemovedImp2", plombs.imp[1]); setVal("replaceRemovedImp3", plombs.imp[2]); setVal("replaceRemovedOther", plombs.other); resizeTextarea(document.getElementById("replaceRemovedOther")); setVal("replaceRemovedT0", ""); setVal("replaceRemovedT1", ""); setVal("replaceRemovedT2", ""); setVal("replaceRemovedT3", "");
 }
-
+    
 /* =========================================================
 ОФЛАЙН РЕЖИМ 
 ========================================================= */
@@ -977,12 +1025,48 @@ function offlineMode(){
 }
 
 /* =========================================================
-ЗБІР І ВІДПРАВКА ДАНИХ (БЕЗ ПАДІНЬ)
+ЗБІР І ВІДПРАВКА ДАНИХ (З перевіркою Встановленого Лічильника)
 ========================================================= */
-function save(){ try{const data = collectTechData(); sendDataToServer(data, "saveHint", ["techCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
-function saveControlCheck(){ try{const data = collectControlData(); sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
-function saveReplaceData(){ try{if(isFasadFlow){ saveFasadData(); return; } const data = collectReplaceData(); sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
+function save(){ 
+  try {
+    const data = collectTechData(); 
+    sendDataToServer(data, "saveHint", ["techCheckForm"]);
+  } catch(e) {
+    alert("❌ Помилка збору даних:\n"+e.message);
+  } 
+}
 
+function saveControlCheck(){ 
+  try {
+    const data = collectControlData(); 
+    sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);
+  } catch(e) {
+    alert("❌ Помилка збору даних:\n"+e.message);
+  } 
+}
+
+function saveReplaceData(){ 
+  try {
+    // ПЕРЕВІРКА ВСТАНОВЛЕНОГО ЛІЧИЛЬНИКА (Чи не пустий?)
+    const instType = getVal("replaceInstalledMeterType");
+    const instNum = getVal("replaceInstalledMeterNumber");
+    
+    if (!instType || !instNum) {
+      alert("❌ Обов'язково введіть Тип та Заводський номер встановленого лічильника!");
+      return; // Зупиняємо збереження, якщо поля пусті
+    }
+
+    if (isFasadFlow) { 
+      saveFasadData(); 
+      return; 
+    } 
+    const data = collectReplaceData(); 
+    sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
+  } catch(e) {
+    alert("❌ Помилка збору даних:\n"+e.message);
+  } 
+}
+    
 /* =========================================================
 ЗБЕРЕЖЕННЯ ФАСАДНИХ РОБІТ (З Розумними умовами)
 ========================================================= */
