@@ -84,7 +84,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 #video { width: 100%; height: 300px; object-fit: cover; display: block; }
 .close-scan-btn { position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; background: #d32f2f; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; }
 #scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
-  .torch-btn { position: absolute; top: -15px; left: -15px; width: 45px; height: 45px; background: #FFc107; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; transition: background 0.2s; }
+.torch-btn { position: absolute; top: -15px; left: -15px; width: 45px; height: 45px; background: #FFc107; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; transition: background 0.2s; }
 </style>
 </head>
 <body>
@@ -117,7 +117,6 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <button class="work-btn" onclick="selectWork(this,'Закриття о/р з демонтажем')">Закриття о/р з демонтажем</button>
     </div>
 
-    <!-- Новий гарний дизайн з кнопкою збоку -->
     <div class="input-with-scanner" style="margin-top: 15px;">
       <input id="account" placeholder="Особовий рахунок" autocomplete="off" inputmode="numeric" oninput="autoSearch()">
       <button class="scan-btn-outer" onclick="startScanner('account', true)">
@@ -137,7 +136,6 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
   <div id="scanner-wrapper">
     <div id="scanner-box">
       <button class="close-scan-btn" onclick="stopScanner()">✖</button>
-      <!-- Нова кнопка ліхтарика зліва вгорі -->
       <button id="torch-btn" class="torch-btn" onclick="toggleTorch()">💡</button>
       <video id="video"></video>
     </div>
@@ -365,12 +363,12 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div id="mat1f" class="hidden">
       <div class="material-row"><div class="material-name">Фасадний короб 1Ф</div><div class="material-input"><input id="f1_box" type="number"></div></div>
       <div class="material-row" style="position: relative;">
-  <div class="material-name">Номінал 1р ВА, А</div>
-  <div class="material-input">
-    <input id="f1_nom" onfocus="showNominalHints('f1')" onblur="hideNominalHints('f1')">
-    <div id="f1_nom_hints" class="meterTypeHints hidden" style="width: 150px; right: 0; left: auto; text-align: center;"></div>
-  </div>
-</div>
+        <div class="material-name">Номінал 1р ВА, А</div>
+        <div class="material-input">
+          <input id="f1_nom" onfocus="showNominalHints('f1')" onblur="hideNominalHints('f1')">
+          <div id="f1_nom_hints" class="meterTypeHints hidden" style="width: 150px; right: 0; left: auto; text-align: center;"></div>
+        </div>
+      </div>
       <div class="material-row"><div class="material-name">AsXSn 2х16, м.</div><div class="material-input"><input id="f1_asxsn" type="number"></div></div>
       <div class="material-row"><div class="material-name">Затискач натяжний ЗН 1.1, шт.</div><div class="material-input"><input id="f1_zn" type="number"></div></div>
       <div class="material-row"><div class="material-name">Затискач відгалудж. ЗВ 1.2.2, шт.</div><div class="material-input"><input id="f1_zv" type="number"></div></div>
@@ -387,12 +385,12 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div id="mat3f" class="hidden">
       <div class="material-row"><div class="material-name">Фасадний короб 3Ф</div><div class="material-input"><input id="f3_box" type="number"></div></div>
       <div class="material-row" style="position: relative;">
-  <div class="material-name">Номінал 3р ВА, А</div>
-  <div class="material-input">
-    <input id="f3_nom" onfocus="showNominalHints('f3')" onblur="hideNominalHints('f3')">
-    <div id="f3_nom_hints" class="meterTypeHints hidden" style="width: 150px; right: 0; left: auto; text-align: center;"></div>
-  </div>
-</div>
+        <div class="material-name">Номінал 3р ВА, А</div>
+        <div class="material-input">
+          <input id="f3_nom" onfocus="showNominalHints('f3')" onblur="hideNominalHints('f3')">
+          <div id="f3_nom_hints" class="meterTypeHints hidden" style="width: 150px; right: 0; left: auto; text-align: center;"></div>
+        </div>
+      </div>
       <div class="material-row"><div class="material-name">AsXSn 4х16, м.</div><div class="material-input"><input id="f3_asxsn" type="number"></div></div>
       <div class="material-row"><div class="material-name">Затискач натяжний ЗН 2.1, шт.</div><div class="material-input"><input id="f3_zn" type="number"></div></div>
       <div class="material-row"><div class="material-name">Затискач відгалудж. ЗВ 1.2.2, шт.</div><div class="material-input"><input id="f3_zv" type="number"></div></div>
@@ -400,7 +398,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <div class="material-row"><div class="material-name">Гофра d32, м.</div><div class="material-input"><input id="f3_gofra" type="number"></div></div>
       <div class="material-row"><div class="material-name">Кріплення для гофри d32, шт.</div><div class="material-input"><input id="f3_clip" type="number"></div></div>
       <div class="material-row"><div class="material-name">Гак анкерний, шт.</div><div class="material-input"><input id="f3_anker" type="number"></div></div>
-      <div class="material-row"><div class="material-name">Дюбель-гриб, шт.</div><div class="material-input"><input id="f3_dubel" type="number"></div></div>
+      <div class="material-row"><div class="material-input"><input id="f3_dubel" type="number"></div></div>
       <div class="material-row"><div class="material-name">Розподільча коробка, шт.</div><div class="material-input"><input id="f3_boxk" type="number"></div></div>
       <div class="material-row"><div class="material-name">Стяжка кабельна, шт.</div><div class="material-input"><input id="f3_styajka" type="number"></div></div>
       <div style="margin-top: 10px;"><b>Інше:</b><textarea id="f3_other"></textarea></div>
@@ -445,13 +443,12 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <button onclick="closeLogoutModal()" style="background:#9E9E9E; min-height:45px;">Ні</button>
   </div>
 </div>
-
-  <script>
+<script>
 /* =========================================================
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbz4hgv6XoJqouDpQznx1hQbcZwQp9Gy0ew9Ni0KmkIoX7N9v2Tfus-AE6jEvc4Fd0Rf/exec";
+const GOOGLE_API_URL = "ТУТ_МАЄ_БУТИ_ТВОЄ_ПОСИЛАННЯ_З_GOOGLE/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -671,26 +668,20 @@ function playBeep() {
 }
 
 /* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (ТІЛЬКИ ШТРИХКОДИ)
+УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР
 ========================================================= */
 let codeReader = null;
-    /* =========================================================
-ЛІХТАРИК ДЛЯ СКАНЕРА
-========================================================= */
 let isTorchOn = false;
+let currentScanTargetId = ""; 
+let autoSearchAfterScan = false; 
 
 function toggleTorch() {
   try {
     const video = document.getElementById("video");
-    const track = video.srcObject.getVideoTracks()[0]; // Отримуємо потік з камери
-    
-    isTorchOn = !isTorchOn; // Перемикаємо стан
-    
-    // Даємо команду камері увімкнути/вимкнути спалах
-    track.applyConstraints({
-      advanced: [{ torch: isTorchOn }]
-    }).then(() => {
-      // Якщо успішно - міняємо колір кнопки на зелений
+    const track = video.srcObject.getVideoTracks()[0]; 
+    isTorchOn = !isTorchOn; 
+    track.applyConstraints({ advanced: [{ torch: isTorchOn }] })
+    .then(() => {
       document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
     }).catch(err => {
       alert("На жаль, ваш телефон або браузер не підтримує ліхтарик.");
@@ -700,8 +691,6 @@ function toggleTorch() {
     console.log("Помилка ліхтарика:", e);
   }
 }
-let currentScanTargetId = ""; 
-let autoSearchAfterScan = false; 
 
 function startScanner(targetFieldId, doSearch) {
   currentScanTargetId = targetFieldId;
@@ -734,21 +723,14 @@ function startScanner(targetFieldId, doSearch) {
         }
       }
 
-      // ПРОФЕСІЙНІ НАЛАШТУВАННЯ КАМЕРИ (Анти-мерехтіння + Автоекспозиція)
       const constraints = {
         video: {
           deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
           width: { ideal: 1920 },
           height: { ideal: 1080 },
-          frameRate: { ideal: 30, max: 30 }, // Жорстко 30 кадрів для синхронізації з лампами 50Hz
-          advanced: [
-            { zoom: 2.0 }, 
-            { focusMode: "continuous" },
-            { exposureMode: "continuous" }, // Примусова автоекспозиція
-            { whiteBalanceMode: "continuous" } // Примусовий баланс білого
-          ]
+          frameRate: { ideal: 30, max: 30 },
+          advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }, { exposureMode: "continuous" }, { whiteBalanceMode: "continuous" }]
         }
-      };
       };
 
       codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
@@ -773,22 +755,9 @@ function stopScanner() {
   if (codeReader) {
     codeReader.reset();
   }
-    // Скидаємо кнопку ліхтарика
   isTorchOn = false;
   const tBtn = document.getElementById("torch-btn");
   if (tBtn) tBtn.style.background = "#FFc107";
-}
-}
-
-/* =========================================================
-ЗАПОВНЕННЯ ФОРМ ДАНИМИ
-========================================================= */
-function fillFields(d){
-  const formType = openSelectedWorkForm();
-  if(!formType) return;
-  if(formType === "tech"){ fillTechCheck(d); return; }
-  if(formType === "replace"){ fillReplaceStep1(d); return; }
-  if(formType === "control"){ fillControlCheck(d); return; }
 }
 
 /* =========================================================
@@ -806,7 +775,7 @@ function showNominalHints(prefix) {
     const div = document.createElement("div"); 
     div.className = "meterTypeItem"; 
     div.textContent = nom;
-    div.onmousedown = function(e) { // mousedown спрацьовує до blur
+    div.onmousedown = function(e) { 
       e.preventDefault(); 
       input.value = nom; 
       box.classList.add("hidden"); 
@@ -828,18 +797,24 @@ function hideNominalHints(prefix) {
 ========================================================= */
 function cleanPlomb(text) {
   if (!text) return "";
-  // Видаляє ВСЕ, крім букв (латиниця+кирилиця) і цифр, робить UPPERCASE
   return text.replace(/[^A-Za-zА-Яа-яІіЇїЄєҐґ0-9]/g, "").toUpperCase();
 }
 
 /* =========================================================
-ВІДКРИТТЯ ФОРМ (Виправлено підтягування ПІБ для Фасаду)
+ЗАПОВНЕННЯ ФОРМ ДАНИМИ
 ========================================================= */
+function fillFields(d){
+  const formType = openSelectedWorkForm();
+  if(!formType) return;
+  if(formType === "tech"){ fillTechCheck(d); return; }
+  if(formType === "replace"){ fillReplaceStep1(d); return; }
+  if(formType === "control"){ fillControlCheck(d); return; }
+}
+
 function openSelectedWorkForm(){
   document.getElementById("searchBlock").style.display = "none";
   if(selectedWork === "Технічна перевірка"){ document.getElementById("techCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "tech"; }
   if(selectedWork === "Фасадні роботи"){ 
-    // ПІДТЯГУЄМО ТАБЕЛЬНИЙ ТА ПІБ МОНТЕРА ОДРАЗУ
     setInner("fasadWorkerTab", worker); 
     setInner("fasadWorkerName", workerName);
     document.getElementById("fasadStep1").classList.remove("hidden"); 
@@ -848,7 +823,6 @@ function openSelectedWorkForm(){
   }
   if(selectedWork === "Заміна лічильника"){ document.getElementById("meterReplaceStep1").classList.remove("hidden"); window.scrollTo(0,0); return "replace"; }
   if(selectedWork === "Контрольний огляд"){ document.getElementById("controlCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "control"; }
-  
   document.getElementById("searchBlock").style.display = "block";
   alert("Форма для цього виду робіт ще не налаштована"); return false;
 }
@@ -936,7 +910,7 @@ document.addEventListener("click", function(e){
 });
 
 /* =========================================================
-БЕЗПЕЧНЕ ЗАПОВНЕННЯ ФОРМ ДАНИМИ
+ЗАПОВНЕННЯ ФОРМ ДАНИМИ (Деталі)
 ========================================================= */
 function fillTechCheck(d){
   setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork || ""); setInner("accountView", d.account || ""); setInner("pibView", d.pib || ""); setInner("addressView", buildAddress(d)); setVal("meterType", d.type || ""); setVal("meterNumber", d.meter || "");
@@ -972,44 +946,29 @@ function fillControlCheck(d){
 function goBackControlCheck(){ document.getElementById("controlCheckForm").classList.add("hidden"); showSearchBlock(); }
 
 /* =========================================================
-ФАСАДНА ЛОГІКА (З РОЗУМНИМИ ПЕРЕВІРКАМИ)
+ФАСАДНА ЛОГІКА
 ========================================================= */
 let fasadPhase = null;
 function setPhase(p){ fasadPhase = p; }
 
 function goFasadStep2(){
-  // 1. ПЕРЕВІРКА НАРЯДУ
   let orderInput = document.getElementById("fasadOrder");
   let order = orderInput.value.trim();
   const phase = document.querySelector('input[name="phase"]:checked');
 
-  // Міняємо всі коми на крапки
   order = order.replace(/,/g, '.');
-  orderInput.value = order; // Одразу показуємо виправлений варіант в полі
+  orderInput.value = order; 
 
-  // Перевірка формату XX.X (або X.X, XXX.X)
   const orderRegex = /^\d+\.\d+$/;
 
-  if(!order || !phase){ 
-    alert("❌ Заповніть номер наряду та фазність!"); 
-    return; 
-  }
-  
-  if(!orderRegex.test(order)) {
-    alert("❌ Введіть номер наряду або розпорядження у форматі ХХ.Х (наприклад: 12.5)");
-    return;
-  }
+  if(!order || !phase){ alert("❌ Заповніть номер наряду та фазність!"); return; }
+  if(!orderRegex.test(order)) { alert("❌ Введіть номер наряду у форматі ХХ.Х (наприклад: 12.5)"); return; }
 
   document.getElementById("fasadStep1").classList.add("hidden"); 
   document.getElementById("fasadStep2").classList.remove("hidden");
   
-  if(fasadPhase == 1){ 
-    document.getElementById("mat1f").classList.remove("hidden"); 
-    document.getElementById("mat3f").classList.add("hidden"); 
-  } else { 
-    document.getElementById("mat3f").classList.remove("hidden"); 
-    document.getElementById("mat1f").classList.add("hidden"); 
-  }
+  if(fasadPhase == 1){ document.getElementById("mat1f").classList.remove("hidden"); document.getElementById("mat3f").classList.add("hidden"); }
+  else { document.getElementById("mat3f").classList.remove("hidden"); document.getElementById("mat1f").classList.add("hidden"); }
 }
 
 function backToFasad1(){ document.getElementById("fasadStep2").classList.add("hidden"); document.getElementById("fasadStep1").classList.remove("hidden"); }
@@ -1017,23 +976,19 @@ function goFasadStep3(){ document.getElementById("fasadStep2").classList.add("hi
 function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden"); }
 
 function goFasadStep4(){
-  // 2. ПЕРЕВІРКА ДЕМОНТАЖУ (Гнучка логіка)
   const mark = document.getElementById("fasadDemoMark").value.trim(); 
   const length = document.getElementById("fasadDemoLength").value.trim(); 
   const demoBy = document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "";
 
-  // Якщо НЕ вибрано ОРБ і метраж БІЛЬШЕ 0 (або пустий), тоді марка і метраж - обов'язкові!
-  if (demoBy !== "ОРБ" && length !== "0") {
+  if (demoBy !== "ОРБ" && length !== "0" && length !== "") {
     if (!mark || !length || !demoBy) {
       alert("❌ Заповніть дані демонтажу!\nЯкщо знімала не ОРБ, марка та метраж обов'язкові.");
       return;
     }
   }
-  // В усіх інших випадках (ОРБ, або метраж 0) - пускаємо далі без перевірок марки
 
   isFasadFlow = true; 
   const acc = document.getElementById("account").value.trim();
-  
   document.getElementById("fasadStep3").classList.add("hidden");
   
   if(navigator.onLine){
@@ -1050,7 +1005,7 @@ function openReplaceFromFasad(d){
   setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", d.account || ""); setInner("replacePibView1", d.pib || ""); setInner("replaceAddressView1", (d.street || "") + " " + (d.house || "") + " " + (d.flat || "")); setVal("replaceRemovedMeterType", d.type || ""); setVal("replaceRemovedMeterNumber", d.meter || "");
   const plombs = parsePlombs(d.plomb || ""); setVal("replaceRemovedLichil", plombs.lichil); setVal("replaceRemovedOptop", plombs.optop); setVal("replaceRemovedFasad1", plombs.fasad[0]); setVal("replaceRemovedFasad2", plombs.fasad[1]); setVal("replaceRemovedVkp", plombs.vkp); setVal("replaceRemovedImp1", plombs.imp[0]); setVal("replaceRemovedImp2", plombs.imp[1]); setVal("replaceRemovedImp3", plombs.imp[2]); setVal("replaceRemovedOther", plombs.other); resizeTextarea(document.getElementById("replaceRemovedOther")); setVal("replaceRemovedT0", ""); setVal("replaceRemovedT1", ""); setVal("replaceRemovedT2", ""); setVal("replaceRemovedT3", "");
 }
-    
+
 /* =========================================================
 ОФЛАЙН РЕЖИМ 
 ========================================================= */
@@ -1067,129 +1022,49 @@ function offlineMode(){
 }
 
 /* =========================================================
-ЗБІР І ВІДПРАВКА ДАНИХ (З перевіркою Встановленого Лічильника)
+ЗБІР І ВІДПРАВКА ДАНИХ
 ========================================================= */
-function save(){ 
-  try {
-    const data = collectTechData(); 
-    sendDataToServer(data, "saveHint", ["techCheckForm"]);
-  } catch(e) {
-    alert("❌ Помилка збору даних:\n"+e.message);
-  } 
-}
-
-function saveControlCheck(){ 
-  try {
-    const data = collectControlData(); 
-    sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);
-  } catch(e) {
-    alert("❌ Помилка збору даних:\n"+e.message);
-  } 
-}
+function save(){ try{const data = collectTechData(); sendDataToServer(data, "saveHint", ["techCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
+function saveControlCheck(){ try{const data = collectControlData(); sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
 
 function saveReplaceData(){ 
   try {
-    // ПЕРЕВІРКА ВСТАНОВЛЕНОГО ЛІЧИЛЬНИКА (Чи не пустий?)
     const instType = getVal("replaceInstalledMeterType");
     const instNum = getVal("replaceInstalledMeterNumber");
-    
-    if (!instType || !instNum) {
-      alert("❌ Обов'язково введіть Тип та Заводський номер встановленого лічильника!");
-      return; // Зупиняємо збереження, якщо поля пусті
-    }
+    if (!instType || !instNum) { alert("❌ Введіть Тип та Заводський номер встановленого лічильника!"); return; }
 
-    if (isFasadFlow) { 
-      saveFasadData(); 
-      return; 
-    } 
+    if (isFasadFlow) { saveFasadData(); return; } 
     const data = collectReplaceData(); 
     sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
-  } catch(e) {
-    alert("❌ Помилка збору даних:\n"+e.message);
-  } 
+  } catch(e) { alert("❌ Помилка збору даних:\n"+e.message); } 
 }
-    
-/* =========================================================
-ЗБЕРЕЖЕННЯ ФАСАДНИХ РОБІТ (З Розумними умовами)
-========================================================= */
+
 function saveFasadData() {
   try {
     const is1F = (fasadPhase == 1);
-    const rawData = collectReplaceData(); // Збираємо дані з форми заміни
+    const rawData = collectReplaceData(); 
 
-    // 1. ПЕРЕВІРКА ДЕМОНТОВАНОГО ВВОДУ
     let demoBy = document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "";
     let demoLen = getVal("fasadDemoLength");
     let demoMark = getVal("fasadDemoMark");
-    
-    // Якщо ОРБ або метраж 0 - марку не пишемо
-    if (demoBy === "ОРБ" || demoLen === "0" || demoLen === "") {
-      demoMark = "";
-    }
+    if (demoBy === "ОРБ" || demoLen === "0" || demoLen === "") { demoMark = ""; }
 
-    // 2. ОЧИЩЕННЯ ТА ПОРІВНЯННЯ ЛІЧИЛЬНИКІВ
-    let remMeter = getVal("replaceRemovedMeterNumber");
-    let instMeter = getVal("replaceInstalledMeterNumber");
-    let remType = getVal("replaceRemovedMeterType");
-    let instType = getVal("replaceInstalledMeterType");
-    
-    // Якщо знятий лічильник = встановленому, то знятий обнуляємо
+    let remMeter = getVal("replaceRemovedMeterNumber"); let instMeter = getVal("replaceInstalledMeterNumber");
+    let remType = getVal("replaceRemovedMeterType"); let instType = getVal("replaceInstalledMeterType");
     if (remMeter === instMeter) { remMeter = ""; remType = ""; }
 
-    // 3. ОЧИЩЕННЯ ТА ПОРІВНЯННЯ ПЛОМБ
-    // Чистимо кожну встановлену пломбу
-    let iLich = cleanPlomb(getVal("replaceInstalledLichil"));
-    let iFas1 = cleanPlomb(getVal("replaceInstalledFasad1"));
-    let iFas2 = cleanPlomb(getVal("replaceInstalledFasad2"));
-    let iVkp = cleanPlomb(getVal("replaceInstalledVkp"));
-    let iOpt = cleanPlomb(getVal("replaceInstalledOptop"));
-    let iImp1 = cleanPlomb(getVal("replaceInstalledImp1"));
-    let iImp2 = cleanPlomb(getVal("replaceInstalledImp2"));
-    let iImp3 = cleanPlomb(getVal("replaceInstalledImp3"));
+    let iLich = cleanPlomb(getVal("replaceInstalledLichil")); let iFas1 = cleanPlomb(getVal("replaceInstalledFasad1")); let iFas2 = cleanPlomb(getVal("replaceInstalledFasad2")); let iVkp = cleanPlomb(getVal("replaceInstalledVkp")); let iOpt = cleanPlomb(getVal("replaceInstalledOptop")); let iImp1 = cleanPlomb(getVal("replaceInstalledImp1")); let iImp2 = cleanPlomb(getVal("replaceInstalledImp2")); let iImp3 = cleanPlomb(getVal("replaceInstalledImp3"));
+    let rLich = cleanPlomb(getVal("replaceRemovedLichil")) === iLich ? "" : cleanPlomb(getVal("replaceRemovedLichil")); let rFas1 = cleanPlomb(getVal("replaceRemovedFasad1")) === iFas1 ? "" : cleanPlomb(getVal("replaceRemovedFasad1")); let rFas2 = cleanPlomb(getVal("replaceRemovedFasad2")) === iFas2 ? "" : cleanPlomb(getVal("replaceRemovedFasad2")); let rVkp = cleanPlomb(getVal("replaceRemovedVkp")) === iVkp ? "" : cleanPlomb(getVal("replaceRemovedVkp")); let rOpt = cleanPlomb(getVal("replaceRemovedOptop")) === iOpt ? "" : cleanPlomb(getVal("replaceRemovedOptop")); let rImp1 = cleanPlomb(getVal("replaceRemovedImp1")) === iImp1 ? "" : cleanPlomb(getVal("replaceRemovedImp1")); let rImp2 = cleanPlomb(getVal("replaceRemovedImp2")) === iImp2 ? "" : cleanPlomb(getVal("replaceRemovedImp2")); let rImp3 = cleanPlomb(getVal("replaceRemovedImp3")) === iImp3 ? "" : cleanPlomb(getVal("replaceRemovedImp3"));
 
-    // Чистимо зняті і відразу перевіряємо: якщо дорівнює встановленій - обнуляємо
-    let rLich = cleanPlomb(getVal("replaceRemovedLichil")) === iLich ? "" : cleanPlomb(getVal("replaceRemovedLichil"));
-    let rFas1 = cleanPlomb(getVal("replaceRemovedFasad1")) === iFas1 ? "" : cleanPlomb(getVal("replaceRemovedFasad1"));
-    let rFas2 = cleanPlomb(getVal("replaceRemovedFasad2")) === iFas2 ? "" : cleanPlomb(getVal("replaceRemovedFasad2"));
-    let rVkp = cleanPlomb(getVal("replaceRemovedVkp")) === iVkp ? "" : cleanPlomb(getVal("replaceRemovedVkp"));
-    let rOpt = cleanPlomb(getVal("replaceRemovedOptop")) === iOpt ? "" : cleanPlomb(getVal("replaceRemovedOptop"));
-    let rImp1 = cleanPlomb(getVal("replaceRemovedImp1")) === iImp1 ? "" : cleanPlomb(getVal("replaceRemovedImp1"));
-    let rImp2 = cleanPlomb(getVal("replaceRemovedImp2")) === iImp2 ? "" : cleanPlomb(getVal("replaceRemovedImp2"));
-    let rImp3 = cleanPlomb(getVal("replaceRemovedImp3")) === iImp3 ? "" : cleanPlomb(getVal("replaceRemovedImp3"));
-
-    // 4. ФОРМУЄМО ФІНАЛЬНИЙ ОБ'ЄКТ
     const data = Object.assign(rawData, {
-      mode: "fasad_replace", 
-      fasadOrder: getVal("fasadOrder"),
-      fasadReason: document.querySelector('input[name="reason"]:checked')?.value || "", 
-      fasadArea: document.querySelector('input[name="area"]:checked')?.value || "",
-      fasadPhase: fasadPhase, 
-      fasadType: document.querySelector('input[name="type"]:checked')?.value || "",
-      
-      demoMark: demoMark, 
-      demoLength: demoLen, 
-      demoBy: demoBy,
-      
+      mode: "fasad_replace", fasadOrder: getVal("fasadOrder"), fasadReason: document.querySelector('input[name="reason"]:checked')?.value || "", fasadArea: document.querySelector('input[name="area"]:checked')?.value || "", fasadPhase: fasadPhase, fasadType: document.querySelector('input[name="type"]:checked')?.value || "",
+      demoMark: demoMark, demoLength: demoLen, demoBy: demoBy,
       f1_box: is1F ? getVal("f1_box") : "", f1_nom: is1F ? getVal("f1_nom") : "", f1_asxsn: is1F ? getVal("f1_asxsn") : "", f1_zn: is1F ? getVal("f1_zn") : "", f1_zv: is1F ? getVal("f1_zv") : "", f1_cable: is1F ? getVal("f1_cable") : "", f1_gofra: is1F ? getVal("f1_gofra") : "", f1_clip: is1F ? getVal("f1_clip") : "", f1_anker: is1F ? getVal("f1_anker") : "", f1_dubel: is1F ? getVal("f1_dubel") : "", f1_boxk: is1F ? getVal("f1_boxk") : "", f1_styajka: is1F ? getVal("f1_styajka") : "", f1_other: is1F ? getVal("f1_other") : "",
       f3_box: !is1F ? getVal("f3_box") : "", f3_nom: !is1F ? getVal("f3_nom") : "", f3_asxsn: !is1F ? getVal("f3_asxsn") : "", f3_zn: !is1F ? getVal("f3_zn") : "", f3_zv: !is1F ? getVal("f3_zv") : "", f3_cable: !is1F ? getVal("f3_cable") : "", f3_gofra: !is1F ? getVal("f3_gofra") : "", f3_clip: !is1F ? getVal("f3_clip") : "", f3_anker: !is1F ? getVal("f3_anker") : "", f3_dubel: !is1F ? getVal("f3_dubel") : "", f3_boxk: !is1F ? getVal("f3_boxk") : "", f3_styajka: !is1F ? getVal("f3_styajka") : "", f3_other: !is1F ? getVal("f3_other") : "",
-
-      // Перезаписуємо лічильники нашими "чистими" даними
-      removedMeterNumber: remMeter, removedMeterType: remType,
-      installedMeterNumber: instMeter, installedMeterType: instType,
-      
-      // Перезаписуємо пломби нашими "чистими" даними
-      removedLichil: rLich, installedLichil: iLich,
-      removedFasad1: rFas1, installedFasad1: iFas1,
-      removedFasad2: rFas2, installedFasad2: iFas2,
-      removedVkp: rVkp, installedVkp: iVkp,
-      removedOptop: rOpt, installedOptop: iOpt,
-      removedImp1: rImp1, installedImp1: iImp1,
-      removedImp2: rImp2, installedImp2: iImp2,
-      removedImp3: rImp3, installedImp3: iImp3
+      removedMeterNumber: remMeter, removedMeterType: remType, installedMeterNumber: instMeter, installedMeterType: instType,
+      removedLichil: rLich, installedLichil: iLich, removedFasad1: rFas1, installedFasad1: iFas1, removedFasad2: rFas2, installedFasad2: iFas2, removedVkp: rVkp, installedVkp: iVkp, removedOptop: rOpt, installedOptop: iOpt, removedImp1: rImp1, installedImp1: iImp1, removedImp2: rImp2, installedImp2: iImp2, removedImp3: rImp3, installedImp3: iImp3
     });
-
     sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
-    isFasadFlow = false;
   } catch (e) { alert("❌ Помилка збору фасаду:\n" + e.message); }
 }
 
@@ -1214,4 +1089,5 @@ function collectControlData(){ return { worker: worker, workType: selectedWork, 
 </script>
 </body>
 </html>
+  
   
