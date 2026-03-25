@@ -856,7 +856,7 @@ function buildAddress(d){
 /* =========================================================
 ПАРСИНГ ПЛОМБ (Оновлено під формат [Номер/Місце/Бригада])
 ========================================================= */
-function parsePlombs(plombText){
+function normalizePlombNumber(entry){
   const result = { lichil: "", optop: "", fasad: ["", ""], vkp: "", imp: ["", "", ""], other: [] };
   let text = String(plombText || "").trim();
   if(!text) return result;
