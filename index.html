@@ -444,6 +444,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
   </div>
 </div>
 <script>
+<script>
 /* =========================================================
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
@@ -455,14 +456,17 @@ function sendRequest(action, payload, callback) {
   const oldText = btn ? btn.innerText : "";
   if (btn && btn.tagName === "BUTTON") btn.innerText = "⏳...";
 
-  let formData = new URLSearchParams();
-  formData.append("payload", JSON.stringify({ action: action, ...payload }));
+  // Використовуємо GET-запит (JSONP стиль) для 100% обходу помилки 405
+  let url = GOOGLE_API_URL + "?action=" + encodeURIComponent(action);
+  for (let key in payload) {
+    if (typeof payload[key] === "object") {
+      url += "&" + key + "=" + encodeURIComponent(JSON.stringify(payload[key]));
+    } else {
+      url += "&" + key + "=" + encodeURIComponent(payload[key]);
+    }
+  }
 
-  fetch(GOOGLE_API_URL, {
-    method: "POST",
-    body: formData,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" }
-  })
+  fetch(url, { method: "GET" })
   .then(res => res.text()) 
   .then(text => {
     if (btn && btn.tagName === "BUTTON") btn.innerText = oldText; 
@@ -668,7 +672,7 @@ function playBeep() {
 }
 
 /* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР
+УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (ТІЛЬКИ ШТРИХКОДИ)
 ========================================================= */
 let codeReader = null;
 let isTorchOn = false;
@@ -761,7 +765,7 @@ function stopScanner() {
 }
 
 /* =========================================================
-БЛОК ПІДКАЗОК ДЛЯ НОМІНАЛІВ
+БЛОК ПІДКАЗОК ДЛЯ НОМІНАЛІВ ТА ЛІЧИЛЬНИКІВ
 ========================================================= */
 const nominalsList = ["10", "16", "20", "25", "32", "40", "50", "63", "80", "100", "АВ споживача", "АВ не замінювався"];
 
@@ -792,12 +796,90 @@ function hideNominalHints(prefix) {
   }, 150);
 }
 
+function showMeterTypes(){
+  const box = document.getElementById("meterTypeHints"); if(!box) return;
+  box.innerHTML = "";
+  meterTypes.slice(0, 150).forEach(item => {
+    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
+    div.onmousedown = function(e){ e.preventDefault(); document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
+    box.appendChild(div);
+  });
+  if(meterTypes.length) box.classList.remove("hidden");
+}
+
+function filterMeterTypes(value){
+  const box = document.getElementById("meterTypeHints"); if(!box) return;
+  const q = String(value || "").trim().toLowerCase(); box.innerHTML = "";
+  let filtered = meterTypes; if(q) filtered = meterTypes.filter(item => item.toLowerCase().includes(q));
+  filtered.slice(0, 150).forEach(item => {
+    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
+    div.onmousedown = function(e){ e.preventDefault(); document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
+    box.appendChild(div);
+  });
+  if(filtered.length) box.classList.remove("hidden"); else box.classList.add("hidden");
+}
+function hideMeterTypes(){
+  setTimeout(() => {
+    const box = document.getElementById("meterTypeHints");
+    if (box) box.classList.add("hidden");
+  }, 150);
+}
+
 /* =========================================================
 ФУНКЦІЯ ОЧИЩЕННЯ ПЛОМБ (Тільки букви і цифри, Великий регістр)
 ========================================================= */
 function cleanPlomb(text) {
   if (!text) return "";
   return text.replace(/[^A-Za-zА-Яа-яІіЇїЄєҐґ0-9]/g, "").toUpperCase();
+}
+
+/* =========================================================
+ПАРСИНГ ПЛОМБ (Оновлено під формат [Номер/Місце/Бригада])
+========================================================= */
+function parsePlombs(plombText){
+  const result = { lichil: "", optop: "", fasad: ["", ""], vkp: "", imp: ["", "", ""], other: [] };
+  let text = String(plombText || "").trim();
+  if(!text) return result;
+
+  const matches = text.match(/\[(.*?)\]/g);
+
+  if (matches) {
+    matches.forEach(m => {
+      let content = m.replace(/[\[\]]/g, "");
+      let parts = content.split("/");
+      let plombNum = cleanPlomb(parts[0]); 
+      let location = (parts[1] || "").toLowerCase();
+
+      if (!plombNum) return;
+
+      if(location.includes("лічил")) { 
+        if(!result.lichil) result.lichil = plombNum; else result.other.push(plombNum); 
+      }
+      else if(location.includes("оптоп")) { 
+        if(!result.optop) result.optop = plombNum; else result.other.push(plombNum); 
+      }
+      else if(location.includes("фасад") || location.includes("шкаф") || location.includes("шафа") || location.includes("сходова")) { 
+        if(!result.fasad[0]) result.fasad[0] = plombNum; 
+        else if(!result.fasad[1]) result.fasad[1] = plombNum; 
+        else result.other.push(plombNum); 
+      }
+      else if(location.includes("вкп") || location.includes("ввідн") || location.includes("ввод")) { 
+        if(!result.vkp) result.vkp = plombNum; else result.other.push(plombNum); 
+      }
+      else if(location.includes("імп") || location.includes("корпу") || location.includes("розпа")) { 
+        const idx = result.imp.findIndex(v => !v); 
+        if(idx !== -1) result.imp[idx] = plombNum; else result.other.push(plombNum); 
+      }
+      else {
+        result.other.push(plombNum);
+      }
+    });
+  } else {
+    result.other.push(text);
+  }
+
+  result.other = result.other.join("\n");
+  return result;
 }
 
 /* =========================================================
@@ -854,88 +936,7 @@ function buildAddress(d){
 }
 
 /* =========================================================
-ПАРСИНГ ПЛОМБ (Оновлено під формат [Номер/Місце/Бригада])
-========================================================= */
-function parsePlombs(plombText){
-  const result = { lichil: "", optop: "", fasad: ["", ""], vkp: "", imp: ["", "", ""], other: [] };
-  let text = String(plombText || "").trim();
-  if(!text) return result;
-
-  // Шукаємо всі блоки у квадратних дужках, наприклад [С 81099073/Фасад/ППН 1-8]
-  const matches = text.match(/\[(.*?)\]/g);
-
-  if (matches) {
-    matches.forEach(m => {
-      // Прибираємо дужки [ і ]
-      let content = m.replace(/[\[\]]/g, "");
-      // Розбиваємо по слешу: parts[0] = "С 81099073", parts[1] = "Фасад"
-      let parts = content.split("/");
-      
-      let plombNum = cleanPlomb(parts[0]); // Робить "С81099073" (видаляє пробіли)
-      let location = (parts[1] || "").toLowerCase();
-
-      if (!plombNum) return;
-
-      if(location.includes("лічил")) { 
-        if(!result.lichil) result.lichil = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("оптоп")) { 
-        if(!result.optop) result.optop = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("фасад") || location.includes("шкаф") || location.includes("шафа") || location.includes("сходова")) { 
-        if(!result.fasad[0]) result.fasad[0] = plombNum; 
-        else if(!result.fasad[1]) result.fasad[1] = plombNum; 
-        else result.other.push(plombNum); 
-      }
-      else if(location.includes("вкп") || location.includes("ввідн") || location.includes("ввод")) { 
-        if(!result.vkp) result.vkp = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("імп") || location.includes("корпу") || location.includes("розпа")) { 
-        const idx = result.imp.findIndex(v => !v); 
-        if(idx !== -1) result.imp[idx] = plombNum; else result.other.push(plombNum); 
-      }
-      else {
-        result.other.push(plombNum);
-      }
-    });
-  } else {
-    // Якщо текст є, але він без квадратних дужок (старий формат), кидаємо все в "Інше"
-    result.other.push(text);
-  }
-
-  result.other = result.other.join("\n");
-  return result;
-}
-
-function showMeterTypes(){
-  const box = document.getElementById("meterTypeHints"); if(!box) return;
-  box.innerHTML = "";
-  meterTypes.slice(0, 150).forEach(item => {
-    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
-    div.onclick = function(){ document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
-    box.appendChild(div);
-  });
-  if(meterTypes.length) box.classList.remove("hidden");
-}
-
-function filterMeterTypes(value){
-  const box = document.getElementById("meterTypeHints"); if(!box) return;
-  const q = String(value || "").trim().toLowerCase(); box.innerHTML = "";
-  let filtered = meterTypes; if(q) filtered = meterTypes.filter(item => item.toLowerCase().includes(q));
-  filtered.slice(0, 150).forEach(item => {
-    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
-    div.onclick = function(){ document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
-    box.appendChild(div);
-  });
-  if(filtered.length) box.classList.remove("hidden"); else box.classList.add("hidden");
-}
-document.addEventListener("click", function(e){
-  const input = document.getElementById("replaceInstalledMeterType"); const box = document.getElementById("meterTypeHints");
-  if(!input || !box) return; if(e.target !== input && !box.contains(e.target)) box.classList.add("hidden");
-});
-
-/* =========================================================
-ЗАПОВНЕННЯ ФОРМ ДАНИМИ (Деталі)
+БЕЗПЕЧНЕ ЗАПОВНЕННЯ ФОРМ ДАНИМИ
 ========================================================= */
 function fillTechCheck(d){
   setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork || ""); setInner("accountView", d.account || ""); setInner("pibView", d.pib || ""); setInner("addressView", buildAddress(d)); setVal("meterType", d.type || ""); setVal("meterNumber", d.meter || "");
@@ -971,7 +972,7 @@ function fillControlCheck(d){
 function goBackControlCheck(){ document.getElementById("controlCheckForm").classList.add("hidden"); showSearchBlock(); }
 
 /* =========================================================
-ФАСАДНА ЛОГІКА
+ФАСАДНА ЛОГІКА (З РОЗУМНИМИ ПЕРЕВІРКАМИ)
 ========================================================= */
 let fasadPhase = null;
 function setPhase(p){ fasadPhase = p; }
@@ -981,6 +982,7 @@ function goFasadStep2(){
   let order = orderInput.value.trim();
   const phase = document.querySelector('input[name="phase"]:checked');
 
+  // Міняємо всі коми на крапки
   order = order.replace(/,/g, '.');
   orderInput.value = order; 
 
@@ -1047,7 +1049,7 @@ function offlineMode(){
 }
 
 /* =========================================================
-ЗБІР І ВІДПРАВКА ДАНИХ
+ЗБІР І ВІДПРАВКА ДАНИХ (З РОЗУМНИМИ ПЕРЕВІРКАМИ)
 ========================================================= */
 function save(){ try{const data = collectTechData(); sendDataToServer(data, "saveHint", ["techCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
 function saveControlCheck(){ try{const data = collectControlData(); sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
@@ -1056,7 +1058,11 @@ function saveReplaceData(){
   try {
     const instType = getVal("replaceInstalledMeterType");
     const instNum = getVal("replaceInstalledMeterNumber");
-    if (!instType || !instNum) { alert("❌ Введіть Тип та Заводський номер встановленого лічильника!"); return; }
+    
+    if (!instType || !instNum) {
+      alert("❌ Обов'язково введіть Тип та Заводський номер встановленого лічильника!");
+      return; 
+    }
 
     if (isFasadFlow) { saveFasadData(); return; } 
     const data = collectReplaceData(); 
@@ -1107,9 +1113,9 @@ function saveOffline(data){
   list.push(data); localStorage.setItem("offlineData",JSON.stringify(list));
 }
 
-function collectTechData(){ return { worker: worker, workType: selectedWork, account: getInner("accountView"), pib: getInner("pibView"), meterType: getVal("meterType"), meterNumber: getVal("meterNumber"), t0: getVal("t0"), t1: getVal("t1"), t2: getVal("t2"), t3: getVal("t3"), removedLichil: getVal("removedLichil"), installedLichil: getVal("installedLichil"), removedFasad1: getVal("removedFasad1"), installedFasad1: getVal("installedFasad1"), removedFasad2: getVal("removedFasad2"), installedFasad2: getVal("installedFasad2"), removedVkp: getVal("removedVkp"), installedVkp: getVal("installedVkp"), removedOptop: getVal("removedOptop"), installedOptop: getVal("installedOptop"), removedImp1: getVal("removedImp1"), installedImp1: getVal("installedImp1"), removedImp2: getVal("removedImp2"), installedImp2: getVal("installedImp2"), removedImp3: getVal("removedImp3"), installedImp3: getVal("installedImp3"), removedOther: getVal("removedOther"), installedOther: getVal("installedOther") }; }
-function collectReplaceData(){ return { worker: worker, workType: selectedWork, mode: "replace", account: getInner("replaceAccountView2"), pib: getInner("replacePibView2"), removedMeterType: getVal("replaceRemovedMeterType"), removedMeterNumber: getVal("replaceRemovedMeterNumber"), removedT0: getVal("replaceRemovedT0"), removedT1: getVal("replaceRemovedT1"), removedT2: getVal("replaceRemovedT2"), removedT3: getVal("replaceRemovedT3"), removedLichil: getVal("replaceRemovedLichil"), removedFasad1: getVal("replaceRemovedFasad1"), removedFasad2: getVal("replaceRemovedFasad2"), removedVkp: getVal("replaceRemovedVkp"), removedOptop: getVal("replaceRemovedOptop"), removedImp1: getVal("replaceRemovedImp1"), removedImp2: getVal("replaceRemovedImp2"), removedImp3: getVal("replaceRemovedImp3"), removedOther: getVal("replaceRemovedOther"), installedMeterType: getVal("replaceInstalledMeterType"), installedMeterNumber: getVal("replaceInstalledMeterNumber"), installedT0: getVal("replaceInstalledT0"), installedT1: getVal("replaceInstalledT1"), installedT2: getVal("replaceInstalledT2"), installedT3: getVal("replaceInstalledT3"), installedLichil: getVal("replaceInstalledLichil"), installedFasad1: getVal("replaceInstalledFasad1"), installedFasad2: getVal("replaceInstalledFasad2"), installedVkp: getVal("replaceInstalledVkp"), installedOptop: getVal("replaceInstalledOptop"), installedImp1: getVal("replaceInstalledImp1"), installedImp2: getVal("replaceInstalledImp2"), installedImp3: getVal("replaceInstalledImp3"), installedOther: getVal("replaceInstalledOther") }; }
-function collectControlData(){ return { worker: worker, workType: selectedWork, mode: "control", account: getInner("controlAccountView"), pib: getInner("controlPibView"), meterType: getVal("controlMeterType"), meterNumber: getVal("controlMeterNumber"), t0: getVal("controlT0"), t1: getVal("controlT1"), t2: getVal("controlT2"), t3: getVal("controlT3"), installedLichil: getVal("controlInstalledLichil"), installedOptop: getVal("controlInstalledOptop"), installedFasad1: getVal("controlInstalledFasad1"), installedFasad2: getVal("controlInstalledFasad2"), installedVkp: getVal("controlInstalledVkp"), installedImp1: getVal("controlInstalledImp1"), installedImp2: getVal("controlInstalledImp2"), installedImp3: getVal("controlInstalledImp3"), installedOther: getVal("controlInstalledOther") }; }
+function collectTechData(){ return { worker: worker, workType: selectedWork, account: getInner("accountView"), pib: getInner("pibView"), meterType: getVal("meterType"), meterNumber: getVal("meterNumber"), t0: getVal("t0"), t1: getVal("t1"), t2: getVal("t2"), t3: getVal("t3"), removedLichil: cleanPlomb(getVal("removedLichil")), installedLichil: cleanPlomb(getVal("installedLichil")), removedFasad1: cleanPlomb(getVal("removedFasad1")), installedFasad1: cleanPlomb(getVal("installedFasad1")), removedFasad2: cleanPlomb(getVal("removedFasad2")), installedFasad2: cleanPlomb(getVal("installedFasad2")), removedVkp: cleanPlomb(getVal("removedVkp")), installedVkp: cleanPlomb(getVal("installedVkp")), removedOptop: cleanPlomb(getVal("removedOptop")), installedOptop: cleanPlomb(getVal("installedOptop")), removedImp1: cleanPlomb(getVal("removedImp1")), installedImp1: cleanPlomb(getVal("installedImp1")), removedImp2: cleanPlomb(getVal("removedImp2")), installedImp2: cleanPlomb(getVal("installedImp2")), removedImp3: cleanPlomb(getVal("removedImp3")), installedImp3: cleanPlomb(getVal("installedImp3")), removedOther: cleanPlomb(getVal("removedOther")), installedOther: cleanPlomb(getVal("installedOther")) }; }
+function collectReplaceData(){ return { worker: worker, workType: selectedWork, mode: "replace", account: getInner("replaceAccountView2"), pib: getInner("replacePibView2"), removedMeterType: getVal("replaceRemovedMeterType"), removedMeterNumber: getVal("replaceRemovedMeterNumber"), removedT0: getVal("replaceRemovedT0"), removedT1: getVal("replaceRemovedT1"), removedT2: getVal("replaceRemovedT2"), removedT3: getVal("replaceRemovedT3"), removedLichil: cleanPlomb(getVal("replaceRemovedLichil")), removedFasad1: cleanPlomb(getVal("replaceRemovedFasad1")), removedFasad2: cleanPlomb(getVal("replaceRemovedFasad2")), removedVkp: cleanPlomb(getVal("replaceRemovedVkp")), removedOptop: cleanPlomb(getVal("replaceRemovedOptop")), removedImp1: cleanPlomb(getVal("replaceRemovedImp1")), removedImp2: cleanPlomb(getVal("replaceRemovedImp2")), removedImp3: cleanPlomb(getVal("replaceRemovedImp3")), removedOther: cleanPlomb(getVal("replaceRemovedOther")), installedMeterType: getVal("replaceInstalledMeterType"), installedMeterNumber: getVal("replaceInstalledMeterNumber"), installedT0: getVal("replaceInstalledT0"), installedT1: getVal("replaceInstalledT1"), installedT2: getVal("replaceInstalledT2"), installedT3: getVal("replaceInstalledT3"), installedLichil: cleanPlomb(getVal("replaceInstalledLichil")), installedFasad1: cleanPlomb(getVal("replaceInstalledFasad1")), installedFasad2: cleanPlomb(getVal("replaceInstalledFasad2")), installedVkp: cleanPlomb(getVal("replaceInstalledVkp")), installedOptop: cleanPlomb(getVal("replaceInstalledOptop")), installedImp1: cleanPlomb(getVal("replaceInstalledImp1")), installedImp2: cleanPlomb(getVal("replaceInstalledImp2")), installedImp3: cleanPlomb(getVal("replaceInstalledImp3")), installedOther: cleanPlomb(getVal("replaceInstalledOther")) }; }
+function collectControlData(){ return { worker: worker, workType: selectedWork, mode: "control", account: getInner("controlAccountView"), pib: getInner("controlPibView"), meterType: getVal("controlMeterType"), meterNumber: getVal("controlMeterNumber"), t0: getVal("controlT0"), t1: getVal("controlT1"), t2: getVal("controlT2"), t3: getVal("controlT3"), installedLichil: cleanPlomb(getVal("controlInstalledLichil")), installedOptop: cleanPlomb(getVal("controlInstalledOptop")), installedFasad1: cleanPlomb(getVal("controlInstalledFasad1")), installedFasad2: cleanPlomb(getVal("controlInstalledFasad2")), installedVkp: cleanPlomb(getVal("controlInstalledVkp")), installedImp1: cleanPlomb(getVal("controlInstalledImp1")), installedImp2: cleanPlomb(getVal("controlInstalledImp2")), installedImp3: cleanPlomb(getVal("controlInstalledImp3")), installedOther: cleanPlomb(getVal("controlInstalledOther")) }; }
 
 </script>
 </body>
