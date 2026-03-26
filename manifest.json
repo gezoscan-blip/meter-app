@@ -1,5 +1,5 @@
 {
-  "short_name": "ГЕЗО",
+  "short_name": "ГЕЗО Полтава",
   "name": "ГЕЗО та ВС Полтава",
   "icons": [
     {
@@ -15,6 +15,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#2196F3",
-  "theme_color": "#2196F3"
+  "background_color": "#0d274d", 
+  "theme_color": "#0d274d"
 }
