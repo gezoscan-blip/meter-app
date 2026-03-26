@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#2196F3">
 <base target="_top">
 
-<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (ZXing) -->
+<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (ZXing). Стару видалено! -->
 <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 
 <style>
@@ -448,7 +448,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwfyAfFeMySxTHJx-aM_J1AsSyH6yQmszP3IscRQSNptQZDzE-cmxw_SY95FQY8i1Jw/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbz7Vsd4Mj9Us-WAhs3c0qJ07e3EkKUIobiQlIzKwCaEDIhtu_g7Tmf34dwmpmLoP2Cg/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
