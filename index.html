@@ -445,28 +445,26 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 </div>
 <script>
 <script>
+<script>
 /* =========================================================
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbz7Vsd4Mj9Us-WAhs3c0qJ07e3EkKUIobiQlIzKwCaEDIhtu_g7Tmf34dwmpmLoP2Cg/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyDv3rK_PMYvMslG7H51CbS-zEe51P1vWK15RjpQZZQHieIDfXh2qZoGjU1d2tkQKsO/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
   const oldText = btn ? btn.innerText : "";
   if (btn && btn.tagName === "BUTTON") btn.innerText = "⏳...";
 
-  // Використовуємо GET-запит (JSONP стиль) для 100% обходу помилки 405
-  let url = GOOGLE_API_URL + "?action=" + encodeURIComponent(action);
-  for (let key in payload) {
-    if (typeof payload[key] === "object") {
-      url += "&" + key + "=" + encodeURIComponent(JSON.stringify(payload[key]));
-    } else {
-      url += "&" + key + "=" + encodeURIComponent(payload[key]);
-    }
-  }
+  let formData = new URLSearchParams();
+  formData.append("payload", JSON.stringify({ action: action, ...payload }));
 
-  fetch(url, { method: "GET" })
+  fetch(GOOGLE_API_URL, {
+    method: "POST",
+    body: formData,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" }
+  })
   .then(res => res.text()) 
   .then(text => {
     if (btn && btn.tagName === "BUTTON") btn.innerText = oldText; 
@@ -504,7 +502,7 @@ const google = {
 };
 
 /* =========================================================
-ГЛОБАЛЬНІ ЗМІННІ ТА БЕЗПЕЧНІ УТИЛІТИ (Без падіння коду)
+ГЛОБАЛЬНІ ЗМІННІ ТА БЕЗПЕЧНІ УТИЛІТИ
 ========================================================= */
 let worker = ""; let workerName = ""; let selectedWork = "";
 let hintTimer = null; let meterTypes = [];
@@ -512,22 +510,9 @@ let isFasadFlow = false;
 
 function getVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; }
 function getInner(id) { const el = document.getElementById(id); return el ? el.innerText.trim() : ""; }
-
-function setInner(id, text) { 
-  const el = document.getElementById(id); 
-  if (el) el.innerHTML = text; 
-  else console.warn("Не знайдено текстовий блок: " + id);
-}
-
-function setVal(id, text) { 
-  const el = document.getElementById(id); 
-  if (el) el.value = text; 
-  else console.warn("Не знайдено поле вводу: " + id);
-}
-
-function resizeTextarea(el){ 
-  if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } 
-}
+function setInner(id, text) { const el = document.getElementById(id); if (el) el.innerHTML = text; }
+function setVal(id, text) { const el = document.getElementById(id); if (el) el.value = text; }
+function resizeTextarea(el){ if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }
 
 /* =========================================================
 АВТОВХІД ПРИ ЗАПУСКУ
@@ -590,12 +575,11 @@ function selectWork(btn,type){
 }
 
 /* =========================================================
-ПОШУК ТА ПІДКАЗКИ (БЕЗПЕЧНІ)
+ПОШУК ТА ПІДКАЗКИ
 ========================================================= */
 function autoSearch(){
   const accInput = document.getElementById("account");
   const hintBox = document.getElementById("accountHints");
-  
   if (!accInput || !hintBox) return;
   const value = accInput.value.trim();
 
@@ -616,12 +600,8 @@ function showHints(list){
 
   list.forEach(acc => {
     const div = document.createElement("div"); 
-    div.className = "hintItem"; 
-    div.textContent = acc;
-    div.onclick = function() { 
-      document.getElementById("account").value = acc; 
-      box.innerHTML = ""; 
-    };
+    div.className = "hintItem"; div.textContent = acc;
+    div.onclick = function() { document.getElementById("account").value = acc; box.innerHTML = ""; };
     box.appendChild(div);
   });
 }
@@ -641,127 +621,13 @@ function search() {
 
   if (navigator.onLine) {
     google.script.run.withSuccessHandler(function(res) {
-      btn.innerText = oldText;
-      btn.disabled = false;
+      btn.innerText = oldText; btn.disabled = false;
       if (res && res.found) { fillFields(res.data); } else { alert("⚠️ Абонента не знайдено!"); }
     }).findAccountFast(acc);
   } else {
-    btn.innerText = oldText;
-    btn.disabled = false;
+    btn.innerText = oldText; btn.disabled = false;
     offlineMode();
   }
-}
-
-/* =========================================================
-ЗВУК СКАНЕРА
-========================================================= */
-function playBeep() {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    oscillator.type = 'sine'; 
-    oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); 
-    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.1); 
-  } catch (e) {}
-}
-
-/* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (ТІЛЬКИ ШТРИХКОДИ)
-========================================================= */
-let codeReader = null;
-let isTorchOn = false;
-let currentScanTargetId = ""; 
-let autoSearchAfterScan = false; 
-
-function toggleTorch() {
-  try {
-    const video = document.getElementById("video");
-    const track = video.srcObject.getVideoTracks()[0]; 
-    isTorchOn = !isTorchOn; 
-    track.applyConstraints({ advanced: [{ torch: isTorchOn }] })
-    .then(() => {
-      document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
-    }).catch(err => {
-      alert("На жаль, ваш телефон або браузер не підтримує ліхтарик.");
-      isTorchOn = false;
-    });
-  } catch(e) {
-    console.log("Помилка ліхтарика:", e);
-  }
-}
-
-function startScanner(targetFieldId, doSearch) {
-  currentScanTargetId = targetFieldId;
-  autoSearchAfterScan = doSearch;
-
-  const readerWrapper = document.getElementById("scanner-wrapper");
-  readerWrapper.style.display = "flex";
-
-  if (!codeReader) {
-    codeReader = new ZXing.BrowserMultiFormatReader();
-  }
-
-  codeReader.listVideoInputDevices()
-    .then((videoInputDevices) => {
-      if (videoInputDevices.length === 0) {
-        alert("❌ Камеру не знайдено!");
-        stopScanner();
-        return;
-      }
-
-      let selectedDeviceId = videoInputDevices[0].deviceId;
-
-      for (let i = 0; i < videoInputDevices.length; i++) {
-        let label = videoInputDevices[i].label.toLowerCase();
-        if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
-          if (!label.includes("wide") && !label.includes("0.")) {
-            selectedDeviceId = videoInputDevices[i].deviceId;
-            break;
-          }
-        }
-      }
-
-      const constraints = {
-        video: {
-          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30, max: 30 },
-          advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }, { exposureMode: "continuous" }, { whiteBalanceMode: "continuous" }]
-        }
-      };
-
-      codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
-        if (result) {
-          playBeep(); 
-          document.getElementById(currentScanTargetId).value = result.text;
-          setTimeout(() => {
-            stopScanner();
-            if (autoSearchAfterScan) search(); 
-          }, 300);
-        }
-      });
-    })
-    .catch((err) => {
-      alert("❌ Надайте браузеру дозвіл на використання камери.");
-      stopScanner();
-    });
-}
-
-function stopScanner() {
-  document.getElementById("scanner-wrapper").style.display = "none";
-  if (codeReader) {
-    codeReader.reset();
-  }
-  isTorchOn = false;
-  const tBtn = document.getElementById("torch-btn");
-  if (tBtn) tBtn.style.background = "#FFc107";
 }
 
 /* =========================================================
@@ -773,28 +639,16 @@ function showNominalHints(prefix) {
   const box = document.getElementById(prefix + "_nom_hints");
   const input = document.getElementById(prefix + "_nom");
   if (!box || !input) return;
-  
   box.innerHTML = "";
   nominalsList.forEach(nom => {
-    const div = document.createElement("div"); 
-    div.className = "meterTypeItem"; 
-    div.textContent = nom;
-    div.onmousedown = function(e) { 
-      e.preventDefault(); 
-      input.value = nom; 
-      box.classList.add("hidden"); 
-    };
+    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = nom;
+    div.onmousedown = function(e) { e.preventDefault(); input.value = nom; box.classList.add("hidden"); };
     box.appendChild(div);
   });
   box.classList.remove("hidden");
 }
 
-function hideNominalHints(prefix) {
-  setTimeout(() => {
-    const box = document.getElementById(prefix + "_nom_hints");
-    if (box) box.classList.add("hidden");
-  }, 150);
-}
+function hideNominalHints(prefix) { setTimeout(() => { const box = document.getElementById(prefix + "_nom_hints"); if (box) box.classList.add("hidden"); }, 150); }
 
 function showMeterTypes(){
   const box = document.getElementById("meterTypeHints"); if(!box) return;
@@ -818,15 +672,14 @@ function filterMeterTypes(value){
   });
   if(filtered.length) box.classList.remove("hidden"); else box.classList.add("hidden");
 }
-function hideMeterTypes(){
-  setTimeout(() => {
-    const box = document.getElementById("meterTypeHints");
-    if (box) box.classList.add("hidden");
-  }, 150);
-}
+
+document.addEventListener("click", function(e){
+  const input = document.getElementById("replaceInstalledMeterType"); const box = document.getElementById("meterTypeHints");
+  if(!input || !box) return; if(e.target !== input && !box.contains(e.target)) box.classList.add("hidden");
+});
 
 /* =========================================================
-ФУНКЦІЯ ОЧИЩЕННЯ ПЛОМБ (Тільки букви і цифри, Великий регістр)
+ФУНКЦІЯ ОЧИЩЕННЯ ПЛОМБ
 ========================================================= */
 function cleanPlomb(text) {
   if (!text) return "";
@@ -834,7 +687,7 @@ function cleanPlomb(text) {
 }
 
 /* =========================================================
-ПАРСИНГ ПЛОМБ (Оновлено під формат [Номер/Місце/Бригада])
+ПАРСИНГ ПЛОМБ З БАЗИ ([Номер/Місце/Хто])
 ========================================================= */
 function parsePlombs(plombText){
   const result = { lichil: "", optop: "", fasad: ["", ""], vkp: "", imp: ["", "", ""], other: [] };
@@ -852,32 +705,20 @@ function parsePlombs(plombText){
 
       if (!plombNum) return;
 
-      if(location.includes("лічил")) { 
-        if(!result.lichil) result.lichil = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("оптоп")) { 
-        if(!result.optop) result.optop = plombNum; else result.other.push(plombNum); 
-      }
+      if(location.includes("лічил")) { if(!result.lichil) result.lichil = plombNum; else result.other.push(plombNum); }
+      else if(location.includes("оптоп")) { if(!result.optop) result.optop = plombNum; else result.other.push(plombNum); }
       else if(location.includes("фасад") || location.includes("шкаф") || location.includes("шафа") || location.includes("сходова")) { 
-        if(!result.fasad[0]) result.fasad[0] = plombNum; 
-        else if(!result.fasad[1]) result.fasad[1] = plombNum; 
-        else result.other.push(plombNum); 
+        if(!result.fasad[0]) result.fasad[0] = plombNum; else if(!result.fasad[1]) result.fasad[1] = plombNum; else result.other.push(plombNum); 
       }
-      else if(location.includes("вкп") || location.includes("ввідн") || location.includes("ввод")) { 
-        if(!result.vkp) result.vkp = plombNum; else result.other.push(plombNum); 
-      }
+      else if(location.includes("вкп") || location.includes("ввідн") || location.includes("ввод")) { if(!result.vkp) result.vkp = plombNum; else result.other.push(plombNum); }
       else if(location.includes("імп") || location.includes("корпу") || location.includes("розпа")) { 
-        const idx = result.imp.findIndex(v => !v); 
-        if(idx !== -1) result.imp[idx] = plombNum; else result.other.push(plombNum); 
+        const idx = result.imp.findIndex(v => !v); if(idx !== -1) result.imp[idx] = plombNum; else result.other.push(plombNum); 
       }
-      else {
-        result.other.push(plombNum);
-      }
+      else { result.other.push(plombNum); }
     });
   } else {
     result.other.push(text);
   }
-
   result.other = result.other.join("\n");
   return result;
 }
@@ -885,59 +726,29 @@ function parsePlombs(plombText){
 /* =========================================================
 ЗАПОВНЕННЯ ФОРМ ДАНИМИ
 ========================================================= */
-function fillFields(d){
-  const formType = openSelectedWorkForm();
-  if(!formType) return;
-  if(formType === "tech"){ fillTechCheck(d); return; }
-  if(formType === "replace"){ fillReplaceStep1(d); return; }
-  if(formType === "control"){ fillControlCheck(d); return; }
-}
-
 function openSelectedWorkForm(){
   document.getElementById("searchBlock").style.display = "none";
   if(selectedWork === "Технічна перевірка"){ document.getElementById("techCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "tech"; }
-  if(selectedWork === "Фасадні роботи"){ 
-    setInner("fasadWorkerTab", worker); 
-    setInner("fasadWorkerName", workerName);
-    document.getElementById("fasadStep1").classList.remove("hidden"); 
-    window.scrollTo(0,0); 
-    return "fasad"; 
-  }
+  if(selectedWork === "Фасадні роботи"){ setInner("fasadWorkerTab", worker); setInner("fasadWorkerName", workerName); document.getElementById("fasadStep1").classList.remove("hidden"); window.scrollTo(0,0); return "fasad"; }
   if(selectedWork === "Заміна лічильника"){ document.getElementById("meterReplaceStep1").classList.remove("hidden"); window.scrollTo(0,0); return "replace"; }
   if(selectedWork === "Контрольний огляд"){ document.getElementById("controlCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "control"; }
-  document.getElementById("searchBlock").style.display = "block";
-  alert("Форма для цього виду робіт ще не налаштована"); return false;
+  document.getElementById("searchBlock").style.display = "block"; alert("Форма для цього виду робіт ще не налаштована"); return false;
 }
 
 function hideAllForms(){
-  document.getElementById("techCheckForm").classList.add("hidden");
-  document.getElementById("meterReplaceStep1").classList.add("hidden");
-  document.getElementById("meterReplaceStep2").classList.add("hidden");
-  document.getElementById("controlCheckForm").classList.add("hidden");
-  document.getElementById("fasadStep1").classList.add("hidden");
-  document.getElementById("fasadStep2").classList.add("hidden");
-  document.getElementById("fasadStep3").classList.add("hidden");
+  document.getElementById("techCheckForm").classList.add("hidden"); document.getElementById("meterReplaceStep1").classList.add("hidden"); document.getElementById("meterReplaceStep2").classList.add("hidden"); document.getElementById("controlCheckForm").classList.add("hidden"); document.getElementById("fasadStep1").classList.add("hidden"); document.getElementById("fasadStep2").classList.add("hidden"); document.getElementById("fasadStep3").classList.add("hidden");
 }
 
 function showSearchBlock(){
-  hideAllForms();
-  document.getElementById("searchBlock").style.display = "block";
-  document.getElementById("account").value = "";
-  if(document.getElementById("accountHints")) document.getElementById("accountHints").innerHTML = "";
-  window.scrollTo(0,0);
+  hideAllForms(); document.getElementById("searchBlock").style.display = "block"; document.getElementById("account").value = "";
+  if(document.getElementById("accountHints")) document.getElementById("accountHints").innerHTML = ""; window.scrollTo(0,0);
 }
 function goBack(){ showSearchBlock(); }
 
 function buildAddress(d){
-  let addr = d.street || "";
-  if(d.house) addr += " буд. " + d.house;
-  if(d.flat) addr += " кв. " + d.flat;
-  return addr;
+  let addr = d.street || ""; if(d.house) addr += " буд. " + d.house; if(d.flat) addr += " кв. " + d.flat; return addr;
 }
 
-/* =========================================================
-БЕЗПЕЧНЕ ЗАПОВНЕННЯ ФОРМ ДАНИМИ
-========================================================= */
 function fillTechCheck(d){
   setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork || ""); setInner("accountView", d.account || ""); setInner("pibView", d.pib || ""); setInner("addressView", buildAddress(d)); setVal("meterType", d.type || ""); setVal("meterNumber", d.meter || "");
   const plombs = parsePlombs(d.plomb || "");
@@ -980,9 +791,10 @@ function setPhase(p){ fasadPhase = p; }
 function goFasadStep2(){
   let orderInput = document.getElementById("fasadOrder");
   let order = orderInput.value.trim();
-  const phase = document.querySelector('input[name="phase"]:checked');
+  
+  let pRadio = document.querySelector('input[name="phase"]:checked');
+  const phase = pRadio ? pRadio.value : "";
 
-  // Міняємо всі коми на крапки
   order = order.replace(/,/g, '.');
   orderInput.value = order; 
 
@@ -991,9 +803,7 @@ function goFasadStep2(){
   if(!order || !phase){ alert("❌ Заповніть номер наряду та фазність!"); return; }
   if(!orderRegex.test(order)) { alert("❌ Введіть номер наряду у форматі ХХ.Х (наприклад: 12.5)"); return; }
 
-  document.getElementById("fasadStep1").classList.add("hidden"); 
-  document.getElementById("fasadStep2").classList.remove("hidden");
-  
+  document.getElementById("fasadStep1").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden");
   if(fasadPhase == 1){ document.getElementById("mat1f").classList.remove("hidden"); document.getElementById("mat3f").classList.add("hidden"); }
   else { document.getElementById("mat3f").classList.remove("hidden"); document.getElementById("mat1f").classList.add("hidden"); }
 }
@@ -1005,7 +815,8 @@ function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hi
 function goFasadStep4(){
   const mark = document.getElementById("fasadDemoMark").value.trim(); 
   const length = document.getElementById("fasadDemoLength").value.trim(); 
-  const demoBy = document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "";
+  let rDemo = document.querySelector('input[name="fasadDemoBy"]:checked');
+  const demoBy = rDemo ? rDemo.value : "";
 
   if (demoBy !== "ОРБ" && length !== "0" && length !== "") {
     if (!mark || !length || !demoBy) {
@@ -1049,7 +860,7 @@ function offlineMode(){
 }
 
 /* =========================================================
-ЗБІР І ВІДПРАВКА ДАНИХ (З РОЗУМНИМИ ПЕРЕВІРКАМИ)
+ЗБІР І ВІДПРАВКА ДАНИХ (БЕЗ ПАДІНЬ)
 ========================================================= */
 function save(){ try{const data = collectTechData(); sendDataToServer(data, "saveHint", ["techCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
 function saveControlCheck(){ try{const data = collectControlData(); sendDataToServer(data, "controlSaveHint", ["controlCheckForm"]);}catch(e){alert("❌ Помилка збору даних:\n"+e.message);} }
@@ -1058,11 +869,7 @@ function saveReplaceData(){
   try {
     const instType = getVal("replaceInstalledMeterType");
     const instNum = getVal("replaceInstalledMeterNumber");
-    
-    if (!instType || !instNum) {
-      alert("❌ Обов'язково введіть Тип та Заводський номер встановленого лічильника!");
-      return; 
-    }
+    if (!instType || !instNum) { alert("❌ Введіть Тип та Заводський номер встановленого лічильника!"); return; }
 
     if (isFasadFlow) { saveFasadData(); return; } 
     const data = collectReplaceData(); 
@@ -1075,7 +882,8 @@ function saveFasadData() {
     const is1F = (fasadPhase == 1);
     const rawData = collectReplaceData(); 
 
-    let demoBy = document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "";
+    let rDemo = document.querySelector('input[name="fasadDemoBy"]:checked');
+    let demoBy = rDemo ? rDemo.value : "";
     let demoLen = getVal("fasadDemoLength");
     let demoMark = getVal("fasadDemoMark");
     if (demoBy === "ОРБ" || demoLen === "0" || demoLen === "") { demoMark = ""; }
@@ -1087,8 +895,16 @@ function saveFasadData() {
     let iLich = cleanPlomb(getVal("replaceInstalledLichil")); let iFas1 = cleanPlomb(getVal("replaceInstalledFasad1")); let iFas2 = cleanPlomb(getVal("replaceInstalledFasad2")); let iVkp = cleanPlomb(getVal("replaceInstalledVkp")); let iOpt = cleanPlomb(getVal("replaceInstalledOptop")); let iImp1 = cleanPlomb(getVal("replaceInstalledImp1")); let iImp2 = cleanPlomb(getVal("replaceInstalledImp2")); let iImp3 = cleanPlomb(getVal("replaceInstalledImp3"));
     let rLich = cleanPlomb(getVal("replaceRemovedLichil")) === iLich ? "" : cleanPlomb(getVal("replaceRemovedLichil")); let rFas1 = cleanPlomb(getVal("replaceRemovedFasad1")) === iFas1 ? "" : cleanPlomb(getVal("replaceRemovedFasad1")); let rFas2 = cleanPlomb(getVal("replaceRemovedFasad2")) === iFas2 ? "" : cleanPlomb(getVal("replaceRemovedFasad2")); let rVkp = cleanPlomb(getVal("replaceRemovedVkp")) === iVkp ? "" : cleanPlomb(getVal("replaceRemovedVkp")); let rOpt = cleanPlomb(getVal("replaceRemovedOptop")) === iOpt ? "" : cleanPlomb(getVal("replaceRemovedOptop")); let rImp1 = cleanPlomb(getVal("replaceRemovedImp1")) === iImp1 ? "" : cleanPlomb(getVal("replaceRemovedImp1")); let rImp2 = cleanPlomb(getVal("replaceRemovedImp2")) === iImp2 ? "" : cleanPlomb(getVal("replaceRemovedImp2")); let rImp3 = cleanPlomb(getVal("replaceRemovedImp3")) === iImp3 ? "" : cleanPlomb(getVal("replaceRemovedImp3"));
 
+    let rReason = document.querySelector('input[name="reason"]:checked');
+    let rArea = document.querySelector('input[name="area"]:checked');
+    let rType = document.querySelector('input[name="type"]:checked');
+
     const data = Object.assign(rawData, {
-      mode: "fasad_replace", fasadOrder: getVal("fasadOrder"), fasadReason: document.querySelector('input[name="reason"]:checked')?.value || "", fasadArea: document.querySelector('input[name="area"]:checked')?.value || "", fasadPhase: fasadPhase, fasadType: document.querySelector('input[name="type"]:checked')?.value || "",
+      mode: "fasad_replace", fasadOrder: getVal("fasadOrder"), 
+      fasadReason: rReason ? rReason.value : "", 
+      fasadArea: rArea ? rArea.value : "", 
+      fasadPhase: fasadPhase, 
+      fasadType: rType ? rType.value : "",
       demoMark: demoMark, demoLength: demoLen, demoBy: demoBy,
       f1_box: is1F ? getVal("f1_box") : "", f1_nom: is1F ? getVal("f1_nom") : "", f1_asxsn: is1F ? getVal("f1_asxsn") : "", f1_zn: is1F ? getVal("f1_zn") : "", f1_zv: is1F ? getVal("f1_zv") : "", f1_cable: is1F ? getVal("f1_cable") : "", f1_gofra: is1F ? getVal("f1_gofra") : "", f1_clip: is1F ? getVal("f1_clip") : "", f1_anker: is1F ? getVal("f1_anker") : "", f1_dubel: is1F ? getVal("f1_dubel") : "", f1_boxk: is1F ? getVal("f1_boxk") : "", f1_styajka: is1F ? getVal("f1_styajka") : "", f1_other: is1F ? getVal("f1_other") : "",
       f3_box: !is1F ? getVal("f3_box") : "", f3_nom: !is1F ? getVal("f3_nom") : "", f3_asxsn: !is1F ? getVal("f3_asxsn") : "", f3_zn: !is1F ? getVal("f3_zn") : "", f3_zv: !is1F ? getVal("f3_zv") : "", f3_cable: !is1F ? getVal("f3_cable") : "", f3_gofra: !is1F ? getVal("f3_gofra") : "", f3_clip: !is1F ? getVal("f3_clip") : "", f3_anker: !is1F ? getVal("f3_anker") : "", f3_dubel: !is1F ? getVal("f3_dubel") : "", f3_boxk: !is1F ? getVal("f3_boxk") : "", f3_styajka: !is1F ? getVal("f3_styajka") : "", f3_other: !is1F ? getVal("f3_other") : "",
@@ -1118,7 +934,5 @@ function collectReplaceData(){ return { worker: worker, workType: selectedWork, 
 function collectControlData(){ return { worker: worker, workType: selectedWork, mode: "control", account: getInner("controlAccountView"), pib: getInner("controlPibView"), meterType: getVal("controlMeterType"), meterNumber: getVal("controlMeterNumber"), t0: getVal("controlT0"), t1: getVal("controlT1"), t2: getVal("controlT2"), t3: getVal("controlT3"), installedLichil: cleanPlomb(getVal("controlInstalledLichil")), installedOptop: cleanPlomb(getVal("controlInstalledOptop")), installedFasad1: cleanPlomb(getVal("controlInstalledFasad1")), installedFasad2: cleanPlomb(getVal("controlInstalledFasad2")), installedVkp: cleanPlomb(getVal("controlInstalledVkp")), installedImp1: cleanPlomb(getVal("controlInstalledImp1")), installedImp2: cleanPlomb(getVal("controlInstalledImp2")), installedImp3: cleanPlomb(getVal("controlInstalledImp3")), installedOther: cleanPlomb(getVal("controlInstalledOther")) }; }
 
 </script>
-</body>
-</html>
   
   
