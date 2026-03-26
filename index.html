@@ -673,7 +673,34 @@ function playBeep() {
 let codeReader = null;
 let isTorchOn = false;
 let currentScanTargetId = ""; 
-let autoSearchAfterScan = false; 
+let autoSearchAfterScan = false;
+/* =========================================================
+РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
+========================================================= */
+function parseMeterBarcode(rawCode) {
+  let code = String(rawCode).trim();
+
+  // 1. ПРАВИЛО ДЛЯ ЛІЧИЛЬНИКІВ НІК 2104 (Довжина 16 цифр, починається на 2104)
+  // Приклад: 2104565685962025 -> Відрізаємо перші 4 (модель) і останні 4 (рік) = 56568596
+  if (code.length === 16 && code.startsWith("2104")) {
+    return code.substring(4, 12); // Беремо з 5-ї по 12-ту цифру
+  }
+  
+  // Правило для інших НІК (наприклад, 2102, 2303), якщо в них такий самий формат:
+  if (code.length === 16 && (code.startsWith("2102") || code.startsWith("2303") || code.startsWith("2300"))) {
+    return code.substring(4, 12);
+  }
+
+  // 2. ПРАВИЛО ДЛЯ СО-ЕА10Д (Довжина 16 цифр, починається на 11001)
+  // Приклад: 1100101375052013 -> Відрізаємо перші 5 і останні 4 (рік) = 0137505
+  if (code.length === 16 && code.startsWith("11001")) {
+    return code.substring(5, 12); // Беремо з 6-ї по 12-ту цифру
+  }
+
+  // 3. ІНШІ ЛІЧИЛЬНИКИ
+  // Якщо штрихкод не підпадає під ці правила - повертаємо його без змін (чистий номер)
+  return code;
+}  
 
 function toggleTorch() {
   try {
@@ -736,7 +763,18 @@ function startScanner(targetFieldId, doSearch) {
       codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
         if (result) {
           playBeep(); 
-          document.getElementById(currentScanTargetId).value = result.text;
+          
+          let finalCode = result.text;
+          
+          // Якщо ми скануємо НЕ особовий рахунок (а номер лічильника), 
+          // то пропускаємо штрихкод через наш "розумний фільтр"
+          if (currentScanTargetId !== "account") {
+            finalCode = parseMeterBarcode(result.text);
+          }
+
+          // Вставляємо вже чистий, обрізаний номер у поле
+          document.getElementById(currentScanTargetId).value = finalCode;
+          
           setTimeout(() => {
             stopScanner();
             if (autoSearchAfterScan) search(); 
