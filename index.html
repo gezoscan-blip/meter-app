@@ -1108,9 +1108,30 @@ function saveOffline(data){
 }
 
 /* =========================================================
-ЗБІР ДАНИХ: ТЕХНІЧНА ПЕРЕВІРКА (Чисті пломби, логіка в Code.gs)
+РОЗУМНИЙ ЗБІР ДАНИХ: ТЕХНІЧНА ПЕРЕВІРКА
 ========================================================= */
+// Функція, яка чистить пломби і прибирає дублікати (якщо знята = встановлена)
+function checkSeal(remId, instId) {
+  let rem = cleanPlomb(getVal(remId));
+  let inst = cleanPlomb(getVal(instId));
+  
+  if (rem === inst && rem !== "") {
+    return { removed: "", installed: inst }; // Якщо однакові - зняту обнуляємо
+  }
+  return { removed: rem, installed: inst }; // Якщо різні - залишаємо як є
+}
+
 function collectTechData() {
+  // Перевіряємо кожну пару пломб через розумну функцію
+  const lichil = checkSeal("removedLichil", "installedLichil");
+  const fasad1 = checkSeal("removedFasad1", "installedFasad1");
+  const fasad2 = checkSeal("removedFasad2", "installedFasad2");
+  const vkp    = checkSeal("removedVkp", "installedVkp");
+  const optop  = checkSeal("removedOptop", "installedOptop");
+  const imp1   = checkSeal("removedImp1", "installedImp1");
+  const imp2   = checkSeal("removedImp2", "installedImp2");
+  const imp3   = checkSeal("removedImp3", "installedImp3");
+
   return { 
     worker: worker, 
     workType: selectedWork, 
@@ -1119,38 +1140,19 @@ function collectTechData() {
     meterType: getVal("meterType"), 
     meterNumber: getVal("meterNumber"), 
     
-    t0: getVal("t0"), 
-    t1: getVal("t1"), 
-    t2: getVal("t2"), 
-    t3: getVal("t3"), 
+    t0: getVal("t0"), t1: getVal("t1"), t2: getVal("t2"), t3: getVal("t3"), 
     
-    // Відправляємо на сервер чисті пломби (без пробілів, великі літери)
-    // А сервер сам (функція applySealTech) вирішить, куди їх перенести
-    removedLichil: cleanPlomb(getVal("removedLichil")), 
-    installedLichil: cleanPlomb(getVal("installedLichil")), 
+    // Відправляємо вже перевірені і чисті пломби
+    removedLichil: lichil.removed, installedLichil: lichil.installed, 
+    removedFasad1: fasad1.removed, installedFasad1: fasad1.installed, 
+    removedFasad2: fasad2.removed, installedFasad2: fasad2.installed, 
+    removedVkp: vkp.removed,       installedVkp: vkp.installed, 
+    removedOptop: optop.removed,   installedOptop: optop.installed, 
+    removedImp1: imp1.removed,     installedImp1: imp1.installed, 
+    removedImp2: imp2.removed,     installedImp2: imp2.installed, 
+    removedImp3: imp3.removed,     installedImp3: imp3.installed, 
     
-    removedFasad1: cleanPlomb(getVal("removedFasad1")), 
-    installedFasad1: cleanPlomb(getVal("installedFasad1")), 
-    
-    removedFasad2: cleanPlomb(getVal("removedFasad2")), 
-    installedFasad2: cleanPlomb(getVal("installedFasad2")), 
-    
-    removedVkp: cleanPlomb(getVal("removedVkp")), 
-    installedVkp: cleanPlomb(getVal("installedVkp")), 
-    
-    removedOptop: cleanPlomb(getVal("removedOptop")), 
-    installedOptop: cleanPlomb(getVal("installedOptop")), 
-    
-    removedImp1: cleanPlomb(getVal("removedImp1")), 
-    installedImp1: cleanPlomb(getVal("installedImp1")), 
-    
-    removedImp2: cleanPlomb(getVal("removedImp2")), 
-    installedImp2: cleanPlomb(getVal("installedImp2")), 
-    
-    removedImp3: cleanPlomb(getVal("removedImp3")), 
-    installedImp3: cleanPlomb(getVal("installedImp3")), 
-    
-    // "Інші" пломби (текстове поле) відправляємо як є, щоб не зламати переноси рядків
+    // Текстові поля "Інше" залишаємо як є
     removedOther: getVal("removedOther"), 
     installedOther: getVal("installedOther") 
   }; 
