@@ -434,7 +434,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       </div>
       <div class="fieldLabel">Метраж</div><div><input id="fasadDemoLength" type="number"></div>
       <div class="fieldLabel">Хто демонтував</div>
-      <div class="radio-group"><label class="radio-label"><input type="radio" name="fasadDemoBy" value="ОРБ"> ОРБ</label></div>
+      <div class="radio-group"><label class="radio-label"><input type="checkbox" id="fasadDemoBy" value="ОРБ"> ОРБ</label></div>
     </div>
     <button class="btn-save actionBtn" onclick="goFasadStep4()">Далі до заміни ➡</button>
     <button class="btn-back actionBtn" onclick="backToFasad2()">🔙 Назад</button>
@@ -1048,8 +1048,11 @@ function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hi
 function goFasadStep4(){
   const mark = document.getElementById("fasadDemoMark").value.trim(); 
   const length = document.getElementById("fasadDemoLength").value.trim(); 
-  const demoBy = document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "";
+  // Тепер ми перевіряємо не радіокнопку, а наш новий чекбокс:
+  const demoBox = document.getElementById("fasadDemoBy");
+  const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
+  // Якщо НЕ ОРБ і метраж НЕ нуль/пустий - марка і метраж ОБОВ'ЯЗКОВІ!
   if (demoBy !== "ОРБ" && length !== "0" && length !== "") {
     if (!mark || !length || !demoBy) {
       alert("❌ Заповніть дані демонтажу!\nЯкщо знімала не ОРБ, марка та метраж обов'язкові.");
@@ -1114,7 +1117,8 @@ function saveFasadData() {
     const is1F = (fasadPhase == 1);
     const rawData = collectReplaceData(); 
 
-    let demoBy = document.querySelector('input[name="fasadDemoBy"]:checked') ? document.querySelector('input[name="fasadDemoBy"]:checked').value : "";
+    const demoBox = document.getElementById("fasadDemoBy");
+    let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
     let demoLen = getVal("fasadDemoLength");
     let demoMark = getVal("fasadDemoMark");
     if (demoBy === "ОРБ" || demoLen === "0" || demoLen === "") { demoMark = ""; }
