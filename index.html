@@ -1257,7 +1257,69 @@ function collectTechData() {
     installedOther: getVal("installedOther") 
   }; 
 }
-function collectReplaceData(){ return { worker: worker, workType: selectedWork, mode: "replace", replaceReason: selectedReplaceReason, account: getInner("replaceAccountView2"), pib: getInner("replacePibView2"), removedMeterType: getVal("replaceRemovedMeterType"), removedMeterNumber: getVal("replaceRemovedMeterNumber"), removedT0: getVal("replaceRemovedT0"), removedT1: getVal("replaceRemovedT1"), removedT2: getVal("replaceRemovedT2"), removedT3: getVal("replaceRemovedT3"), removedLichil: getVal("replaceRemovedLichil"), removedFasad1: getVal("replaceRemovedFasad1"), removedFasad2: getVal("replaceRemovedFasad2"), removedVkp: getVal("replaceRemovedVkp"), removedOptop: getVal("replaceRemovedOptop"), removedImp1: getVal("replaceRemovedImp1"), removedImp2: getVal("replaceRemovedImp2"), removedImp3: getVal("replaceRemovedImp3"), removedOther: getVal("replaceRemovedOther"), installedMeterType: getVal("replaceInstalledMeterType"), installedMeterNumber: getVal("replaceInstalledMeterNumber"), installedT0: getVal("replaceInstalledT0"), installedT1: getVal("replaceInstalledT1"), installedT2: getVal("replaceInstalledT2"), installedT3: getVal("replaceInstalledT3"), installedLichil: getVal("replaceInstalledLichil"), installedFasad1: getVal("replaceInstalledFasad1"), installedFasad2: getVal("replaceInstalledFasad2"), installedVkp: getVal("replaceInstalledVkp"), installedOptop: getVal("replaceInstalledOptop"), installedImp1: getVal("replaceInstalledImp1"), installedImp2: getVal("replaceInstalledImp2"), installedImp3: getVal("replaceInstalledImp3"), installedOther: getVal("replaceInstalledOther") }; }
+/* =========================================================
+РОЗУМНИЙ ЗБІР ДАНИХ: ЗАМІНА ЛІЧИЛЬНИКА
+========================================================= */
+function collectReplaceData() {
+  // 1. ПЕРЕВІРКА ЛІЧИЛЬНИКІВ (Якщо знятий = встановленому, то знятий обнуляємо)
+  let remMeter = getVal("replaceRemovedMeterNumber");
+  let instMeter = getVal("replaceInstalledMeterNumber");
+  let remType = getVal("replaceRemovedMeterType");
+  let instType = getVal("replaceInstalledMeterType");
+  
+  if (remMeter === instMeter && remMeter !== "") {
+    remMeter = "";
+    remType = "";
+  }
+
+  // 2. ПЕРЕВІРКА ПЛОМБ (Чистимо, робимо ВЕЛИКИМИ і прибираємо дублікати)
+  const lichil = checkSeal("replaceRemovedLichil", "replaceInstalledLichil");
+  const fasad1 = checkSeal("replaceRemovedFasad1", "replaceInstalledFasad1");
+  const fasad2 = checkSeal("replaceRemovedFasad2", "replaceInstalledFasad2");
+  const vkp    = checkSeal("replaceRemovedVkp", "replaceInstalledVkp");
+  const optop  = checkSeal("replaceRemovedOptop", "replaceInstalledOptop");
+  const imp1   = checkSeal("replaceRemovedImp1", "replaceInstalledImp1");
+  const imp2   = checkSeal("replaceRemovedImp2", "replaceInstalledImp2");
+  const imp3   = checkSeal("replaceRemovedImp3", "replaceInstalledImp3");
+
+  // 3. ВІДДАЄМО ГОТОВИЙ ЧИСТИЙ ОБ'ЄКТ ДЛЯ ГУГЛА
+  return { 
+    worker: worker, 
+    workType: selectedWork, 
+    mode: "replace", 
+    replaceReason: selectedReplaceReason, 
+    account: getInner("replaceAccountView2"), 
+    pib: getInner("replacePibView2"), 
+    
+    // Лічильники
+    removedMeterType: remType, 
+    removedMeterNumber: remMeter, 
+    removedT0: getVal("replaceRemovedT0"), 
+    removedT1: getVal("replaceRemovedT1"), 
+    removedT2: getVal("replaceRemovedT2"), 
+    removedT3: getVal("replaceRemovedT3"), 
+    
+    installedMeterType: instType, 
+    installedMeterNumber: instMeter, 
+    installedT0: getVal("replaceInstalledT0"), 
+    installedT1: getVal("replaceInstalledT1"), 
+    installedT2: getVal("replaceInstalledT2"), 
+    installedT3: getVal("replaceInstalledT3"), 
+    
+    // Пломби
+    removedLichil: lichil.removed, installedLichil: lichil.installed, 
+    removedFasad1: fasad1.removed, installedFasad1: fasad1.installed, 
+    removedFasad2: fasad2.removed, installedFasad2: fasad2.installed, 
+    removedVkp: vkp.removed,       installedVkp: vkp.installed, 
+    removedOptop: optop.removed,   installedOptop: optop.installed, 
+    removedImp1: imp1.removed,     installedImp1: imp1.installed, 
+    removedImp2: imp2.removed,     installedImp2: imp2.installed, 
+    removedImp3: imp3.removed,     installedImp3: imp3.installed, 
+    
+    removedOther: getVal("replaceRemovedOther"), 
+    installedOther: getVal("replaceInstalledOther") 
+  }; 
+}
 function collectControlData(){ return { worker: worker, workType: selectedWork, mode: "control", account: getInner("controlAccountView"), pib: getInner("controlPibView"), meterType: getVal("controlMeterType"), meterNumber: getVal("controlMeterNumber"), t0: getVal("controlT0"), t1: getVal("controlT1"), t2: getVal("controlT2"), t3: getVal("controlT3"), installedLichil: getVal("controlInstalledLichil"), installedOptop: getVal("controlInstalledOptop"), installedFasad1: getVal("controlInstalledFasad1"), installedFasad2: getVal("controlInstalledFasad2"), installedVkp: getVal("controlInstalledVkp"), installedImp1: getVal("controlInstalledImp1"), installedImp2: getVal("controlInstalledImp2"), installedImp3: getVal("controlInstalledImp3"), installedOther: getVal("controlInstalledOther") }; }
 
 </script>
