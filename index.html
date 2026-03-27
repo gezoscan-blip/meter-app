@@ -328,6 +328,88 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div id="controlSaveHint" style="text-align: center; margin-top: 10px; color: green; font-weight: bold;"></div>
   </div>
 
+  <!-- =====================================================
+    ФОРМА ЗАКРИТТЯ О/Р З ДЕМОНТАЖЕМ — СТОРІНКА 1 (ДЕМОНТАЖ ВВОДУ)
+  ===================================================== -->
+  <div class="card hidden" id="closeStep1">
+    <div class="workerCard">Т/н: <span id="closeWorkerTab1"></span> <span id="closeWorkerName1"></span></div>
+    <div class="topInfoRow"><div>Закриття о/р</div><div class="accountRight">О/р: <span id="closeAccountView1"></span></div></div>
+    <div class="info"><span class="label">Споживач: </span><span id="closePibView1" class="valueBold"></span></div>
+    <div class="info"><span class="label">Адреса: </span><span id="closeAddressView1" class="valueBold"></span></div>
+    <div class="sectionLine"></div>
+
+    <div class="blockTitle">Демонтований ввід</div>
+    <div class="fieldGrid">
+      <div class="fieldLabel">Марка та переріз</div>
+      <div>
+        <select id="closeDemoMark" style="font-size:18px;">
+          <option value="">Вибрати</option>
+          <option value="AsXSn 2х16">AsXSn 2х16</option>
+          <option value="AsXSn 4х16">AsXSn 4х16</option>
+          <option value="АПВ 1х10">АПВ 1х10</option>
+          <option value="АПВ 2х10">АПВ 2х10</option>
+          <option value="СІП 2х16">СІП 2х16</option>
+          <option value="СІП 4х16">СІП 4х16</option>
+          <option value="ВВГ 2х4">ВВГ 2х4</option>
+          <option value="Інше">Інше</option>
+        </select>
+      </div>
+      <div class="fieldLabel">Метраж</div><div><input id="closeDemoLength" type="number"></div>
+      <div class="fieldLabel">Хто демонтував</div>
+      <div class="radio-group"><label class="radio-label"><input type="checkbox" id="closeDemoBy" value="ОРБ"> ОРБ</label></div>
+    </div>
+    
+    <button class="btn-save actionBtn" onclick="goCloseStep2()">Далі до зняття лічильника ➡</button>
+    <button class="btn-back actionBtn" onclick="backFromClose1()">🔙 Назад</button>
+  </div>
+
+  <!-- =====================================================
+    ФОРМА ЗАКРИТТЯ О/Р З ДЕМОНТАЖЕМ — СТОРІНКА 2 (ЗНЯТИЙ ЛІЧИЛЬНИК)
+  ===================================================== -->
+  <div class="card hidden" id="closeStep2">
+    <div class="workerCard">Т/н: <span id="closeWorkerTab2"></span> <span id="closeWorkerName2"></span></div>
+    <div class="topInfoRow"><div>Закриття о/р</div><div class="accountRight">О/р: <span id="closeAccountView2"></span></div></div>
+    <div class="sectionLine"></div>
+
+    <div class="blockTitle">Знятий лічильник</div>
+    <div class="fieldGrid">
+      <div class="fieldLabel">Тип</div><div><input id="closeMeterType"></div>
+      <div class="fieldLabel">Заводський номер</div>
+      <div class="input-with-scanner">
+        <input id="closeMeterNumber">
+        <button class="scan-btn-outer" onclick="startScanner('closeMeterNumber', false)">
+          <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sectionLine"></div>
+
+    <div class="blockTitle">Зняті пломби</div>
+    <div class="plombHeaderRow"><div>Місце пломбування</div><div>№ Знятої пломби</div></div>
+    <div class="plombRow"><div class="plombPlace">Клемна кришка</div><div class="plombField"><input id="closeLichil"></div></div>
+    <div class="plombRow"><div class="plombPlace">Шафа обліку 1</div><div class="plombField"><input id="closeFasad1"></div></div>
+    <div class="plombRow"><div class="plombPlace">Шафа обліку 2</div><div class="plombField"><input id="closeFasad2"></div></div>
+    <div class="plombRow"><div class="plombPlace">ВКП</div><div class="plombField"><input id="closeVkp"></div></div>
+    <div class="plombRow"><div class="plombPlace">Оптопорт</div><div class="plombField"><input id="closeOptop"></div></div>
+    <div class="plombRow"><div class="plombPlace">ІМП 1</div><div class="plombField"><input id="closeImp1"></div></div>
+    <div class="plombRow"><div class="plombPlace">ІМП 2</div><div class="plombField"><input id="closeImp2"></div></div>
+    <div class="plombRow"><div class="plombPlace">ІМП 3</div><div class="plombField"><input id="closeImp3"></div></div>
+    <div style="margin-top: 15px;"><b>Інші зняті:</b><textarea id="closeOther"></textarea></div>
+    <div class="sectionLine"></div>
+
+    <div class="blockTitle">Покази знятого лічильника</div>
+    <div class="meterRow">
+      <div class="meterBox"><label>T</label><input id="closeT0" inputmode="numeric"></div>
+      <div class="meterBox"><label>T1</label><input id="closeT1" inputmode="numeric"></div>
+      <div class="meterBox"><label>T2</label><input id="closeT2" inputmode="numeric"></div>
+      <div class="meterBox"><label>T3</label><input id="closeT3" inputmode="numeric"></div>
+    </div>
+    
+    <button class="btn-save actionBtn" onclick="saveCloseData()">💾 Зберегти демонтаж</button>
+    <button class="btn-back actionBtn" onclick="backFromClose2()">🔙 Назад</button>
+    <div id="closeSaveHint" style="text-align: center; margin-top: 10px; color: green; font-weight: bold;"></div>
+  </div>
+
   <!-- ФОРМА ФАСАДНІ РОБОТИ — СТОРІНКА 1 -->
   <div class="card hidden" id="fasadStep1">
     <div class="workerCard">Т/н: <span id="fasadWorkerTab"></span> <span id="fasadWorkerName"></span></div>
@@ -1353,7 +1435,114 @@ function collectControlData() {
     installedOther:  getVal("controlInstalledOther") 
   }; 
 } 
+/* =========================================================
+ЛОГІКА: ЗАКРИТТЯ О/Р З ДЕМОНТАЖЕМ
+========================================================= */
+function fillCloseStep1(d) {
+  setInner("closeWorkerTab1", worker); 
+  setInner("closeWorkerName1", workerName); 
+  setInner("closeAccountView1", d.account || ""); 
+  setInner("closePibView1", d.pib || ""); 
+  setInner("closeAddressView1", buildAddress(d)); 
+  
+  setVal("closeDemoMark", ""); 
+  setVal("closeDemoLength", ""); 
+  const cb = document.getElementById("closeDemoBy");
+  if(cb) cb.checked = false;
+  
+  // Дані лічильника одразу готуємо для кроку 2
+  setVal("closeMeterType", d.type || ""); 
+  setVal("closeMeterNumber", d.meter || "");
+  const plombs = parsePlombs(d.plomb || "");
+  setVal("closeLichil", plombs.lichil); setVal("closeOptop", plombs.optop); 
+  setVal("closeFasad1", plombs.fasad[0]); setVal("closeFasad2", plombs.fasad[1]); 
+  setVal("closeVkp", plombs.vkp); setVal("closeImp1", plombs.imp[0]); 
+  setVal("closeImp2", plombs.imp[1]); setVal("closeImp3", plombs.imp[2]); 
+  setVal("closeOther", plombs.other); resizeTextarea(document.getElementById("closeOther"));
+  setVal("closeT0", ""); setVal("closeT1", ""); setVal("closeT2", ""); setVal("closeT3", "");
+}
 
+function goCloseStep2() {
+  // Розумна перевірка демонтажу (Як у Фасаді)
+  let mark = getVal("closeDemoMark");
+  let length = getVal("closeDemoLength");
+  const demoBox = document.getElementById("closeDemoBy");
+  let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
+
+  if (demoBy !== "ОРБ" && length !== "0" && length !== "") {
+    if (!mark || !length || !demoBy) {
+      alert("❌ Заповніть дані демонтажу!\nЯкщо знімала не ОРБ, марка та метраж обов'язкові.");
+      return;
+    }
+  }
+
+  document.getElementById("closeStep1").classList.add("hidden");
+  document.getElementById("closeStep2").classList.remove("hidden");
+  
+  setInner("closeWorkerTab2", getInner("closeWorkerTab1")); 
+  setInner("closeWorkerName2", getInner("closeWorkerName1")); 
+  setInner("closeAccountView2", getInner("closeAccountView1")); 
+}
+
+function backFromClose1() { showSearchBlock(); }
+function backFromClose2() { 
+  document.getElementById("closeStep2").classList.add("hidden"); 
+  document.getElementById("closeStep1").classList.remove("hidden"); 
+}
+
+function collectCloseData() {
+  const demoBox = document.getElementById("closeDemoBy");
+  let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
+  let demoLen = getVal("closeDemoLength");
+  let demoMark = getVal("closeDemoMark");
+  if (demoBy === "ОРБ" || demoLen === "0" || demoLen === "") { demoMark = ""; }
+
+  return { 
+    worker: worker, 
+    workType: selectedWork, 
+    mode: "close", // Спеціальний режим для Code.gs
+    account: getInner("closeAccountView2"), 
+    pib: getInner("closePibView1"), 
+    
+    // Демонтаж вводу
+    demoMark: demoMark, 
+    demoLength: demoLen, 
+    demoBy: demoBy,
+    
+    // Всі дані пишемо в "Зняті"
+    removedMeterType: getVal("closeMeterType"), 
+    removedMeterNumber: getVal("closeMeterNumber"), 
+    removedT0: getVal("closeT0"), 
+    removedT1: getVal("closeT1"), 
+    removedT2: getVal("closeT2"), 
+    removedT3: getVal("closeT3"), 
+    
+    removedLichil: cleanPlomb(getVal("closeLichil")), 
+    removedOptop: cleanPlomb(getVal("closeOptop")), 
+    removedFasad1: cleanPlomb(getVal("closeFasad1")), 
+    removedFasad2: cleanPlomb(getVal("closeFasad2")), 
+    removedVkp: cleanPlomb(getVal("closeVkp")), 
+    removedImp1: cleanPlomb(getVal("closeImp1")), 
+    removedImp2: cleanPlomb(getVal("closeImp2")), 
+    removedImp3: cleanPlomb(getVal("closeImp3")), 
+    removedOther: getVal("closeOther"),
+    
+    // Встановлені залишаємо повністю пустими!
+    installedMeterType: "", installedMeterNumber: "", installedT0: "", installedT1: "", installedT2: "", installedT3: "", 
+    installedLichil: "", installedOptop: "", installedFasad1: "", installedFasad2: "", installedVkp: "", installedImp1: "", installedImp2: "", installedImp3: "", installedOther: "" 
+  }; 
+}
+
+function saveCloseData() { 
+  try {
+    const type = getVal("closeMeterType");
+    const num = getVal("closeMeterNumber");
+    if (!type || !num) { alert("❌ Введіть Тип та Заводський номер знятого лічильника!"); return; }
+
+    const data = collectCloseData(); 
+    sendDataToServer(data, "closeSaveHint", ["closeStep1", "closeStep2"]);
+  } catch(e) { alert("❌ Помилка збору даних:\n"+e.message); } 
+}
 </script>
 </body>
 </html>
