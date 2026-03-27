@@ -1320,7 +1320,39 @@ function collectReplaceData() {
     installedOther: getVal("replaceInstalledOther") 
   }; 
 }
-function collectControlData(){ return { worker: worker, workType: selectedWork, mode: "control", account: getInner("controlAccountView"), pib: getInner("controlPibView"), meterType: getVal("controlMeterType"), meterNumber: getVal("controlMeterNumber"), t0: getVal("controlT0"), t1: getVal("controlT1"), t2: getVal("controlT2"), t3: getVal("controlT3"), installedLichil: getVal("controlInstalledLichil"), installedOptop: getVal("controlInstalledOptop"), installedFasad1: getVal("controlInstalledFasad1"), installedFasad2: getVal("controlInstalledFasad2"), installedVkp: getVal("controlInstalledVkp"), installedImp1: getVal("controlInstalledImp1"), installedImp2: getVal("controlInstalledImp2"), installedImp3: getVal("controlInstalledImp3"), installedOther: getVal("controlInstalledOther") }; }
+
+ /* =========================================================
+РОЗУМНИЙ ЗБІР ДАНИХ: КОНТРОЛЬНИЙ ОГЛЯД (Чистимо пломби)
+========================================================= */
+function collectControlData() {
+  return { 
+    worker: worker, 
+    workType: selectedWork, 
+    mode: "control", 
+    account: getInner("controlAccountView"), 
+    pib: getInner("controlPibView"), 
+    meterType: getVal("controlMeterType"), 
+    meterNumber: getVal("controlMeterNumber"), 
+    
+    t0: getVal("controlT0"), 
+    t1: getVal("controlT1"), 
+    t2: getVal("controlT2"), 
+    t3: getVal("controlT3"), 
+    
+    // Проганяємо кожну пломбу через функцію очищення (великі букви, без пробілів)
+    installedLichil: cleanPlomb(getVal("controlInstalledLichil")), 
+    installedOptop:  cleanPlomb(getVal("controlInstalledOptop")), 
+    installedFasad1: cleanPlomb(getVal("controlInstalledFasad1")), 
+    installedFasad2: cleanPlomb(getVal("controlInstalledFasad2")), 
+    installedVkp:    cleanPlomb(getVal("controlInstalledVkp")), 
+    installedImp1:   cleanPlomb(getVal("controlInstalledImp1")), 
+    installedImp2:   cleanPlomb(getVal("controlInstalledImp2")), 
+    installedImp3:   cleanPlomb(getVal("controlInstalledImp3")), 
+    
+    // Поле "Інше" залишаємо без змін, бо там може бути звичайний текст з відступами
+    installedOther:  getVal("controlInstalledOther") 
+  }; 
+} 
 
 </script>
 </body>
