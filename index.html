@@ -553,7 +553,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyrGDO4fgpQ1okNnjEz6-TgFCGYSEp5OyWAZNJhz0D_ABPvKnJDezZiK9vZU3mc7BY/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbx5_4MJrzJkjCje_ivRifv8-D1W9NLGwzINIDY-L-SODuATuVnD7RS2UPeeH_Onp4Ib/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -944,7 +944,7 @@ function cleanPlomb(text) {
 }
 
 /* =========================================================
-ЗАПОВНЕННЯ ФОРМ ДАНИМИ ТА МОДАЛЬНЕ ВІКНО "ПІДСТАВА ЗАМІНИ"
+ЗАПОВНЕННЯ ФОРМ ДАНИМИ ТА МЕНЕДЖЕР ВІКОН
 ========================================================= */
 let tempReplaceData = null; // Тимчасово зберігає дані абонента для Заміни лічильника
 let selectedReplaceReason = ""; // Зберігає вибрану Підставу
@@ -971,9 +971,13 @@ function fillFields(d) {
     fillControlCheck(d); 
     return; 
   }
-  
+  if (selectedWork === "Закриття о/р з демонтажем") { 
+    document.getElementById("closeStep1").classList.remove("hidden"); 
+    window.scrollTo(0,0); 
+    fillCloseStep1(d); 
+    return; 
+  }
   if (selectedWork === "Заміна лічильника") { 
-    // Замість відкриття форми - показуємо вікно Підстави!
     tempReplaceData = d; 
     document.getElementById("reasonModal").style.display = "flex";
     document.getElementById("reasonModal").classList.remove("hidden");
@@ -984,25 +988,27 @@ function fillFields(d) {
   alert("Форма для цього виду робіт ще не налаштована"); 
 }
 
-// Функції для Модального Вікна Заміни
+/* =========================================================
+ФУНКЦІЇ ДЛЯ МОДАЛЬНОГО ВІКНА ЗАМІНИ
+========================================================= */
 function setReplaceReason(reason) {
   selectedReplaceReason = reason;
   document.getElementById("reasonModal").style.display = "none"; 
   document.getElementById("reasonModal").classList.add("hidden");
   
-  document.getElementById("meterReplaceStep1").classList.remove("hidden"); // ВІДКРИВАЄМО ФОРМУ!
+  document.getElementById("meterReplaceStep1").classList.remove("hidden");
   window.scrollTo(0,0);
-  fillReplaceStep1(tempReplaceData); // Заповнюємо дані абонента
+  fillReplaceStep1(tempReplaceData);
 }
 
 function cancelReplaceReason() {
   document.getElementById("reasonModal").style.display = "none"; 
   document.getElementById("reasonModal").classList.add("hidden");
-  showSearchBlock(); // Повертаємо пошук, якщо скасували заміну
+  showSearchBlock(); // Повертаємо пошук, якщо скасували
 }
 
 /* =========================================================
-МЕНЕДЖЕР ФОРМ ТА АДРЕСИ
+МЕНЕДЖЕР ФОРМ
 ========================================================= */
 function hideAllForms() {
   document.getElementById("techCheckForm").classList.add("hidden");
@@ -1012,6 +1018,8 @@ function hideAllForms() {
   document.getElementById("fasadStep1").classList.add("hidden");
   document.getElementById("fasadStep2").classList.add("hidden");
   document.getElementById("fasadStep3").classList.add("hidden");
+  document.getElementById("closeStep1").classList.add("hidden");
+  document.getElementById("closeStep2").classList.add("hidden");
 }
 
 function showSearchBlock() {
@@ -1022,6 +1030,7 @@ function showSearchBlock() {
   if(hints) hints.innerHTML = "";
   window.scrollTo(0,0);
 }
+
 function goBack() { showSearchBlock(); }
 
 function buildAddress(d) {
