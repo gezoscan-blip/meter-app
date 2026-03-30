@@ -135,14 +135,22 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     </div>
   </div>
 
-  <!-- СКАНЕР (ВІКНО) -->
+  <!-- СКАНЕР (ВІКНО) З КНОПКАМИ ЗУМУ -->
   <div id="scanner-wrapper">
     <div id="scanner-box">
       <button class="close-scan-btn" onclick="stopScanner()">✖</button>
       <button id="torch-btn" class="torch-btn" onclick="toggleTorch()">💡</button>
+      
+      <!-- Кнопки швидкого зуму -->
+      <div style="position: absolute; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; z-index: 10002;">
+        <button onclick="setZoom(1)" style="width: 45px; height: 45px; min-height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold; padding: 0;">1x</button>
+        <button onclick="setZoom(2)" style="width: 45px; height: 45px; min-height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold; padding: 0;">2x</button>
+        <button onclick="setZoom(4)" style="width: 45px; height: 45px; min-height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold; padding: 0;">4x</button>
+      </div>
+
       <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden; background: black;"></div>
     </div>
-    <div id="scan-hint">Наведіть камеру на штрихкод.<br>Камера (1x) сфокусується автоматично.</div>
+    <div id="scan-hint">Наведіть камеру на штрихкод.<br>Зум (1x, 2x, 4x) можна перемикати кнопками.</div>
   </div>
 
   <!-- ФОРМА Техперевірки -->
@@ -759,7 +767,7 @@ function playBeep() {
 }
 
 /* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР
+   УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (З РОБОЧИМ ЗУМОМ)
 ========================================================= */
 let html5QrCode = null;
 let currentCameraId = null;
@@ -767,6 +775,34 @@ let isTorchOn = false;
 let currentScanTargetId = ""; 
 let autoSearchAfterScan = false;
 
+// ФУНКЦІЯ КЕРУВАННЯ ЗУМОМ
+async function setZoom(value) {
+  if (!html5QrCode) return;
+  try {
+    const track = html5QrCode.getRunningTrack(); // Отримуємо активну лінзу
+    if (!track) return;
+
+    const capabilities = track.getCapabilities(); // Питаємо камеру, що вона вміє
+    if (!capabilities.zoom) {
+      console.warn("Зум не підтримується цим пристроєм");
+      return;
+    }
+
+    // Розраховуємо безпечне значення (щоб не перевищити максимум камери)
+    const min = capabilities.zoom.min || 1;
+    const max = capabilities.zoom.max || 1;
+    const step = capabilities.zoom.step || 0.1;
+    let zoomValue = Math.min(Math.max(value, min), max);
+
+    await track.applyConstraints({
+      advanced: [{ zoom: zoomValue }]
+    });
+  } catch (err) {
+    console.error("Помилка зуму:", err);
+  }
+}
+
+// ЛІХТАРИК
 function toggleTorch() {
   if (!html5QrCode || !currentCameraId) return;
   try {
@@ -776,12 +812,13 @@ function toggleTorch() {
     }).then(() => {
       document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
     }).catch(err => {
-      alert("Ліхтарик не підтримується цією камерою у браузері.");
+      alert("Ліхтарик не підтримується цією камерою.");
       isTorchOn = false;
     });
   } catch(e) { console.log(e); }
 }
 
+// ЗАПУСК СКАНЕРА
 function startScanner(targetFieldId, doSearch) {
   currentScanTargetId = targetFieldId;
   autoSearchAfterScan = doSearch;
@@ -795,11 +832,11 @@ function startScanner(targetFieldId, doSearch) {
   Html5Qrcode.getCameras().then(devices => {
     if (devices && devices.length) {
       let selectedDeviceId = devices[0].id;
-
+      // Шукаємо задню камеру
       for (let i = 0; i < devices.length; i++) {
         let label = devices[i].label.toLowerCase();
-        if (label.includes("back") || label.includes("задн") || label.includes("environment") || label.includes("0")) {
-          if (!label.includes("wide") && !label.includes("macro") && !label.includes("depth") && !label.includes("0.")) {
+        if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
+          if (!label.includes("wide") && !label.includes("macro") && !label.includes("0.")) {
             selectedDeviceId = devices[i].id;
             break;
           }
@@ -808,32 +845,19 @@ function startScanner(targetFieldId, doSearch) {
 
       currentCameraId = selectedDeviceId;
 
-      // ЗАПУСКАЄМО ЗАДНЮ КАМЕРУ З ІДЕАЛЬНИМИ НАЛАШТУВАННЯМИ (Додано Зум х2)
       html5QrCode.start(
         selectedDeviceId, 
         {
           fps: 15, 
           qrbox: { width: 300, height: 120 }, 
-          aspectRatio: 1.0, 
-          disableFlip: true,
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A
-          ],
-          videoConstraints: {
-            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined, // ЖОРСТКО ВМИКАЄМО ТУ КАМЕРУ, ЯКУ ВИБРАЛИ (ЗАДНЮ)
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            advanced: [{ zoom: 4.0 }, { focusMode: "continuous" }]
-          }
+          aspectRatio: 1.0,
+          disableFlip: true
         },
         (decodedText) => {
           playBeep(); 
           let finalCode = decodedText;
-          if (currentScanTargetId !== "account" && typeof parseMeterBarcode === "function") {
+          // Якщо скануємо лічильник (не о/р) — фільтруємо номер
+          if (currentScanTargetId !== "account") {
             finalCode = parseMeterBarcode(decodedText);
           }
           document.getElementById(currentScanTargetId).value = finalCode;
@@ -843,8 +867,11 @@ function startScanner(targetFieldId, doSearch) {
           }, 300);
         },
         (errorMessage) => {} 
-      ).catch((err) => {
-        alert("❌ Надайте браузеру дозвіл на камеру (натисніть 🔒 біля адреси сайту).");
+      ).then(() => {
+        // ЯК ТІЛЬКИ КАМЕРА ЗАПУСТИЛАСЯ — АВТОМАТИЧНО СТАВИМО ЗУМ 2.5x
+        setTimeout(() => setZoom(2.5), 1000);
+      }).catch((err) => {
+        alert("❌ Помилка камери: " + err);
         stopScanner();
       });
 
@@ -853,11 +880,12 @@ function startScanner(targetFieldId, doSearch) {
       stopScanner();
     }
   }).catch(err => {
-    alert("❌ Доступ до камери заблоковано!");
+    alert("❌ Доступ заблоковано!");
     stopScanner();
   });
 }
 
+// ЗУПИНКА
 function stopScanner() {
   document.getElementById("scanner-wrapper").style.display = "none";
   if (html5QrCode) {
@@ -868,9 +896,7 @@ function stopScanner() {
   if (tBtn) tBtn.style.background = "#FFc107";
 }
 
-/* =========================================================
-РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
-========================================================= */
+// ФІЛЬТР НОМЕРІВ ЛІЧИЛЬНИКІВ (ВАШУ ФУНКЦІЮ ВРАХОВАНО)
 function parseMeterBarcode(rawCode) {
   let code = String(rawCode).trim();
   if (code.length === 16 && (code.startsWith("2104") || code.startsWith("2102") || code.startsWith("2303") || code.startsWith("2300"))) {
@@ -881,7 +907,6 @@ function parseMeterBarcode(rawCode) {
   }
   return code;
 }
-
 /* =========================================================
 БЛОК ПІДКАЗОК ДЛЯ НОМІНАЛІВ ТА ЛІЧИЛЬНИКІВ
 ========================================================= */
