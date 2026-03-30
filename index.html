@@ -894,8 +894,7 @@ function startScanner(targetFieldId, doSearch) {
         (errorMessage) => {} 
       ).then(() => {
         // ЯК ТІЛЬКИ КАМЕРА ЗАПУСТИЛАСЯ — АВТОМАТИЧНО СТАВИМО ЗУМ 2.5x
-        setZoom(2.5); // Ставимо початковий зум
-        }, 1200); 
+        setTimeout(() => setZoom(2.5), 1000);
       }).catch((err) => {
         alert("❌ Помилка камери: " + err);
         stopScanner();
