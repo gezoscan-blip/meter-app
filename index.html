@@ -827,7 +827,7 @@ function startScanner(targetFieldId, doSearch) {
             deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined, // ЖОРСТКО ВМИКАЄМО ТУ КАМЕРУ, ЯКУ ВИБРАЛИ (ЗАДНЮ)
             width: { ideal: 1920 },
             height: { ideal: 1080 },
-            advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }]
+            advanced: [{ zoom: 4.0 }, { focusMode: "continuous" }]
           }
         },
         (decodedText) => {
