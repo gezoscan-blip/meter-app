@@ -776,46 +776,54 @@ let currentScanTargetId = "";
 let autoSearchAfterScan = false;
 
 // ФУНКЦІЯ КЕРУВАННЯ ЗУМОМ
+// УНІВЕРСАЛЬНА ФУНКЦІЯ ЗУМУ (Працює навіть якщо бібліотека "капризує")
 async function setZoom(value) {
-  if (!html5QrCode) {
-    console.error("Сканер не запущений");
-    return;
-  }
+  if (!html5QrCode) return;
 
   try {
-    // 1. Намагаємося отримати відео-трек безпосередньо від сканера
-    const track = html5QrCode.getRunningTrack();
-    
+    let track = null;
+
+    // Спосіб 1: Намагаємося отримати трек через офіційний метод
+    if (typeof html5QrCode.getRunningTrack === 'function') {
+      try {
+        track = html5QrCode.getRunningTrack();
+      } catch(e) { console.log("Метод getRunningTrack не готовий"); }
+    }
+
+    // Спосіб 2: Прямий доступ до відео-елементу (найнадійніший "хак")
     if (!track) {
-      console.warn("Відеопотік ще не готовий. Зачекайте секунду...");
+      const videoElement = document.querySelector("#reader video");
+      if (videoElement && videoElement.srcObject) {
+        track = videoElement.srcObject.getVideoTracks()[0];
+      }
+    }
+
+    if (!track) {
+      console.warn("Камера ще не запустилася повністю");
       return;
     }
 
-    // 2. Отримуємо можливості камери
     const capabilities = track.getCapabilities();
-
-    // ПЕРЕВІРКА: чи взагалі камера каже браузеру, що вміє зумити
+    
+    // Перевірка чи підтримує камера зум
     if (!capabilities.zoom) {
-      alert("⚠️ Ця камера або браузер не підтримують програмний зум. Спробуйте піднести телефон ближче.");
+      // Замість alert виводимо в консоль, щоб не заважати роботі
+      console.warn("Зум не підтримується камерою");
       return;
     }
 
-    // 3. Розраховуємо значення в межах дозволеного (min/max)
     const min = capabilities.zoom.min || 1;
     const max = capabilities.zoom.max || 1;
-    
-    // Якщо ми хочемо зум 4, а камера може максимум 3 — поставимо 3
     let zoomValue = Math.min(Math.max(value, min), max);
 
-    console.log(`Запит зуму: ${value}, Дозволено: ${min}-${max}, Ставимо: ${zoomValue}`);
-
-    // 4. Застосовуємо налаштування прямо до лінзи
     await track.applyConstraints({
       advanced: [{ zoom: zoomValue }]
     });
+    
+    console.log("Зум встановлено на:", zoomValue);
 
   } catch (err) {
-    alert("❌ Помилка налаштування зуму: " + err);
+    console.error("Помилка налаштування зуму:", err);
   }
 }
 
@@ -886,7 +894,8 @@ function startScanner(targetFieldId, doSearch) {
         (errorMessage) => {} 
       ).then(() => {
         // ЯК ТІЛЬКИ КАМЕРА ЗАПУСТИЛАСЯ — АВТОМАТИЧНО СТАВИМО ЗУМ 2.5x
-        setTimeout(() => setZoom(2.5), 1000);
+        setZoom(2.5); // Ставимо початковий зум
+        }, 1200); 
       }).catch((err) => {
         alert("❌ Помилка камери: " + err);
         stopScanner();
