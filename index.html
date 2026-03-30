@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#2196F3">
 <base target="_top">
 
-<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (ZXing). Стару видалено! -->
+<!-- БІБЛІОТЕКА СКАНЕРА (Html5Qrcode - оптимізована для Samsung) -->
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -139,15 +139,6 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     </div>
   </div>
 
-  <!-- СКАНЕР (ВІКНО) -->
-  <div id="scanner-wrapper">
-    <div id="scanner-box">
-      <button class="close-scan-btn" onclick="stopScanner()">✖</button>
-      <button id="torch-btn" class="torch-btn" onclick="toggleTorch()">💡</button>
-      <video id="video"></video>
-    </div>
-    <div id="scan-hint">Наведіть камеру на штрихкод.<br>Камера (1x) сфокусується автоматично.</div>
-  </div>
 
   <!-- ФОРМА Техперевірки -->
   <div class="card hidden" id="techCheckForm">
@@ -773,134 +764,124 @@ function playBeep() {
 }
 
 /* =========================================================
-РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
+УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (Оптимізація під Samsung)
 ========================================================= */
-function parseMeterBarcode(rawCode) {
-  let code = String(rawCode).trim();
-
-  // 1. ПРАВИЛО ДЛЯ ЛІЧИЛЬНИКІВ НІК 2104 (Довжина 16 цифр, починається на 2104)
-  // Приклад: 2104565685962025 -> Відрізаємо перші 4 (модель) і останні 4 (рік) = 56568596
-  if (code.length === 16 && code.startsWith("2104")) {
-    return code.substring(4, 12); // Беремо з 5-ї по 12-ту цифру
-  }
-  
-  // Правило для інших НІК (наприклад, 2102, 2303), якщо в них такий самий формат:
-  if (code.length === 16 && (code.startsWith("2102") || code.startsWith("2303") || code.startsWith("2300"))) {
-    return code.substring(4, 12);
-  }
-
-  // 2. ПРАВИЛО ДЛЯ СО-ЕА10Д (Довжина 16 цифр, починається на 11001)
-  // Приклад: 1100101375052013 -> Відрізаємо перші 5 і останні 4 (рік) = 0137505
-  if (code.length === 16 && code.startsWith("11001")) {
-    return code.substring(5, 12); // Беремо з 6-ї по 12-ту цифру
-  }
-
-  // 3. ІНШІ ЛІЧИЛЬНИКИ
-  // Якщо штрихкод не підпадає під ці правила - повертаємо його без змін (чистий номер)
-  return code;
-}  
-
-/* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР ТА ЛІХТАРИК
-========================================================= */
-let codeReader = null;
+let html5QrCode = null;
+let currentCameraId = null;
 let isTorchOn = false;
 let currentScanTargetId = ""; 
-let autoSearchAfterScan = false; 
+let autoSearchAfterScan = false;
 
 function toggleTorch() {
+  if (!html5QrCode || !currentCameraId) return;
   try {
-    const video = document.getElementById("video");
-    if (!video) return;
-    const track = video.srcObject.getVideoTracks()[0]; 
     isTorchOn = !isTorchOn; 
-    track.applyConstraints({ advanced: [{ torch: isTorchOn }] })
-    .then(() => {
+    html5QrCode.applyVideoConstraints({
+      advanced: [{ torch: isTorchOn }]
+    }).then(() => {
       document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
     }).catch(err => {
-      alert("На жаль, ваш телефон або браузер не підтримує ліхтарик.");
+      alert("Ліхтарик не підтримується цією камерою у браузері.");
       isTorchOn = false;
     });
-  } catch(e) {
-    console.log("Помилка ліхтарика:", e);
-  }
+  } catch(e) { console.log(e); }
 }
 
 function startScanner(targetFieldId, doSearch) {
   currentScanTargetId = targetFieldId;
   autoSearchAfterScan = doSearch;
 
-  const readerWrapper = document.getElementById("scanner-wrapper");
-  readerWrapper.style.display = "flex";
+  document.getElementById("scanner-wrapper").style.display = "flex";
 
-  if (!codeReader) {
-    codeReader = new ZXing.BrowserMultiFormatReader();
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
   }
 
-  codeReader.listVideoInputDevices()
-    .then((videoInputDevices) => {
-      if (videoInputDevices.length === 0) {
-        alert("❌ Камеру не знайдено!");
-        stopScanner();
-        return;
-      }
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices && devices.length) {
+      let selectedDeviceId = devices[0].id;
 
-      let selectedDeviceId = videoInputDevices[0].deviceId;
-
-      for (let i = 0; i < videoInputDevices.length; i++) {
-        let label = videoInputDevices[i].label.toLowerCase();
-        if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
-          if (!label.includes("wide") && !label.includes("0.")) {
-            selectedDeviceId = videoInputDevices[i].deviceId;
+      // Алгоритм пошуку Основної 1х камери (обходить баг Samsung з 0.6x камерою)
+      for (let i = 0; i < devices.length; i++) {
+        let label = devices[i].label.toLowerCase();
+        if (label.includes("back") || label.includes("задн") || label.includes("environment") || label.includes("0")) {
+          if (!label.includes("wide") && !label.includes("macro") && !label.includes("depth") && !label.includes("0.")) {
+            selectedDeviceId = devices[i].id;
             break;
           }
         }
       }
 
-      const constraints = {
-        video: {
-          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30, max: 30 },
-          advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }, { exposureMode: "continuous" }, { whiteBalanceMode: "continuous" }]
-        }
-      };
+      currentCameraId = selectedDeviceId;
 
-      codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
-        if (result) {
-          playBeep(); 
+      html5QrCode.start(
+        selectedDeviceId, 
+        {
+          fps: 15, 
+          qrbox: { width: 300, height: 120 }, // Вузька рамка, обрізає "сміття", ідеально для штрихкодів
+          aspectRatio: 1.0,
+          disableFlip: true,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13
+          ]
+        },
+        (decodedText) => {
+          playBeep(); // Звук "Пік"
           
-          let finalCode = result.text;
-          // Фільтруємо номер лічильника
+          let finalCode = decodedText;
+          // Відрізаємо зайве, якщо скануємо лічильник (НІК 2104 і т.д.)
           if (currentScanTargetId !== "account" && typeof parseMeterBarcode === "function") {
-            finalCode = parseMeterBarcode(result.text);
+            finalCode = parseMeterBarcode(decodedText);
           }
 
           document.getElementById(currentScanTargetId).value = finalCode;
+          
           setTimeout(() => {
             stopScanner();
             if (autoSearchAfterScan) search(); 
           }, 300);
-        }
+        },
+        (errorMessage) => {} // Ігноруємо технічні помилки фокусу
+      ).catch((err) => {
+        alert("❌ Надайте браузеру дозвіл на камеру (натисніть 🔒 біля адреси сайту).");
+        stopScanner();
       });
-    })
-    .catch((err) => {
-      alert("❌ Надайте браузеру дозвіл на використання камери.");
+
+    } else {
+      alert("❌ Камер не знайдено!");
       stopScanner();
-    });
+    }
+  }).catch(err => {
+    alert("❌ Доступ до камери заблоковано!");
+    stopScanner();
+  });
 }
 
 function stopScanner() {
   document.getElementById("scanner-wrapper").style.display = "none";
-  if (codeReader) {
-    codeReader.reset();
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.log(e));
   }
   isTorchOn = false;
   const tBtn = document.getElementById("torch-btn");
   if (tBtn) tBtn.style.background = "#FFc107";
 }
 
+/* =========================================================
+РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
+========================================================= */
+function parseMeterBarcode(rawCode) {
+  let code = String(rawCode).trim();
+  if (code.length === 16 && (code.startsWith("2104") || code.startsWith("2102") || code.startsWith("2303") || code.startsWith("2300"))) {
+    return code.substring(4, 12);
+  }
+  if (code.length === 16 && code.startsWith("11001")) {
+    return code.substring(5, 12);
+  }
+  return code;
+}
 
 /* =========================================================
 БЛОК ПІДКАЗОК ДЛЯ НОМІНАЛІВ
@@ -1258,8 +1239,8 @@ function saveFasadData() {
     const is1F = (fasadPhase == 1);
     const rawData = collectReplaceData(); 
 
-    let rDemo = document.querySelector('input[name="fasadDemoBy"]:checked');
-    let demoBy = rDemo ? rDemo.value : "";
+    const demoBox = document.getElementById("fasadDemoBy");
+    let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
     let demoLen = getVal("fasadDemoLength");
     let demoMark = getVal("fasadDemoMark");
     if (demoBy === "ОРБ" || demoLen === "0" || demoLen === "") { demoMark = ""; }
@@ -1271,18 +1252,8 @@ function saveFasadData() {
     let iLich = cleanPlomb(getVal("replaceInstalledLichil")); let iFas1 = cleanPlomb(getVal("replaceInstalledFasad1")); let iFas2 = cleanPlomb(getVal("replaceInstalledFasad2")); let iVkp = cleanPlomb(getVal("replaceInstalledVkp")); let iOpt = cleanPlomb(getVal("replaceInstalledOptop")); let iImp1 = cleanPlomb(getVal("replaceInstalledImp1")); let iImp2 = cleanPlomb(getVal("replaceInstalledImp2")); let iImp3 = cleanPlomb(getVal("replaceInstalledImp3"));
     let rLich = cleanPlomb(getVal("replaceRemovedLichil")) === iLich ? "" : cleanPlomb(getVal("replaceRemovedLichil")); let rFas1 = cleanPlomb(getVal("replaceRemovedFasad1")) === iFas1 ? "" : cleanPlomb(getVal("replaceRemovedFasad1")); let rFas2 = cleanPlomb(getVal("replaceRemovedFasad2")) === iFas2 ? "" : cleanPlomb(getVal("replaceRemovedFasad2")); let rVkp = cleanPlomb(getVal("replaceRemovedVkp")) === iVkp ? "" : cleanPlomb(getVal("replaceRemovedVkp")); let rOpt = cleanPlomb(getVal("replaceRemovedOptop")) === iOpt ? "" : cleanPlomb(getVal("replaceRemovedOptop")); let rImp1 = cleanPlomb(getVal("replaceRemovedImp1")) === iImp1 ? "" : cleanPlomb(getVal("replaceRemovedImp1")); let rImp2 = cleanPlomb(getVal("replaceRemovedImp2")) === iImp2 ? "" : cleanPlomb(getVal("replaceRemovedImp2")); let rImp3 = cleanPlomb(getVal("replaceRemovedImp3")) === iImp3 ? "" : cleanPlomb(getVal("replaceRemovedImp3"));
 
-    // БЕЗПЕЧНЕ ЧИТАННЯ РАДІОКНОПОК (БЕЗ СИМВОЛУ ?.)
-    let rReason = document.querySelector('input[name="reason"]:checked');
-    let rArea = document.querySelector('input[name="area"]:checked');
-    let rType = document.querySelector('input[name="type"]:checked');
-
     const data = Object.assign(rawData, {
-      mode: "fasad_replace", 
-      fasadOrder: getVal("fasadOrder"), 
-      fasadReason: rReason ? rReason.value : "", 
-      fasadArea: rArea ? rArea.value : "", 
-      fasadPhase: fasadPhase, 
-      fasadType: rType ? rType.value : "",
+      mode: "fasad_replace", fasadOrder: getVal("fasadOrder"), fasadReason: document.querySelector('input[name="reason"]:checked')?.value || "", fasadArea: document.querySelector('input[name="area"]:checked')?.value || "", fasadPhase: fasadPhase, fasadType: document.querySelector('input[name="type"]:checked')?.value || "",
       demoMark: demoMark, demoLength: demoLen, demoBy: demoBy,
       f1_box: is1F ? getVal("f1_box") : "", f1_nom: is1F ? getVal("f1_nom") : "", f1_asxsn: is1F ? getVal("f1_asxsn") : "", f1_zn: is1F ? getVal("f1_zn") : "", f1_zv: is1F ? getVal("f1_zv") : "", f1_cable: is1F ? getVal("f1_cable") : "", f1_gofra: is1F ? getVal("f1_gofra") : "", f1_clip: is1F ? getVal("f1_clip") : "", f1_anker: is1F ? getVal("f1_anker") : "", f1_dubel: is1F ? getVal("f1_dubel") : "", f1_boxk: is1F ? getVal("f1_boxk") : "", f1_styajka: is1F ? getVal("f1_styajka") : "", f1_other: is1F ? getVal("f1_other") : "",
       f3_box: !is1F ? getVal("f3_box") : "", f3_nom: !is1F ? getVal("f3_nom") : "", f3_asxsn: !is1F ? getVal("f3_asxsn") : "", f3_zn: !is1F ? getVal("f3_zn") : "", f3_zv: !is1F ? getVal("f3_zv") : "", f3_cable: !is1F ? getVal("f3_cable") : "", f3_gofra: !is1F ? getVal("f3_gofra") : "", f3_clip: !is1F ? getVal("f3_clip") : "", f3_anker: !is1F ? getVal("f3_anker") : "", f3_dubel: !is1F ? getVal("f3_dubel") : "", f3_boxk: !is1F ? getVal("f3_boxk") : "", f3_styajka: !is1F ? getVal("f3_styajka") : "", f3_other: !is1F ? getVal("f3_other") : "",
@@ -1564,6 +1535,5 @@ function saveCloseData() {
 </script>
 </body>
 </html>
-
   
   
