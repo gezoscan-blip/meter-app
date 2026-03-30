@@ -808,6 +808,7 @@ function startScanner(targetFieldId, doSearch) {
 
       currentCameraId = selectedDeviceId;
 
+      // ЗАПУСКАЄМО ЗАДНЮ КАМЕРУ З ІДЕАЛЬНИМИ НАЛАШТУВАННЯМИ (Додано Зум х2)
       html5QrCode.start(
         selectedDeviceId, 
         {
@@ -822,8 +823,8 @@ function startScanner(targetFieldId, doSearch) {
             Html5QrcodeSupportedFormats.EAN_8,
             Html5QrcodeSupportedFormats.UPC_A
           ],
-          // Командиємо браузеру наблизити картинку у 2 рази і тримати фокус!
           videoConstraints: {
+            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined, // ЖОРСТКО ВМИКАЄМО ТУ КАМЕРУ, ЯКУ ВИБРАЛИ (ЗАДНЮ)
             width: { ideal: 1920 },
             height: { ideal: 1080 },
             advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }]
