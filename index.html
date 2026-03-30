@@ -773,13 +773,6 @@ function playBeep() {
 }
 
 /* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР
-========================================================= */
-let codeReader = null;
-let isTorchOn = false;
-let currentScanTargetId = ""; 
-let autoSearchAfterScan = false;
-/* =========================================================
 РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
 ========================================================= */
 function parseMeterBarcode(rawCode) {
@@ -919,18 +912,16 @@ function stopScanner() {
 
 // 3. ФУНКЦІЯ ЛІХТАРИКА (Працює тільки коли сканер увімкнений)
 function toggleTorch() {
-  if (!html5QrCode || !currentCameraId) return;
-
   try {
+    const video = document.getElementById("video");
+    if (!video) return;
+    const track = video.srcObject.getVideoTracks()[0]; 
     isTorchOn = !isTorchOn; 
-    
-    // Бібліотека Html5Qrcode має вбудований метод для вмикання спалаху!
-    html5QrCode.applyVideoConstraints({
-      advanced: [{ torch: isTorchOn }]
-    }).then(() => {
+    track.applyConstraints({ advanced: [{ torch: isTorchOn }] })
+    .then(() => {
       document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
     }).catch(err => {
-      alert("На жаль, ваш телефон або браузер не дозволяє увімкнути ліхтарик програмно.");
+      alert("На жаль, ваш телефон або браузер не підтримує ліхтарик.");
       isTorchOn = false;
     });
   } catch(e) {
