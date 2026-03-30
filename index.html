@@ -1295,8 +1295,8 @@ function saveFasadData() {
     const is1F = (fasadPhase == 1);
     const rawData = collectReplaceData(); 
 
-    const demoBox = document.getElementById("fasadDemoBy");
-    let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
+    let rDemo = document.querySelector('input[name="fasadDemoBy"]:checked');
+    let demoBy = rDemo ? rDemo.value : "";
     let demoLen = getVal("fasadDemoLength");
     let demoMark = getVal("fasadDemoMark");
     if (demoBy === "ОРБ" || demoLen === "0" || demoLen === "") { demoMark = ""; }
@@ -1308,8 +1308,18 @@ function saveFasadData() {
     let iLich = cleanPlomb(getVal("replaceInstalledLichil")); let iFas1 = cleanPlomb(getVal("replaceInstalledFasad1")); let iFas2 = cleanPlomb(getVal("replaceInstalledFasad2")); let iVkp = cleanPlomb(getVal("replaceInstalledVkp")); let iOpt = cleanPlomb(getVal("replaceInstalledOptop")); let iImp1 = cleanPlomb(getVal("replaceInstalledImp1")); let iImp2 = cleanPlomb(getVal("replaceInstalledImp2")); let iImp3 = cleanPlomb(getVal("replaceInstalledImp3"));
     let rLich = cleanPlomb(getVal("replaceRemovedLichil")) === iLich ? "" : cleanPlomb(getVal("replaceRemovedLichil")); let rFas1 = cleanPlomb(getVal("replaceRemovedFasad1")) === iFas1 ? "" : cleanPlomb(getVal("replaceRemovedFasad1")); let rFas2 = cleanPlomb(getVal("replaceRemovedFasad2")) === iFas2 ? "" : cleanPlomb(getVal("replaceRemovedFasad2")); let rVkp = cleanPlomb(getVal("replaceRemovedVkp")) === iVkp ? "" : cleanPlomb(getVal("replaceRemovedVkp")); let rOpt = cleanPlomb(getVal("replaceRemovedOptop")) === iOpt ? "" : cleanPlomb(getVal("replaceRemovedOptop")); let rImp1 = cleanPlomb(getVal("replaceRemovedImp1")) === iImp1 ? "" : cleanPlomb(getVal("replaceRemovedImp1")); let rImp2 = cleanPlomb(getVal("replaceRemovedImp2")) === iImp2 ? "" : cleanPlomb(getVal("replaceRemovedImp2")); let rImp3 = cleanPlomb(getVal("replaceRemovedImp3")) === iImp3 ? "" : cleanPlomb(getVal("replaceRemovedImp3"));
 
+    // БЕЗПЕЧНЕ ЧИТАННЯ РАДІОКНОПОК (БЕЗ СИМВОЛУ ?.)
+    let rReason = document.querySelector('input[name="reason"]:checked');
+    let rArea = document.querySelector('input[name="area"]:checked');
+    let rType = document.querySelector('input[name="type"]:checked');
+
     const data = Object.assign(rawData, {
-      mode: "fasad_replace", fasadOrder: getVal("fasadOrder"), fasadReason: document.querySelector('input[name="reason"]:checked')?.value || "", fasadArea: document.querySelector('input[name="area"]:checked')?.value || "", fasadPhase: fasadPhase, fasadType: document.querySelector('input[name="type"]:checked')?.value || "",
+      mode: "fasad_replace", 
+      fasadOrder: getVal("fasadOrder"), 
+      fasadReason: rReason ? rReason.value : "", 
+      fasadArea: rArea ? rArea.value : "", 
+      fasadPhase: fasadPhase, 
+      fasadType: rType ? rType.value : "",
       demoMark: demoMark, demoLength: demoLen, demoBy: demoBy,
       f1_box: is1F ? getVal("f1_box") : "", f1_nom: is1F ? getVal("f1_nom") : "", f1_asxsn: is1F ? getVal("f1_asxsn") : "", f1_zn: is1F ? getVal("f1_zn") : "", f1_zv: is1F ? getVal("f1_zv") : "", f1_cable: is1F ? getVal("f1_cable") : "", f1_gofra: is1F ? getVal("f1_gofra") : "", f1_clip: is1F ? getVal("f1_clip") : "", f1_anker: is1F ? getVal("f1_anker") : "", f1_dubel: is1F ? getVal("f1_dubel") : "", f1_boxk: is1F ? getVal("f1_boxk") : "", f1_styajka: is1F ? getVal("f1_styajka") : "", f1_other: is1F ? getVal("f1_other") : "",
       f3_box: !is1F ? getVal("f3_box") : "", f3_nom: !is1F ? getVal("f3_nom") : "", f3_asxsn: !is1F ? getVal("f3_asxsn") : "", f3_zn: !is1F ? getVal("f3_zn") : "", f3_zv: !is1F ? getVal("f3_zv") : "", f3_cable: !is1F ? getVal("f3_cable") : "", f3_gofra: !is1F ? getVal("f3_gofra") : "", f3_clip: !is1F ? getVal("f3_clip") : "", f3_anker: !is1F ? getVal("f3_anker") : "", f3_dubel: !is1F ? getVal("f3_dubel") : "", f3_boxk: !is1F ? getVal("f3_boxk") : "", f3_styajka: !is1F ? getVal("f3_styajka") : "", f3_other: !is1F ? getVal("f3_other") : "",
