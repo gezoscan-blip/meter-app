@@ -14,7 +14,7 @@
 <base target="_top">
 
 <!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (ZXing). Стару видалено! -->
-<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <style>
 /* ЗАГАЛЬНИЙ СТИЛЬ */
@@ -139,14 +139,23 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     </div>
   </div>
 
-  <!-- СКАНЕР (ВІКНО) -->
+ <!-- СКАНЕР (ВІКНО) З КНОПКАМИ ЗУМУ -->
   <div id="scanner-wrapper">
     <div id="scanner-box">
       <button class="close-scan-btn" onclick="stopScanner()">✖</button>
       <button id="torch-btn" class="torch-btn" onclick="toggleTorch()">💡</button>
-      <video id="video"></video>
+      
+      <!-- Контейнер для відео -->
+      <div id="reader" style="width: 100%; background: black;"></div>
+
+      <!-- Кнопки швидкого зуму -->
+      <div style="position: absolute; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; z-index: 10002;">
+        <button onclick="setZoom(1)" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold; padding: 0;">1x</button>
+        <button onclick="setZoom(2)" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold; padding: 0;">2x</button>
+        <button onclick="setZoom(4)" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold; padding: 0;">4x</button>
+      </div>
     </div>
-    <div id="scan-hint">Наведіть камеру на штрихкод.<br>Камера (1x) сфокусується автоматично.</div>
+    <div id="scan-hint" style="color: white; margin-top: 20px; text-align: center;">Наведіть камеру на штрихкод.</div>
   </div>
 
   <!-- ФОРМА Техперевірки -->
@@ -773,134 +782,116 @@ function playBeep() {
 }
 
 /* =========================================================
-УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР
+   НОВИЙ СКАНЕР (Html5Qrcode) З РОБОЧИМ ЗУМОМ
 ========================================================= */
-let codeReader = null;
+let html5QrCode = null;
 let isTorchOn = false;
 let currentScanTargetId = ""; 
 let autoSearchAfterScan = false;
-/* =========================================================
-РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
-========================================================= */
-function parseMeterBarcode(rawCode) {
-  let code = String(rawCode).trim();
 
-  // 1. ПРАВИЛО ДЛЯ ЛІЧИЛЬНИКІВ НІК 2104 (Довжина 16 цифр, починається на 2104)
-  // Приклад: 2104565685962025 -> Відрізаємо перші 4 (модель) і останні 4 (рік) = 56568596
-  if (code.length === 16 && code.startsWith("2104")) {
-    return code.substring(4, 12); // Беремо з 5-ї по 12-ту цифру
-  }
-  
-  // Правило для інших НІК (наприклад, 2102, 2303), якщо в них такий самий формат:
-  if (code.length === 16 && (code.startsWith("2102") || code.startsWith("2303") || code.startsWith("2300"))) {
-    return code.substring(4, 12);
-  }
-
-  // 2. ПРАВИЛО ДЛЯ СО-ЕА10Д (Довжина 16 цифр, починається на 11001)
-  // Приклад: 1100101375052013 -> Відрізаємо перші 5 і останні 4 (рік) = 0137505
-  if (code.length === 16 && code.startsWith("11001")) {
-    return code.substring(5, 12); // Беремо з 6-ї по 12-ту цифру
-  }
-
-  // 3. ІНШІ ЛІЧИЛЬНИКИ
-  // Якщо штрихкод не підпадає під ці правила - повертаємо його без змін (чистий номер)
-  return code;
-}  
-
-function toggleTorch() {
+// 1. ФУНКЦІЯ ЗУМУ (Виправлена)
+async function setZoom(value) {
+  if (!html5QrCode) return;
   try {
-    const video = document.getElementById("video");
-    const track = video.srcObject.getVideoTracks()[0]; 
+    let track = null;
+    const videoElement = document.querySelector("#reader video");
+    if (videoElement && videoElement.srcObject) {
+      track = videoElement.srcObject.getVideoTracks()[0];
+    } else if (typeof html5QrCode.getRunningTrack === 'function') {
+      track = html5QrCode.getRunningTrack();
+    }
+
+    if (!track) return;
+    const capabilities = track.getCapabilities();
+    if (!capabilities.zoom) return;
+
+    const min = capabilities.zoom.min || 1;
+    const max = capabilities.zoom.max || 1;
+    let zoomValue = Math.min(Math.max(value, min), max);
+
+    await track.applyConstraints({ advanced: [{ zoom: zoomValue }] });
+  } catch (err) { console.error("Помилка зуму:", err); }
+}
+
+// 2. ФУНКЦІЯ ЛІХТАРИКА
+function toggleTorch() {
+  if (!html5QrCode) return;
+  try {
+    const video = document.querySelector("#reader video");
+    const track = video.srcObject.getVideoTracks()[0];
     isTorchOn = !isTorchOn; 
     track.applyConstraints({ advanced: [{ torch: isTorchOn }] })
     .then(() => {
       document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
-    }).catch(err => {
-      alert("На жаль, ваш телефон або браузер не підтримує ліхтарик.");
-      isTorchOn = false;
-    });
-  } catch(e) {
-    console.log("Помилка ліхтарика:", e);
-  }
+    }).catch(() => { alert("Ліхтарик не підтримується."); isTorchOn = false; });
+  } catch(e) { console.log(e); }
 }
 
+// 3. ЗАПУСК СКАНЕРА
 function startScanner(targetFieldId, doSearch) {
   currentScanTargetId = targetFieldId;
   autoSearchAfterScan = doSearch;
+  document.getElementById("scanner-wrapper").style.display = "flex";
 
-  const readerWrapper = document.getElementById("scanner-wrapper");
-  readerWrapper.style.display = "flex";
-
-  if (!codeReader) {
-    codeReader = new ZXing.BrowserMultiFormatReader();
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
   }
 
-  codeReader.listVideoInputDevices()
-    .then((videoInputDevices) => {
-      if (videoInputDevices.length === 0) {
-        alert("❌ Камеру не знайдено!");
-        stopScanner();
-        return;
-      }
-
-      let selectedDeviceId = videoInputDevices[0].deviceId;
-
-      for (let i = 0; i < videoInputDevices.length; i++) {
-        let label = videoInputDevices[i].label.toLowerCase();
-        if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
-          if (!label.includes("wide") && !label.includes("0.")) {
-            selectedDeviceId = videoInputDevices[i].deviceId;
-            break;
-          }
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices && devices.length) {
+      let selectedDeviceId = devices[0].id;
+      for (let d of devices) {
+        let label = d.label.toLowerCase();
+        if ((label.includes("back") || label.includes("задн") || label.includes("environment")) && 
+            !label.includes("wide") && !label.includes("0.")) {
+          selectedDeviceId = d.id;
+          break;
         }
       }
 
-      const constraints = {
-        video: {
-          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30, max: 30 },
-          advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }, { exposureMode: "continuous" }, { whiteBalanceMode: "continuous" }]
-        }
-      };
-
-      codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
-        if (result) {
+      html5QrCode.start(
+        selectedDeviceId, 
+        { fps: 15, qrbox: { width: 300, height: 120 }, aspectRatio: 1.0 },
+        (decodedText) => {
           playBeep(); 
-          
-          let finalCode = result.text;
-          
-          // Якщо ми скануємо НЕ особовий рахунок (а номер лічильника), 
-          // то пропускаємо штрихкод через наш "розумний фільтр"
-          if (currentScanTargetId !== "account") {
-            finalCode = parseMeterBarcode(result.text);
-          }
-
-          // Вставляємо вже чистий, обрізаний номер у поле
+          let finalCode = (currentScanTargetId !== "account") ? parseMeterBarcode(decodedText) : decodedText;
           document.getElementById(currentScanTargetId).value = finalCode;
-          
-          setTimeout(() => {
-            stopScanner();
-            if (autoSearchAfterScan) search(); 
-          }, 300);
-        }
+          stopScanner();
+          if (autoSearchAfterScan) search(); 
+        },
+        () => {} 
+      ).then(() => {
+        // Ставимо початковий зум через 1.2 сек
+        setTimeout(() => setZoom(2.5), 1200);
+      }).catch(err => {
+        alert("Помилка камери: " + err);
+        stopScanner();
       });
-    })
-    .catch((err) => {
-      alert("❌ Надайте браузеру дозвіл на використання камери.");
-      stopScanner();
-    });
+    }
+  }).catch(() => { alert("Немає доступу до камери."); stopScanner(); });
 }
 
+// 4. ЗУПИНКА
 function stopScanner() {
   document.getElementById("scanner-wrapper").style.display = "none";
-  if (codeReader) {
-    codeReader.reset();
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.log(e));
   }
   isTorchOn = false;
   const tBtn = document.getElementById("torch-btn");
-  if (tBtn) tBtn.style.background = "#FFc107";
+  if(tBtn) tBtn.style.background = "#FFc107";
+}
+
+// 5. ФІЛЬТР ШТРИХКОДІВ (ВАША ЛОГІКА)
+function parseMeterBarcode(rawCode) {
+  let code = String(rawCode).trim();
+  if (code.length === 16 && (code.startsWith("2104") || code.startsWith("2102") || code.startsWith("2303") || code.startsWith("2300"))) {
+    return code.substring(4, 12);
+  }
+  if (code.length === 16 && code.startsWith("11001")) {
+    return code.substring(5, 12);
+  }
+  return code;
 }
 
 /* =========================================================
