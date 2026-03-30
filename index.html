@@ -807,16 +807,130 @@ function parseMeterBarcode(rawCode) {
   return code;
 }  
 
+/* =========================================================
+ІДЕАЛЬНИЙ ЖИВИЙ СКАНЕР (Html5Qrcode без зайвого інтерфейсу)
+========================================================= */
+let html5QrCode = null;
+let currentScanTargetId = ""; 
+let autoSearchAfterScan = false;
+let currentCameraId = null; // Запам'ятовує обрану камеру для ліхтарика
+let isTorchOn = false;
+
+// 1. ФУНКЦІЯ ЗАПУСКУ КАМЕРИ
+function startScanner(targetFieldId, doSearch) {
+  currentScanTargetId = targetFieldId;
+  autoSearchAfterScan = doSearch;
+
+  const readerWrapper = document.getElementById("scanner-wrapper");
+  readerWrapper.style.display = "flex"; // Показуємо наш гарний чорний фон з лазером
+
+  if (!html5QrCode) {
+    // Використовуємо БАЗОВИЙ клас (Він не малює ніяких своїх кнопок!)
+    html5QrCode = new Html5Qrcode("reader");
+  }
+
+  // Запитуємо у телефона список усіх його камер
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices && devices.length) {
+      
+      let selectedDeviceId = devices[0].id; // За замовчуванням беремо першу
+
+      // ХИТРИЙ АЛГОРИТМ ДЛЯ SAMSUNG (Відкидаємо "Ширик" і "Макро")
+      for (let i = 0; i < devices.length; i++) {
+        let label = devices[i].label.toLowerCase();
+        
+        // Шукаємо задню камеру
+        if (label.includes("back") || label.includes("задн") || label.includes("environment") || label.includes("0")) {
+          // Відкидаємо ultrawide (0.5x, 0.6x), macro, depth
+          if (!label.includes("wide") && !label.includes("macro") && !label.includes("depth") && !label.includes("0.")) {
+            selectedDeviceId = devices[i].id;
+            break; // Знайшли ідеальну 1x камеру!
+          }
+        }
+      }
+
+      currentCameraId = selectedDeviceId; // Запам'ятовуємо для ліхтарика
+
+      // ЗАПУСКАЄМО КАМЕРУ З ІДЕАЛЬНИМИ НАЛАШТУВАННЯМИ
+      html5QrCode.start(
+        selectedDeviceId, // Запускаємо конкретно вибрану 1x камеру
+        {
+          fps: 15, // Оптимально для старих телефонів (не гріє батарею)
+          qrbox: { width: 300, height: 120 }, // Вузька рамка по центру (Region of Interest)
+          aspectRatio: 1.0, // Квадратний потік для кращого центрування
+          disableFlip: true,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A
+          ] // Змушуємо читати тільки лінійні штрихкоди (відсікаємо QR)
+        },
+        (decodedText, decodedResult) => {
+          // УСПІХ! ЗЛОВИЛИ ШТРИХКОД
+          playBeep(); // Звук "Пік"
+          
+          let finalCode = decodedText;
+          // Відрізаємо зайве, якщо скануємо лічильник НІК
+          if (currentScanTargetId !== "account") {
+            finalCode = parseMeterBarcode(decodedText);
+          }
+
+          document.getElementById(currentScanTargetId).value = finalCode;
+          
+          // Закриваємо сканер і шукаємо
+          setTimeout(() => {
+            stopScanner();
+            if (autoSearchAfterScan) search(); 
+          }, 300);
+        },
+        (errorMessage) => {
+          // Ігноруємо тисячі системних повідомлень про пошук фокусу
+        }
+      ).catch((err) => {
+        alert("❌ Помилка запуску камери! Надайте браузеру дозвіл (натисніть 🔒 біля адреси сайту).");
+        stopScanner();
+      });
+
+    } else {
+      alert("❌ Камер не знайдено на пристрої!");
+      stopScanner();
+    }
+  }).catch(err => {
+    alert("❌ Доступ до камери заблоковано браузером. Надайте дозвіл.");
+    stopScanner();
+  });
+}
+
+// 2. ФУНКЦІЯ ЗУПИНКИ ТА ОЧИСТКИ
+function stopScanner() {
+  document.getElementById("scanner-wrapper").style.display = "none";
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear(); // Повністю очищаємо відео-потік
+    }).catch(err => console.log(err));
+  }
+  // Скидаємо кнопку ліхтарика
+  isTorchOn = false;
+  const tBtn = document.getElementById("torch-btn");
+  if (tBtn) tBtn.style.background = "#FFc107";
+}
+
+// 3. ФУНКЦІЯ ЛІХТАРИКА (Працює тільки коли сканер увімкнений)
 function toggleTorch() {
+  if (!html5QrCode || !currentCameraId) return;
+
   try {
-    const video = document.getElementById("video");
-    const track = video.srcObject.getVideoTracks()[0]; 
     isTorchOn = !isTorchOn; 
-    track.applyConstraints({ advanced: [{ torch: isTorchOn }] })
-    .then(() => {
+    
+    // Бібліотека Html5Qrcode має вбудований метод для вмикання спалаху!
+    html5QrCode.applyVideoConstraints({
+      advanced: [{ torch: isTorchOn }]
+    }).then(() => {
       document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
     }).catch(err => {
-      alert("На жаль, ваш телефон або браузер не підтримує ліхтарик.");
+      alert("На жаль, ваш телефон або браузер не дозволяє увімкнути ліхтарик програмно.");
       isTorchOn = false;
     });
   } catch(e) {
@@ -824,84 +938,6 @@ function toggleTorch() {
   }
 }
 
-function startScanner(targetFieldId, doSearch) {
-  currentScanTargetId = targetFieldId;
-  autoSearchAfterScan = doSearch;
-
-  const readerWrapper = document.getElementById("scanner-wrapper");
-  readerWrapper.style.display = "flex";
-
-  if (!codeReader) {
-    codeReader = new ZXing.BrowserMultiFormatReader();
-  }
-
-  codeReader.listVideoInputDevices()
-    .then((videoInputDevices) => {
-      if (videoInputDevices.length === 0) {
-        alert("❌ Камеру не знайдено!");
-        stopScanner();
-        return;
-      }
-
-      let selectedDeviceId = videoInputDevices[0].deviceId;
-
-      for (let i = 0; i < videoInputDevices.length; i++) {
-        let label = videoInputDevices[i].label.toLowerCase();
-        if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
-          if (!label.includes("wide") && !label.includes("0.")) {
-            selectedDeviceId = videoInputDevices[i].deviceId;
-            break;
-          }
-        }
-      }
-
-      const constraints = {
-        video: {
-          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30, max: 30 },
-          advanced: [{ zoom: 2.0 }, { focusMode: "continuous" }, { exposureMode: "continuous" }, { whiteBalanceMode: "continuous" }]
-        }
-      };
-
-      codeReader.decodeFromConstraints(constraints, 'video', (result, err) => {
-        if (result) {
-          playBeep(); 
-          
-          let finalCode = result.text;
-          
-          // Якщо ми скануємо НЕ особовий рахунок (а номер лічильника), 
-          // то пропускаємо штрихкод через наш "розумний фільтр"
-          if (currentScanTargetId !== "account") {
-            finalCode = parseMeterBarcode(result.text);
-          }
-
-          // Вставляємо вже чистий, обрізаний номер у поле
-          document.getElementById(currentScanTargetId).value = finalCode;
-          
-          setTimeout(() => {
-            stopScanner();
-            if (autoSearchAfterScan) search(); 
-          }, 300);
-        }
-      });
-    })
-    .catch((err) => {
-      alert("❌ Надайте браузеру дозвіл на використання камери.");
-      stopScanner();
-    });
-}
-
-function stopScanner() {
-  document.getElementById("scanner-wrapper").style.display = "none";
-  if (codeReader) {
-    codeReader.reset();
-  }
-  isTorchOn = false;
-  const tBtn = document.getElementById("torch-btn");
-  if (tBtn) tBtn.style.background = "#FFc107";
-}
 
 /* =========================================================
 БЛОК ПІДКАЗОК ДЛЯ НОМІНАЛІВ
