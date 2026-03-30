@@ -82,15 +82,24 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 .meterTypeHints { position: absolute; left: 0; right: 0; top: 100%; margin-top: 2px; background: #fff; border: 1px solid #d9d9d9; border-radius: 8px; max-height: 250px; overflow-y: auto; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
 .meterTypeItem { padding: 12px; font-size: 16px; cursor: pointer; border-bottom: 1px solid #eee; background: #fff; }
 
-/* ІДЕАЛЬНИЙ СКАНЕР ПО ЦЕНТРУ ЕКРАНА */
-#scanner-wrapper { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; flex-direction: column; }
-#scanner-box { width: 95%; max-width: 400px; position: relative; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.close-scan-btn { position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; background: #d32f2f; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; }
-.torch-btn { position: absolute; top: -15px; left: -15px; width: 45px; height: 45px; background: #FFc107; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; transition: background 0.2s; }
-#scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
-</style>
-</head>
-<body>
+<!-- НОВИЙ ІНТЕРФЕЙС СКАНЕРА -->
+<div id="scanner-wrapper">
+  <div id="scanner-box">
+    <button class="close-scan-btn" onclick="stopScanner()">✖</button>
+    <button id="torch-btn" class="torch-btn" onclick="toggleTorch()">💡</button>
+    
+    <!-- Сюди бібліотека вставить відео -->
+    <div id="reader" style="width: 100%; background: black;"></div>
+
+    <!-- Кнопки зуму -->
+    <div style="position: absolute; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; z-index: 10002;">
+      <button onclick="setZoom(1)" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold;">1x</button>
+      <button onclick="setZoom(2)" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold;">2x</button>
+      <button onclick="setZoom(4)" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 2px solid white; color: white; font-weight: bold;">4x</button>
+    </div>
+  </div>
+  <div id="scan-hint" style="color: white; margin-top: 20px; text-align: center;">Наведіть на штрихкод</div>
+</div>
 
 <!-- ЕКРАН ВХОДУ -->
 <div class="container" id="login">
@@ -767,66 +776,53 @@ function playBeep() {
 }
 
 /* =========================================================
-   УНІВЕРСАЛЬНИЙ ЖИВИЙ СКАНЕР (З РОБОЧИМ ЗУМОМ)
+   НОВИЙ СКАНЕР (Html5Qrcode) З РОБОЧИМ ЗУМОМ
 ========================================================= */
 let html5QrCode = null;
-let currentCameraId = null;
 let isTorchOn = false;
 let currentScanTargetId = ""; 
 let autoSearchAfterScan = false;
 
-// 1. ФУНКЦІЯ ЗУМУ (З "ХАКОМ" ДЛЯ НАДІЙНОСТІ)
+// 1. ФУНКЦІЯ ЗУМУ
 async function setZoom(value) {
   if (!html5QrCode) return;
   try {
-    let track = null;
-    
-    // Намагаємося отримати доступ до лінзи через відео-елемент
     const videoElement = document.querySelector("#reader video");
-    if (videoElement && videoElement.srcObject) {
-      track = videoElement.srcObject.getVideoTracks()[0];
-    } else if (typeof html5QrCode.getRunningTrack === 'function') {
+    let track = (videoElement && videoElement.srcObject) ? videoElement.srcObject.getVideoTracks()[0] : null;
+    if (!track && typeof html5QrCode.getRunningTrack === 'function') {
       track = html5QrCode.getRunningTrack();
     }
-
     if (!track) return;
 
     const capabilities = track.getCapabilities();
-    if (!capabilities.zoom) return; // Зум не підтримується залізом
+    if (!capabilities.zoom) return;
 
     const min = capabilities.zoom.min || 1;
     const max = capabilities.zoom.max || 1;
     let zoomValue = Math.min(Math.max(value, min), max);
 
-    await track.applyConstraints({
-      advanced: [{ zoom: zoomValue }]
-    });
-  } catch (err) {
-    console.error("Помилка зуму:", err);
-  }
+    await track.applyConstraints({ advanced: [{ zoom: zoomValue }] });
+  } catch (err) { console.error("Помилка зуму:", err); }
 }
 
 // 2. ФУНКЦІЯ ЛІХТАРИКА
 function toggleTorch() {
-  if (!html5QrCode || !currentCameraId) return;
+  if (!html5QrCode) return;
   try {
+    const video = document.querySelector("#reader video");
+    const track = video.srcObject.getVideoTracks()[0];
     isTorchOn = !isTorchOn; 
-    html5QrCode.applyVideoConstraints({
-      advanced: [{ torch: isTorchOn }]
-    }).then(() => {
+    track.applyConstraints({ advanced: [{ torch: isTorchOn }] })
+    .then(() => {
       document.getElementById("torch-btn").style.background = isTorchOn ? "#4CAF50" : "#FFc107";
-    }).catch(err => {
-      alert("Ліхтарик не підтримується цією камерою.");
-      isTorchOn = false;
-    });
+    }).catch(() => { alert("Ліхтарик не підтримується."); isTorchOn = false; });
   } catch(e) { console.log(e); }
 }
 
-// 3. ГОЛОВНА ФУНКЦІЯ ЗАПУСКУ СКАНЕРА
+// 3. ЗАПУСК СКАНЕРА
 function startScanner(targetFieldId, doSearch) {
   currentScanTargetId = targetFieldId;
   autoSearchAfterScan = doSearch;
-
   document.getElementById("scanner-wrapper").style.display = "flex";
 
   if (!html5QrCode) {
@@ -836,64 +832,46 @@ function startScanner(targetFieldId, doSearch) {
   Html5Qrcode.getCameras().then(devices => {
     if (devices && devices.length) {
       let selectedDeviceId = devices[0].id;
-      for (let i = 0; i < devices.length; i++) {
-        let label = devices[i].label.toLowerCase();
-        if (label.includes("back") || label.includes("задн") || label.includes("environment")) {
-          if (!label.includes("wide") && !label.includes("0.")) {
-            selectedDeviceId = devices[i].id;
-            break;
-          }
+      // Шукаємо основну задню камеру
+      for (let d of devices) {
+        let label = d.label.toLowerCase();
+        if ((label.includes("back") || label.includes("задн") || label.includes("environment")) && 
+            !label.includes("wide") && !label.includes("0.")) {
+          selectedDeviceId = d.id;
+          break;
         }
       }
 
-      currentCameraId = selectedDeviceId;
-
-      // ЗАПУСК (Перевірте, щоб усі дужки нижче збігалися)
       html5QrCode.start(
         selectedDeviceId, 
-        {
-          fps: 15, 
-          qrbox: { width: 300, height: 120 }, 
-          aspectRatio: 1.0,
-          disableFlip: true
-        },
+        { fps: 15, qrbox: { width: 300, height: 120 }, aspectRatio: 1.0 },
         (decodedText) => {
           playBeep(); 
           let finalCode = (currentScanTargetId !== "account") ? parseMeterBarcode(decodedText) : decodedText;
           document.getElementById(currentScanTargetId).value = finalCode;
-          setTimeout(() => {
-            stopScanner();
-            if (autoSearchAfterScan) search(); 
-          }, 300);
+          stopScanner();
+          if (autoSearchAfterScan) search(); 
         },
-        (errorMessage) => {} 
+        () => {} 
       ).then(() => {
-        // Успішний запуск — активуємо зум через 1.2 сек
+        // Авто-зум при старті
         setTimeout(() => setZoom(2.5), 1200);
-      }).catch((err) => {
-        alert("❌ Помилка камери: " + err);
+      }).catch(err => {
+        alert("Помилка: " + err);
         stopScanner();
       });
-
-    } else {
-      alert("❌ Камер не знайдено!");
-      stopScanner();
     }
-  }).catch(err => {
-    alert("❌ Доступ заблоковано!");
-    stopScanner();
-  });
+  }).catch(() => { alert("Немає доступу до камери."); stopScanner(); });
 }
 
-// 4. ЗУПИНКА СКАНЕРА
+// 4. ЗУПИНКА
 function stopScanner() {
   document.getElementById("scanner-wrapper").style.display = "none";
   if (html5QrCode) {
-    html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.error(e));
+    html5QrCode.stop().then(() => html5QrCode.clear()).catch(e => console.log(e));
   }
   isTorchOn = false;
-  const tBtn = document.getElementById("torch-btn");
-  if (tBtn) tBtn.style.background = "#FFc107";
+  if(document.getElementById("torch-btn")) document.getElementById("torch-btn").style.background = "#FFc107";
 }
 
 // 5. ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
