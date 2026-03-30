@@ -777,28 +777,45 @@ let autoSearchAfterScan = false;
 
 // ФУНКЦІЯ КЕРУВАННЯ ЗУМОМ
 async function setZoom(value) {
-  if (!html5QrCode) return;
-  try {
-    const track = html5QrCode.getRunningTrack(); // Отримуємо активну лінзу
-    if (!track) return;
+  if (!html5QrCode) {
+    console.error("Сканер не запущений");
+    return;
+  }
 
-    const capabilities = track.getCapabilities(); // Питаємо камеру, що вона вміє
-    if (!capabilities.zoom) {
-      console.warn("Зум не підтримується цим пристроєм");
+  try {
+    // 1. Намагаємося отримати відео-трек безпосередньо від сканера
+    const track = html5QrCode.getRunningTrack();
+    
+    if (!track) {
+      console.warn("Відеопотік ще не готовий. Зачекайте секунду...");
       return;
     }
 
-    // Розраховуємо безпечне значення (щоб не перевищити максимум камери)
+    // 2. Отримуємо можливості камери
+    const capabilities = track.getCapabilities();
+
+    // ПЕРЕВІРКА: чи взагалі камера каже браузеру, що вміє зумити
+    if (!capabilities.zoom) {
+      alert("⚠️ Ця камера або браузер не підтримують програмний зум. Спробуйте піднести телефон ближче.");
+      return;
+    }
+
+    // 3. Розраховуємо значення в межах дозволеного (min/max)
     const min = capabilities.zoom.min || 1;
     const max = capabilities.zoom.max || 1;
-    const step = capabilities.zoom.step || 0.1;
+    
+    // Якщо ми хочемо зум 4, а камера може максимум 3 — поставимо 3
     let zoomValue = Math.min(Math.max(value, min), max);
 
+    console.log(`Запит зуму: ${value}, Дозволено: ${min}-${max}, Ставимо: ${zoomValue}`);
+
+    // 4. Застосовуємо налаштування прямо до лінзи
     await track.applyConstraints({
       advanced: [{ zoom: zoomValue }]
     });
+
   } catch (err) {
-    console.error("Помилка зуму:", err);
+    alert("❌ Помилка налаштування зуму: " + err);
   }
 }
 
