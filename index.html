@@ -1181,17 +1181,23 @@ function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hi
 function goFasadStep4(){
   const mark = document.getElementById("fasadDemoMark").value.trim(); 
   const length = document.getElementById("fasadDemoLength").value.trim(); 
-  // Тепер ми перевіряємо не радіокнопку, а наш новий чекбокс:
   const demoBox = document.getElementById("fasadDemoBy");
   const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
-  // Якщо НЕ ОРБ і метраж НЕ нуль/пустий - марка і метраж ОБОВ'ЯЗКОВІ!
-  if (demoBy !== "ОРБ" && length !== "0" && length !== "") {
-    if (!mark || !length || !demoBy) {
-      alert("❌ Заповніть дані демонтажу!\nЯкщо знімала не ОРБ, марка та метраж обов'язкові.");
+  // --- ВИПРАВЛЕНА ЛОГІКА ПЕРЕВІРКИ ДЕМОНТАЖУ ---
+  if (demoBy !== "ОРБ") {
+    // Якщо ввели метраж, але забули марку
+    if (length !== "" && length !== "0" && mark === "") {
+      alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
+      return;
+    }
+    // Якщо вибрали марку, але забули метраж
+    if (mark !== "" && (length === "" || length === "0")) {
+      alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
       return;
     }
   }
+  // ---------------------------------------------
 
   isFasadFlow = true; 
   const acc = document.getElementById("account").value.trim();
@@ -1463,18 +1469,23 @@ function fillCloseStep1(d) {
 }
 
 function goCloseStep2() {
-  // Розумна перевірка демонтажу (Як у Фасаді)
-  let mark = getVal("closeDemoMark");
+  let mark = getVal("closeDemoMark"); 
   let length = getVal("closeDemoLength");
   const demoBox = document.getElementById("closeDemoBy");
   let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
-  if (demoBy !== "ОРБ" && length !== "0" && length !== "") {
-    if (!mark || !length || !demoBy) {
-      alert("❌ Заповніть дані демонтажу!\nЯкщо знімала не ОРБ, марка та метраж обов'язкові.");
+  // --- ВИПРАВЛЕНА ЛОГІКА ПЕРЕВІРКИ ДЕМОНТАЖУ ---
+  if (demoBy !== "ОРБ") {
+    if (length !== "" && length !== "0" && mark === "") {
+      alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
+      return;
+    }
+    if (mark !== "" && (length === "" || length === "0")) {
+      alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
       return;
     }
   }
+  // ---------------------------------------------
 
   document.getElementById("closeStep1").classList.add("hidden");
   document.getElementById("closeStep2").classList.remove("hidden");
@@ -1482,12 +1493,6 @@ function goCloseStep2() {
   setInner("closeWorkerTab2", getInner("closeWorkerTab1")); 
   setInner("closeWorkerName2", getInner("closeWorkerName1")); 
   setInner("closeAccountView2", getInner("closeAccountView1")); 
-}
-
-function backFromClose1() { showSearchBlock(); }
-function backFromClose2() { 
-  document.getElementById("closeStep2").classList.add("hidden"); 
-  document.getElementById("closeStep1").classList.remove("hidden"); 
 }
 
 function collectCloseData() {
