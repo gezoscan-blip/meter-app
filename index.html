@@ -96,12 +96,21 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 </head>
 <body>
 
-<!-- ЕКРАН ВХОДУ -->
+<!-- ЕКРАН ВХОДУ (Безпечний від блокувань Google) -->
 <div class="container" id="login">
   <div class="card">
-    <h3 style="text-align: center; margin-top:0;">Вхід</h3>
-    <input id="tab" placeholder="Табельний номер">
-    <input id="pass" type="password" placeholder="Пароль">
+    <h3 style="text-align: center; margin-top:0;">Вхід у систему</h3>
+    
+    <!-- type="number" відразу відкриває зручну цифрову клавіатуру на телефоні -->
+    <input id="tab" type="number" placeholder="Табельний номер" autocomplete="off">
+    
+    <!-- 
+      type="tel" відкриває цифрову клавіатуру.
+      -webkit-text-security: disc; перетворює цифри на чорні крапки (як у паролі).
+      autocomplete="new-password" забороняє Гуглу пропонувати збереження і перевіряти його на витоки.
+    -->
+    <input id="pass" type="tel" style="-webkit-text-security: disc;" autocomplete="new-password" placeholder="Код доступу (ПІН)">
+    
     <button onclick="doLogin()" id="btnLogin">Увійти</button>
   </div>
 </div>
