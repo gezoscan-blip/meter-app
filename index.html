@@ -93,7 +93,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 #scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
 .torch-btn { position: absolute; top: -15px; left: -15px; width: 45px; height: 45px; background: #FFc107; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; transition: background 0.2s; }
 /* =====================================================
-ДИЗАЙН ЕКРАНУ ВХОДУ (КОРПОРАТИВНИЙ)
+ДИЗАЙН ЕКРАНУ ВХОДУ (КОРПОРАТИВНИЙ - З JS-ПРИСКОРЮВАЧЕМ)
 ===================================================== */
 #login {
   display: flex;
@@ -103,15 +103,13 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
   background: #f0f4f8; 
   padding: 20px;
   box-sizing: border-box;
-  transition: all 0.3s ease; /* Плавне підстрибування */
+  transition: align-items 0.3s ease, padding-top 0.3s ease; /* Плавне підстрибування */
 }
-/* МАГІЯ ДЛЯ ANDROID/IOS КЛАВІАТУРИ */
-/* Якщо висота екрана стає меншою за 600px (що завжди буває, коли виїжджає клава на телефоні) */
-@media screen and (max-height: 600px) {
-  #login {
-    align-items: flex-start; /* Прибиваємо картку до самого верху екрана! */
-    padding-top: 10px;       /* Мінімальний відступ зверху */
-  }
+
+/* Цей клас буде додаватися скриптом, коли ми тиснемо в будь-яке поле */
+#login.login-focused {
+  align-items: flex-start; /* Прибиваємо картку до самого верху екрана! */
+  padding-top: 10px;       /* Мінімальний відступ зверху */
 }
 .login-card {
   background: white;
