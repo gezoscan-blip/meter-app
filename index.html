@@ -92,26 +92,124 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 .close-scan-btn { position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; background: #d32f2f; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; }
 #scan-hint { color: white; margin-top: 20px; font-size: 16px; text-align: center; }
 .torch-btn { position: absolute; top: -15px; left: -15px; width: 45px; height: 45px; background: #FFc107; color: white; border-radius: 50%; font-size: 22px; font-weight: bold; border: 3px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; z-index: 10001; transition: background 0.2s; }
+/* =====================================================
+ДИЗАЙН ЕКРАНУ ВХОДУ (КОРПОРАТИВНИЙ)
+===================================================== */
+#login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* На весь екран */
+  background: #f0f4f8; /* Легкий сіро-блакитний фон */
+  padding: 20px;
+}
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 30px 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+}
+.login-logo {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+.login-title {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+.login-subtitle {
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 25px;
+  color: #111;
+}
+/* Поля з іконками */
+.input-group {
+  position: relative;
+  margin-bottom: 15px;
+}
+.input-group span {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #666;
+}
+.input-group input {
+  width: 100%;
+  padding: 15px 15px 15px 45px; /* Місце для іконки зліва */
+  font-size: 18px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  font-weight: normal;
+}
+.input-group input:focus {
+  border-color: #1565c0;
+}
+/* Кнопка */
+.login-btn {
+  background: #1565c0; /* Темно-синя корпоративна */
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  border: none;
+  margin-top: 10px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(21,101,192,0.3);
+}
+.login-btn:active {
+  transform: scale(0.97);
+}
+.login-footer {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #888;
+  line-height: 1.4;
+}
+
+
 </style>
 </head>
 <body>
 
-<!-- ЕКРАН ВХОДУ (Безпечний від блокувань Google) -->
-<div class="container" id="login">
-  <div class="card">
-    <h3 style="text-align: center; margin-top:0;">Вхід у систему</h3>
+<!-- ЕКРАН ВХОДУ (ОНОВЛЕНИЙ) -->
+<div id="login">
+  <div class="login-card">
     
-    <!-- type="number" відразу відкриває зручну цифрову клавіатуру на телефоні -->
-    <input id="tab" type="number" placeholder="Табельний номер" autocomplete="off">
-    
-    <!-- 
-      type="tel" відкриває цифрову клавіатуру.
-      -webkit-text-security: disc; перетворює цифри на чорні крапки (як у паролі).
-      autocomplete="new-password" забороняє Гуглу пропонувати збереження і перевіряти його на витоки.
-    -->
-    <input id="pass" type="tel" style="-webkit-text-security: disc;" autocomplete="new-password" placeholder="Код доступу (ПІН)">
-    
-    <button onclick="doLogin()" id="btnLogin">Увійти</button>
+    <div class="login-logo">⚡</div>
+    <div class="login-title">Полтава Обленерго</div>
+    <div class="login-subtitle">ВХІД ГЕЗО ТА ВС</div>
+
+    <!-- Поле Табельного -->
+    <div class="input-group">
+      <span>👤</span>
+      <input id="tab" type="number" placeholder="Табельний номер" autocomplete="off">
+    </div>
+
+    <!-- Поле ПІНу (Стилізоване під пароль, але безпечне від Гугла) -->
+    <div class="input-group">
+      <span>🔒</span>
+      <input id="pass" type="tel" style="-webkit-text-security: disc;" autocomplete="new-password" placeholder="Код доступу (ПІН)">
+    </div>
+
+    <!-- Кнопка -->
+    <button onclick="doLogin()" id="btnLogin" class="login-btn">Увійти</button>
+
+    <div class="login-footer">
+      Відділ ГЕЗО та ВС. Вхід тільки для авторизованого персоналу.
+    </div>
+
   </div>
 </div>
 
