@@ -771,22 +771,32 @@ window.onload = function(){
     worker = savedWorker; workerName = "Офлайн"; afterLogin();
   }
 }
-  // --- РОЗУМНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
-  const tabInput = document.getElementById("tab");
-  const passInput = document.getElementById("pass");
+ // --- БРОНЕБІЙНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
   const loginBox = document.getElementById("login");
-
-  if (tabInput && passInput && loginBox) {
-    // Коли торкаємося будь-якого поля - форма летить вгору
-    tabInput.addEventListener("focus", () => loginBox.classList.add("login-focused"));
-    passInput.addEventListener("focus", () => loginBox.classList.add("login-focused"));
-
-    // Коли ховаємо клавіатуру (клікаємо повз) - форма повертається в центр
-    tabInput.addEventListener("blur", () => loginBox.classList.remove("login-focused"));
-    passInput.addEventListener("blur", () => loginBox.classList.remove("login-focused"));
+  
+  if (loginBox) {
+    // Знаходимо ВСІ поля вводу (input), які знаходяться всередині картки входу
+    const loginInputs = loginBox.querySelectorAll("input");
+    
+    // Вішаємо подію "підстрибування" на кожне з них
+    loginInputs.forEach(input => {
+      input.addEventListener("focus", () => {
+        loginBox.classList.add("login-focused");
+      });
+      
+      input.addEventListener("blur", () => {
+        // Затримка 100мс потрібна, щоб картка не стрибала вниз, 
+        // якщо монтер просто перемкнувся з Табельного на ПІН
+        setTimeout(() => {
+          // Якщо зараз жодне з полів вводу не у фокусі - опускаємо картку
+          const isAnyInputFocused = Array.from(loginInputs).some(i => i === document.activeElement);
+          if (!isAnyInputFocused) {
+            loginBox.classList.remove("login-focused");
+          }
+        }, 100);
+      });
+    });
   }
-};
-
 
 /* =========================================================
 ФУНКЦІЯ ВХОДУ ТА ЛОГАУТУ
