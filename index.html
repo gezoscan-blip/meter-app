@@ -770,7 +770,23 @@ window.onload = function(){
   }else{
     worker = savedWorker; workerName = "Офлайн"; afterLogin();
   }
+}
+  // --- РОЗУМНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
+  const tabInput = document.getElementById("tab");
+  const passInput = document.getElementById("pass");
+  const loginBox = document.getElementById("login");
+
+  if (tabInput && passInput && loginBox) {
+    // Коли торкаємося будь-якого поля - форма летить вгору
+    tabInput.addEventListener("focus", () => loginBox.classList.add("login-focused"));
+    passInput.addEventListener("focus", () => loginBox.classList.add("login-focused"));
+
+    // Коли ховаємо клавіатуру (клікаємо повз) - форма повертається в центр
+    tabInput.addEventListener("blur", () => loginBox.classList.remove("login-focused"));
+    passInput.addEventListener("blur", () => loginBox.classList.remove("login-focused"));
+  }
 };
+
 
 /* =========================================================
 ФУНКЦІЯ ВХОДУ ТА ЛОГАУТУ
