@@ -253,7 +253,23 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
       <button class="actionBtn" onclick="offlineMode()" style="background:#607d8b;">Офлайн</button>
     </div>
   </div>
+  
+  <!-- БЛОК ПОШУКУ ПО ЛІЧИЛЬНИКУ -->
+  <div class="card" id="searchMeterBlock">
+    <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #555; text-align: center;">
+      Пошук по номеру лічильника
+    </div>
+    
+    <div class="input-with-scanner">
+      <input id="searchMeterNumber" placeholder="№ лічильника" autocomplete="off" inputmode="numeric">
+      <button class="scan-btn-outer" onclick="startScanner('searchMeterNumber', false)">
+        <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
+      </button>
+    </div>
 
+    <button class="actionBtn" onclick="searchByMeter()" id="btnSearchMeter" style="background:#009688;">Знайти лічильник</button>
+  </div>
+  
  <!-- СКАНЕР (ВІКНО) З КНОПКАМИ ЗУМУ -->
   <div id="scanner-wrapper">
     <div id="scanner-box">
@@ -677,7 +693,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwaqknOOqKg3q5FcjryFh02J0nodUhwgTRYt79EelfVQOJLTcN6Yf3ApI_zIbptkuZZ/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbz4Ouyb_DZxbzSPJOghA77X2cpPGXwGfAAq1oh6alXnD_hNzh3v-35KtW7TTvg82ll3/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -718,6 +734,7 @@ const google = {
           login: (tab, pass) => sendRequest("login", {tab, pass}, callback),
           checkWorker: (tab) => sendRequest("checkWorker", {tab}, callback),
           findAccountFast: (account) => sendRequest("findAccountFast", {account}, callback),
+          findAccountByMeter: (meter) => sendRequest("findAccountByMeter", {meter}, callback), // ДОДАНО
           searchAccounts: (part) => sendRequest("searchAccounts", {part}, callback),
           getMeterTypes: () => sendRequest("getMeterTypes", {}, callback),
           saveData: (data) => sendRequest("saveData", {data}, callback)
@@ -900,6 +917,50 @@ function search() {
     btn.innerText = oldText;
     btn.disabled = false;
     offlineMode();
+  }
+}
+  /* =========================================================
+ПОШУК АБОНЕНТА ПО НОМЕРУ ЛІЧИЛЬНИКА
+========================================================= */
+function searchByMeter() {
+  const meterInput = document.getElementById("searchMeterNumber");
+  let meterVal = meterInput ? meterInput.value.trim() : "";
+
+  if (!meterVal) { alert("❌ Введіть або відскануйте номер лічильника!"); return; }
+
+  // Якщо людина відсканувала, сканер сам обріже номер. 
+  // Але якщо ввела вручну довгий номер НІК - проганяємо через фільтр на всяк випадок
+  meterVal = parseMeterBarcode(meterVal);
+
+  const btn = document.getElementById("btnSearchMeter");
+  const oldText = btn.innerText;
+  btn.innerText = "⏳ Пошук...";
+  btn.disabled = true;
+
+  if (navigator.onLine) {
+    google.script.run.withSuccessHandler(function(res) {
+      btn.innerText = oldText;
+      btn.disabled = false;
+      if (res && res.found) { 
+        // Ми завжди відкриваємо Контрольний огляд при пошуку по лічильнику
+        selectedWork = "Контрольний огляд"; 
+        
+        // Ховаємо обидва пошукових блоки
+        document.getElementById("searchBlock").style.display = "none";
+        document.getElementById("searchMeterBlock").style.display = "none";
+        
+        document.getElementById("controlCheckForm").classList.remove("hidden"); 
+        window.scrollTo(0,0); 
+        
+        fillControlCheck(res.data); 
+      } else { 
+        alert("⚠️ Абонента з таким лічильником не знайдено!"); 
+      }
+    }).findAccountByMeter(meterVal);
+  } else {
+    btn.innerText = oldText;
+    btn.disabled = false;
+    alert("❌ Ця функція працює тільки коли є інтернет!");
   }
 }
 
@@ -1168,7 +1229,11 @@ function hideAllForms() {
 function showSearchBlock() {
   hideAllForms();
   document.getElementById("searchBlock").style.display = "block";
+  document.getElementById("searchMeterBlock").style.display = "block"; // ПОКАЗУЄМО ДРУГИЙ БЛОК
+  
   document.getElementById("account").value = "";
+  document.getElementById("searchMeterNumber").value = ""; // ОЧИЩАЄМО ЛІЧИЛЬНИК
+  
   const hints = document.getElementById("accountHints");
   if(hints) hints.innerHTML = "";
   window.scrollTo(0,0);
