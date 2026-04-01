@@ -946,7 +946,7 @@ function afterLogin(){
   if(passInput && passInput.value){ localStorage.setItem("workerPass",passInput.value); }
   document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-  document.getElementById("who").innerHTML = "Т/н: <b>"+worker+"</b> "+workerName;
+  document.getElementById("who").innerHTML = "👷 Т/н: <b>"+worker+"</b> "+workerName;
 }
 
 function askLogout(){ document.getElementById("logoutModal").style.display="flex"; document.getElementById("logoutModal").classList.remove("hidden"); }
