@@ -1154,7 +1154,10 @@ let tempReplaceData = null; // Тимчасово зберігає дані аб
 let selectedReplaceReason = ""; // Зберігає вибрану Підставу
 
 function fillFields(d) {
-  document.getElementById("searchBlock").style.display = "none"; // Ховаємо пошук
+  // ХОВАЄМО ОБИДВА БЛОКИ ПОШУКУ
+  document.getElementById("searchBlock").style.display = "none"; 
+  const meterSearch = document.getElementById("searchMeterBlock");
+  if (meterSearch) meterSearch.style.display = "none";
 
   if (selectedWork === "Технічна перевірка") { 
     document.getElementById("techCheckForm").classList.remove("hidden"); 
@@ -1188,7 +1191,9 @@ function fillFields(d) {
     return; 
   }
   
+  // Якщо щось пішло не так - повертаємо пошук
   document.getElementById("searchBlock").style.display = "block";
+  if (meterSearch) meterSearch.style.display = "block";
   alert("Форма для цього виду робіт ще не налаштована"); 
 }
 
@@ -1208,12 +1213,32 @@ function setReplaceReason(reason) {
 function cancelReplaceReason() {
   document.getElementById("reasonModal").style.display = "none"; 
   document.getElementById("reasonModal").classList.add("hidden");
-  showSearchBlock(); // Повертаємо пошук, якщо скасували
+  showSearchBlock(); 
 }
 
 /* =========================================================
-МЕНЕДЖЕР ФОРМ
+МЕНЕДЖЕР ФОРМ (Приховування / Показ)
 ========================================================= */
+function openSelectedWorkForm(){
+  // Ховаємо обидва блоки пошуку для Офлайн режиму
+  document.getElementById("searchBlock").style.display = "none";
+  const meterSearch = document.getElementById("searchMeterBlock");
+  if (meterSearch) meterSearch.style.display = "none";
+
+  if(selectedWork === "Технічна перевірка"){ document.getElementById("techCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "tech"; }
+  if(selectedWork === "Фасадні роботи"){ 
+    setInner("fasadWorkerTab", worker); setInner("fasadWorkerName", workerName);
+    document.getElementById("fasadStep1").classList.remove("hidden"); window.scrollTo(0,0); return "fasad"; 
+  }
+  if(selectedWork === "Заміна лічильника"){ document.getElementById("meterReplaceStep1").classList.remove("hidden"); window.scrollTo(0,0); return "replace"; }
+  if(selectedWork === "Контрольний огляд"){ document.getElementById("controlCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "control"; }
+  if(selectedWork === "Закриття о/р з демонтажем"){ document.getElementById("closeStep1").classList.remove("hidden"); window.scrollTo(0,0); return "close"; }
+  
+  document.getElementById("searchBlock").style.display = "block";
+  if (meterSearch) meterSearch.style.display = "block";
+  alert("Форма для цього виду робіт ще не налаштована"); return false;
+}
+
 function hideAllForms() {
   document.getElementById("techCheckForm").classList.add("hidden");
   document.getElementById("meterReplaceStep1").classList.add("hidden");
@@ -1228,11 +1253,13 @@ function hideAllForms() {
 
 function showSearchBlock() {
   hideAllForms();
+  // Повертаємо обидва блоки пошуку на екран
   document.getElementById("searchBlock").style.display = "block";
-  document.getElementById("searchMeterBlock").style.display = "block"; // ПОКАЗУЄМО ДРУГИЙ БЛОК
+  const meterSearch = document.getElementById("searchMeterBlock");
+  if (meterSearch) meterSearch.style.display = "block";
   
   document.getElementById("account").value = "";
-  document.getElementById("searchMeterNumber").value = ""; // ОЧИЩАЄМО ЛІЧИЛЬНИК
+  if(document.getElementById("searchMeterNumber")) document.getElementById("searchMeterNumber").value = "";
   
   const hints = document.getElementById("accountHints");
   if(hints) hints.innerHTML = "";
