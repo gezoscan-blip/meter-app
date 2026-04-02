@@ -1401,34 +1401,30 @@ function goFasadStep4(){
   const demoBox = document.getElementById("fasadDemoBy");
   const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
-  // Перевірка демонтажу
+  // --- ВИПРАВЛЕНА ЛОГІКА ПЕРЕВІРКИ ДЕМОНТАЖУ ---
   if (demoBy !== "ОРБ") {
+    // Якщо ввели метраж, але забули марку
     if (length !== "" && length !== "0" && mark === "") {
       alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
       return;
     }
+    // Якщо вибрали марку, але забули метраж
     if (mark !== "" && (length === "" || length === "0")) {
       alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
       return;
     }
   }
+  // ---------------------------------------------
 
   isFasadFlow = true; 
   const acc = document.getElementById("account").value.trim();
   document.getElementById("fasadStep3").classList.add("hidden");
   
-  if (navigator.onLine) {
-    // ОНЛАЙН: Шукаємо дані лічильника в базі, щоб підставити у форму Заміни
-    google.script.run.withSuccessHandler(res => { 
-      if (res.found) { 
-        openReplaceFromFasad(res.data); 
-      } else { 
-        // Якщо в онлайні не знайшли - відкриваємо пусту форму
-        openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
-      } 
+  if(navigator.onLine){
+    google.script.run.withSuccessHandler(res=>{ 
+      if(res.found){ openReplaceFromFasad(res.data); }else{ alert("Не знайдено"); } 
     }).findAccountFast(acc);
-  } else { 
-    // ОФЛАЙН: Одразу відкриваємо пусту форму Заміни, без звернення до Гугла!
+  }else{ 
     openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
   }
 }
