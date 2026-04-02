@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#2196F3">
 <base target="_top">
 
-<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (qrcode). Стару видалено! -->
+<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (ZXing). Стару видалено! -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <style>
@@ -33,86 +33,6 @@ button:active { transform: scale(0.97); }
 .work-btn { background: #efefef; color: #111; border: 1px solid #ccc; min-height: 48px; font-size: 16px; font-weight: bold; margin-top: 8px; }
 .work-btn.active { background: #4CAF50; color: #fff; border-color: #4CAF50; }
 
-  /* БУРГЕР-МЕНЮ (Бічна панель) */
-.hamburger-btn {
-  background: transparent;
-  color: #333;
-  font-size: 32px;
-  border: none;
-  cursor: pointer;
-  padding: 0 15px 0 0;
-  margin: 0;
-  min-height: auto;
-  width: auto;
-}
-.hamburger-btn:active { transform: scale(0.9); }
-
-#sideMenu {
-  position: fixed;
-  top: 0;
-  left: -300px; /* Сховане за лівим краєм екрана */
-  width: 280px;
-  height: 100%;
-  background: #fff;
-  box-shadow: 4px 0 15px rgba(0,0,0,0.2);
-  z-index: 10002;
-  transition: left 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-#sideMenu.open {
-  left: 0; /* Виїжджає на екран */
-}
-.menu-header {
-  background: #2196F3;
-  color: white;
-  padding: 25px 20px;
-  font-size: 22px;
-  font-weight: bold;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.menu-close-btn {
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 32px;
-  margin: 0;
-  padding: 0;
-  min-height: auto;
-  width: auto;
-}
-.menu-items {
-  padding: 15px 0;
-  overflow-y: auto;
-}
-.menu-item {
-  display: block;
-  padding: 15px 20px;
-  font-size: 18px;
-  color: #333;
-  text-decoration: none;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background 0.2s;
-  font-weight: bold;
-}
-.menu-item:hover {
-  background: #f9f9f9;
-}
-.menu-item.disabled {
-  color: #aaa;
-  cursor: not-allowed;
-}
-/* Затемнення фону при відкритому меню */
-#menuOverlay {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 10001;
-  display: none;
-}
-  
 /* ІНПУТИ */
 input, select, textarea { width: 100%; min-height: 44px; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; box-sizing: border-box; font-weight: bold; margin: 0; }
 textarea { resize: none; overflow: hidden; font-size: 14px; }
@@ -306,34 +226,9 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
   <!-- БЛОК ПОШУКУ -->
   <div class="card" id="searchBlock">
-    <div class="topInfoRow" style="margin-bottom:0; justify-content: flex-start; gap: 10px;">
-      <!-- Кнопка Бургер -->
-      <button class="hamburger-btn" onclick="openMenu()">☰</button>
-      
-      <!-- Інфо про монтера -->
-      <div id="who" style="font-size: 16px; font-weight: normal; flex: 1;"></div>
-      
-      <button class="logoutBtn" onclick="askLogout()" style="margin: 0;">✖</button>
-    </div>
-
-    <!-- ТІНЕВЕ ПЕРЕКРИТТЯ ФОНУ (закрито) -->
-    <div id="menuOverlay" onclick="closeMenu()"></div>
-
-    <!-- ВИЇЗНА ПАНЕЛЬ МЕНЮ -->
-    <div id="sideMenu">
-      <div class="menu-header">
-        <span>Меню</span>
-        <button class="menu-close-btn" onclick="closeMenu()">✖</button>
-      </div>
-      <div class="menu-items">
-        <!-- Посилання (Встав свої лінки в href="") -->
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLScdtQ2oMtxqUA6H_v3ZV9NWxHevad75zrjRJSpcugqj4v-RIg/viewform" target="_blank" class="menu-item" onclick="closeMenu()">📝 Списання АВ</a>
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfj1wXEHe0VsHAmkIY_MWK_a9cbzDgyIPmPJ3h1lCijIwAL-A/viewform" target="_blank" class="menu-item" onclick="closeMenu()">📊 Звіт про проведену роботу</a>
-        
-        <!-- Заглушки на майбутнє -->
-        <a href="#" class="menu-item disabled" onclick="return false;">📅 Графіки чергувань (скоро)</a>
-        <a href="#" class="menu-item disabled" onclick="return false;">🌴 Відпустки (скоро)</a>
-      </div>
+    <div class="topInfoRow" style="margin-bottom:0;">
+      <div id="who" style="font-size: 16px; font-weight: normal;"></div>
+      <button class="logoutBtn" onclick="askLogout()">✖</button>
     </div>
 
     <div style="margin-top: 15px;">
@@ -404,11 +299,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div>
-      <div class="meterTypeBox">
-        <input id="meterType" autocomplete="off" onfocus="showMeterTypes('meterType', 'meterTypeHints1')" oninput="filterMeterTypes(this.value, 'meterType', 'meterTypeHints1')">
-        <div id="meterTypeHints1" class="meterTypeHints hidden"></div>
-      </div>
+      <div class="fieldLabel">Тип</div><div><input id="meterType"></div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
         <input id="meterNumber">
@@ -457,11 +348,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Знятий лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div>
-      <div class="meterTypeBox">
-        <input id="replaceRemovedMeterType" autocomplete="off" onfocus="showMeterTypes('replaceRemovedMeterType', 'meterTypeHints2')" oninput="filterMeterTypes(this.value, 'replaceRemovedMeterType', 'meterTypeHints2')">
-        <div id="meterTypeHints2" class="meterTypeHints hidden"></div>
-      </div>
+      <div class="fieldLabel">Тип</div><div><input id="replaceRemovedMeterType"></div>
       <div class="fieldLabel">Заводський номер</div><div><input id="replaceRemovedMeterNumber"></div>
     </div>
     <div class="sectionLine"></div>
@@ -499,10 +386,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div class="fieldGrid" style="position: relative;">
       <div class="fieldLabel">Тип</div>
       <div class="meterTypeBox">
-        <!-- ОНОВЛЕНИЙ ВИКЛИК ФУНКЦІЙ З ПАРАМЕТРАМИ -->
-        <input id="replaceInstalledMeterType" autocomplete="off" 
-               onfocus="showMeterTypes('replaceInstalledMeterType', 'meterTypeHints')" 
-               oninput="filterMeterTypes(this.value, 'replaceInstalledMeterType', 'meterTypeHints')">
+        <input id="replaceInstalledMeterType" autocomplete="off" onfocus="showMeterTypes()" oninput="filterMeterTypes(this.value)">
         <div id="meterTypeHints" class="meterTypeHints hidden"></div>
       </div>
       <div class="fieldLabel">Заводський номер</div>
@@ -549,11 +433,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div>
-      <div class="meterTypeBox">
-        <input id="controlMeterType" autocomplete="off" onfocus="showMeterTypes('controlMeterType', 'meterTypeHints3')" oninput="filterMeterTypes(this.value, 'controlMeterType', 'meterTypeHints3')">
-        <div id="meterTypeHints3" class="meterTypeHints hidden"></div>
-      </div>
+      <div class="fieldLabel">Тип</div><div><input id="controlMeterType"></div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
         <input id="controlMeterNumber">
@@ -633,11 +513,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Знятий лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div>
-      <div class="meterTypeBox">
-        <input id="closeMeterType" autocomplete="off" onfocus="showMeterTypes('closeMeterType', 'meterTypeHints4')" oninput="filterMeterTypes(this.value, 'closeMeterType', 'meterTypeHints4')">
-        <div id="meterTypeHints4" class="meterTypeHints hidden"></div>
-      </div>
+      <div class="fieldLabel">Тип</div><div><input id="closeMeterType"></div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
         <input id="closeMeterNumber">
@@ -965,7 +841,7 @@ function afterLogin(){
   if(passInput && passInput.value){ localStorage.setItem("workerPass",passInput.value); }
   document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-  document.getElementById("who").innerHTML = "👷 Т/н: <b>"+worker+"</b> "+workerName;
+  document.getElementById("who").innerHTML = "Т/н: <b>"+worker+"</b> "+workerName;
 }
 
 function askLogout(){ document.getElementById("logoutModal").style.display="flex"; document.getElementById("logoutModal").classList.remove("hidden"); }
@@ -1278,10 +1154,7 @@ let tempReplaceData = null; // Тимчасово зберігає дані аб
 let selectedReplaceReason = ""; // Зберігає вибрану Підставу
 
 function fillFields(d) {
-  // ХОВАЄМО ОБИДВА БЛОКИ ПОШУКУ
-  document.getElementById("searchBlock").style.display = "none"; 
-  const meterSearch = document.getElementById("searchMeterBlock");
-  if (meterSearch) meterSearch.style.display = "none";
+  document.getElementById("searchBlock").style.display = "none"; // Ховаємо пошук
 
   if (selectedWork === "Технічна перевірка") { 
     document.getElementById("techCheckForm").classList.remove("hidden"); 
@@ -1315,9 +1188,7 @@ function fillFields(d) {
     return; 
   }
   
-  // Якщо щось пішло не так - повертаємо пошук
   document.getElementById("searchBlock").style.display = "block";
-  if (meterSearch) meterSearch.style.display = "block";
   alert("Форма для цього виду робіт ще не налаштована"); 
 }
 
@@ -1337,32 +1208,12 @@ function setReplaceReason(reason) {
 function cancelReplaceReason() {
   document.getElementById("reasonModal").style.display = "none"; 
   document.getElementById("reasonModal").classList.add("hidden");
-  showSearchBlock(); 
+  showSearchBlock(); // Повертаємо пошук, якщо скасували
 }
 
 /* =========================================================
-МЕНЕДЖЕР ФОРМ (Приховування / Показ)
+МЕНЕДЖЕР ФОРМ
 ========================================================= */
-function openSelectedWorkForm(){
-  // Ховаємо обидва блоки пошуку для Офлайн режиму
-  document.getElementById("searchBlock").style.display = "none";
-  const meterSearch = document.getElementById("searchMeterBlock");
-  if (meterSearch) meterSearch.style.display = "none";
-
-  if(selectedWork === "Технічна перевірка"){ document.getElementById("techCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "tech"; }
-  if(selectedWork === "Фасадні роботи"){ 
-    setInner("fasadWorkerTab", worker); setInner("fasadWorkerName", workerName);
-    document.getElementById("fasadStep1").classList.remove("hidden"); window.scrollTo(0,0); return "fasad"; 
-  }
-  if(selectedWork === "Заміна лічильника"){ document.getElementById("meterReplaceStep1").classList.remove("hidden"); window.scrollTo(0,0); return "replace"; }
-  if(selectedWork === "Контрольний огляд"){ document.getElementById("controlCheckForm").classList.remove("hidden"); window.scrollTo(0,0); return "control"; }
-  if(selectedWork === "Закриття о/р з демонтажем"){ document.getElementById("closeStep1").classList.remove("hidden"); window.scrollTo(0,0); return "close"; }
-  
-  document.getElementById("searchBlock").style.display = "block";
-  if (meterSearch) meterSearch.style.display = "block";
-  alert("Форма для цього виду робіт ще не налаштована"); return false;
-}
-
 function hideAllForms() {
   document.getElementById("techCheckForm").classList.add("hidden");
   document.getElementById("meterReplaceStep1").classList.add("hidden");
@@ -1377,13 +1228,11 @@ function hideAllForms() {
 
 function showSearchBlock() {
   hideAllForms();
-  // Повертаємо обидва блоки пошуку на екран
   document.getElementById("searchBlock").style.display = "block";
-  const meterSearch = document.getElementById("searchMeterBlock");
-  if (meterSearch) meterSearch.style.display = "block";
+  document.getElementById("searchMeterBlock").style.display = "block"; // ПОКАЗУЄМО ДРУГИЙ БЛОК
   
   document.getElementById("account").value = "";
-  if(document.getElementById("searchMeterNumber")) document.getElementById("searchMeterNumber").value = "";
+  document.getElementById("searchMeterNumber").value = ""; // ОЧИЩАЄМО ЛІЧИЛЬНИК
   
   const hints = document.getElementById("accountHints");
   if(hints) hints.innerHTML = "";
@@ -1453,64 +1302,31 @@ function parsePlombs(plombText){
   return result;
 }
 
-/* =========================================================
-УНІВЕРСАЛЬНІ ПІДКАЗКИ ДЛЯ ТИПІВ ЛІЧИЛЬНИКІВ
-========================================================= */
-function showMeterTypes(inputId, hintBoxId){
-  const box = document.getElementById(hintBoxId); 
-  const input = document.getElementById(inputId);
-  if(!box || !input) return;
-  
+function showMeterTypes(){
+  const box = document.getElementById("meterTypeHints"); if(!box) return;
   box.innerHTML = "";
   meterTypes.slice(0, 150).forEach(item => {
-    const div = document.createElement("div"); 
-    div.className = "meterTypeItem"; 
-    div.textContent = item;
-    // Використовуємо mousedown, щоб клік спрацював до втрати фокусу інпутом
-    div.onmousedown = function(e){ 
-      e.preventDefault(); 
-      input.value = item; 
-      box.classList.add("hidden"); 
-    };
+    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
+    div.onclick = function(){ document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
     box.appendChild(div);
   });
   if(meterTypes.length) box.classList.remove("hidden");
 }
 
-function filterMeterTypes(value, inputId, hintBoxId){
-  const box = document.getElementById(hintBoxId); 
-  const input = document.getElementById(inputId);
-  if(!box || !input) return;
-  
-  const q = String(value || "").trim().toLowerCase(); 
-  box.innerHTML = "";
-  
-  let filtered = meterTypes; 
-  if(q) filtered = meterTypes.filter(item => item.toLowerCase().includes(q));
-  
+function filterMeterTypes(value){
+  const box = document.getElementById("meterTypeHints"); if(!box) return;
+  const q = String(value || "").trim().toLowerCase(); box.innerHTML = "";
+  let filtered = meterTypes; if(q) filtered = meterTypes.filter(item => item.toLowerCase().includes(q));
   filtered.slice(0, 150).forEach(item => {
-    const div = document.createElement("div"); 
-    div.className = "meterTypeItem"; 
-    div.textContent = item;
-    div.onmousedown = function(e){ 
-      e.preventDefault(); 
-      input.value = item; 
-      box.classList.add("hidden"); 
-    };
+    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
+    div.onclick = function(){ document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
     box.appendChild(div);
   });
   if(filtered.length) box.classList.remove("hidden"); else box.classList.add("hidden");
 }
-
-// Універсально ховаємо списки при кліку поза ними
 document.addEventListener("click", function(e){
-  const hintBoxes = document.querySelectorAll(".meterTypeHints");
-  hintBoxes.forEach(box => {
-    // Якщо клікнули не на сам інпут і не на меню - ховаємо
-    if (!box.contains(e.target) && e.target.tagName !== "INPUT") {
-      box.classList.add("hidden");
-    }
-  });
+  const input = document.getElementById("replaceInstalledMeterType"); const box = document.getElementById("meterTypeHints");
+  if(!input || !box) return; if(e.target !== input && !box.contains(e.target)) box.classList.add("hidden");
 });
 
 /* =========================================================
@@ -1585,37 +1401,19 @@ function goFasadStep4(){
   const demoBox = document.getElementById("fasadDemoBy");
   const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
-  // Перевірка демонтажу
+  // --- ВИПРАВЛЕНА ЛОГІКА ПЕРЕВІРКИ ДЕМОНТАЖУ ---
   if (demoBy !== "ОРБ") {
+    // Якщо ввели метраж, але забули марку
     if (length !== "" && length !== "0" && mark === "") {
       alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
       return;
     }
+    // Якщо вибрали марку, але забули метраж
     if (mark !== "" && (length === "" || length === "0")) {
       alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
       return;
     }
   }
-
-  isFasadFlow = true; 
-  const acc = document.getElementById("account").value.trim();
-  document.getElementById("fasadStep3").classList.add("hidden");
-  
-  if (navigator.onLine) {
-    // ОНЛАЙН: Шукаємо дані лічильника в базі, щоб підставити у форму Заміни
-    google.script.run.withSuccessHandler(res => { 
-      if (res.found) { 
-        openReplaceFromFasad(res.data); 
-      } else { 
-        // Якщо в онлайні не знайшли - відкриваємо пусту форму
-        openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
-      } 
-    }).findAccountFast(acc);
-  } else { 
-    // ОФЛАЙН: Одразу відкриваємо пусту форму Заміни, без звернення до Гугла!
-    openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
-  }
-}
   // ---------------------------------------------
 
   isFasadFlow = true; 
@@ -1967,40 +1765,6 @@ function saveCloseData() {
     sendDataToServer(data, "closeSaveHint", ["closeStep1", "closeStep2"]);
   } catch(e) { alert("❌ Помилка збору даних:\n"+e.message); } 
 }
-  /* =========================================================
-БУРГЕР-МЕНЮ (Бічна панель)
-========================================================= */
-function openMenu() {
-  document.getElementById("sideMenu").classList.add("open");
-  document.getElementById("menuOverlay").style.display = "block";
-}
-
-function closeMenu() {
-  document.getElementById("sideMenu").classList.remove("open");
-  document.getElementById("menuOverlay").style.display = "none";
-}
-
-// Ховаємо меню, якщо користувач випадково натиснув кнопку "Назад" у телефоні
-document.addEventListener("backbutton", function (e) {
-  if (document.getElementById("sideMenu").classList.contains("open")) {
-    e.preventDefault();
-    closeMenu();
-  }
-}, false);
-/* =========================================================
-РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
-========================================================= */
-function parseMeterBarcode(rawCode) {
-  let code = String(rawCode).trim();
-  if (code.length === 16 && (code.startsWith("2100") ||code.startsWith("2104") || code.startsWith("2102") || code.startsWith("2300") || code.startsWith("2301") || code.startsWith("2303") || code.startsWith("2307") || code.startsWith("2102"))) {
-    return code.substring(4, 12);
-  }
-  if (code.length === 16 && code.startsWith("11001")) {
-    return code.substring(5, 12);
-  }
-  return code;
-}
-  
 </script>
 </body>
 </html>
