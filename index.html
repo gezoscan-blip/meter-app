@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#2196F3">
 <base target="_top">
 
-<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (ZXing). Стару видалено! -->
+<!-- ПРАВИЛЬНА БІБЛІОТЕКА СКАНЕРА (qrcode). Стару видалено! -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <style>
@@ -1987,6 +1987,20 @@ document.addEventListener("backbutton", function (e) {
     closeMenu();
   }
 }, false);
+/* =========================================================
+РОЗУМНИЙ ФІЛЬТР ШТРИХКОДІВ ЛІЧИЛЬНИКІВ
+========================================================= */
+function parseMeterBarcode(rawCode) {
+  let code = String(rawCode).trim();
+  if (code.length === 16 && (code.startsWith("2100") ||code.startsWith("2104") || code.startsWith("2102") || code.startsWith("2300") || code.startsWith("2301") || code.startsWith("2303") || code.startsWith("2307") || code.startsWith("2102"))) {
+    return code.substring(4, 12);
+  }
+  if (code.length === 16 && code.startsWith("11001")) {
+    return code.substring(5, 12);
+  }
+  return code;
+}
+  
 </script>
 </body>
 </html>
