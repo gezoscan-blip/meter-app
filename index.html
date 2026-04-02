@@ -404,7 +404,11 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="meterType"></div>
+      <div class="fieldLabel">Тип</div>
+      <div class="meterTypeBox">
+        <input id="meterType" autocomplete="off" onfocus="showMeterTypes('meterType', 'meterTypeHints1')" oninput="filterMeterTypes(this.value, 'meterType', 'meterTypeHints1')">
+        <div id="meterTypeHints1" class="meterTypeHints hidden"></div>
+      </div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
         <input id="meterNumber">
@@ -453,7 +457,11 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Знятий лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="replaceRemovedMeterType"></div>
+      <div class="fieldLabel">Тип</div>
+      <div class="meterTypeBox">
+        <input id="replaceRemovedMeterType" autocomplete="off" onfocus="showMeterTypes('replaceRemovedMeterType', 'meterTypeHints2')" oninput="filterMeterTypes(this.value, 'replaceRemovedMeterType', 'meterTypeHints2')">
+        <div id="meterTypeHints2" class="meterTypeHints hidden"></div>
+      </div>
       <div class="fieldLabel">Заводський номер</div><div><input id="replaceRemovedMeterNumber"></div>
     </div>
     <div class="sectionLine"></div>
@@ -491,9 +499,13 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div class="fieldGrid" style="position: relative;">
       <div class="fieldLabel">Тип</div>
       <div class="meterTypeBox">
-        <input id="replaceInstalledMeterType" autocomplete="off" onfocus="showMeterTypes()" oninput="filterMeterTypes(this.value)">
+        <!-- ОНОВЛЕНИЙ ВИКЛИК ФУНКЦІЙ З ПАРАМЕТРАМИ -->
+        <input id="replaceInstalledMeterType" autocomplete="off" 
+               onfocus="showMeterTypes('replaceInstalledMeterType', 'meterTypeHints')" 
+               oninput="filterMeterTypes(this.value, 'replaceInstalledMeterType', 'meterTypeHints')">
         <div id="meterTypeHints" class="meterTypeHints hidden"></div>
       </div>
+      
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
         <input id="replaceInstalledMeterNumber">
@@ -538,7 +550,11 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Встановлений лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="controlMeterType"></div>
+      <div class="fieldLabel">Тип</div>
+      <div class="meterTypeBox">
+        <input id="controlMeterType" autocomplete="off" onfocus="showMeterTypes('controlMeterType', 'meterTypeHints3')" oninput="filterMeterTypes(this.value, 'controlMeterType', 'meterTypeHints3')">
+        <div id="meterTypeHints3" class="meterTypeHints hidden"></div>
+      </div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
         <input id="controlMeterNumber">
@@ -618,7 +634,11 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
 
     <div class="blockTitle">Знятий лічильник</div>
     <div class="fieldGrid">
-      <div class="fieldLabel">Тип</div><div><input id="closeMeterType"></div>
+      <div class="fieldLabel">Тип</div>
+      <div class="meterTypeBox">
+        <input id="closeMeterType" autocomplete="off" onfocus="showMeterTypes('closeMeterType', 'meterTypeHints4')" oninput="filterMeterTypes(this.value, 'closeMeterType', 'meterTypeHints4')">
+        <div id="meterTypeHints4" class="meterTypeHints hidden"></div>
+      </div>
       <div class="fieldLabel">Заводський номер</div>
       <div class="input-with-scanner">
         <input id="closeMeterNumber">
@@ -1435,31 +1455,64 @@ function parsePlombs(plombText){
   return result;
 }
 
-function showMeterTypes(){
-  const box = document.getElementById("meterTypeHints"); if(!box) return;
+/* =========================================================
+УНІВЕРСАЛЬНІ ПІДКАЗКИ ДЛЯ ТИПІВ ЛІЧИЛЬНИКІВ
+========================================================= */
+function showMeterTypes(inputId, hintBoxId){
+  const box = document.getElementById(hintBoxId); 
+  const input = document.getElementById(inputId);
+  if(!box || !input) return;
+  
   box.innerHTML = "";
   meterTypes.slice(0, 150).forEach(item => {
-    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
-    div.onclick = function(){ document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
+    const div = document.createElement("div"); 
+    div.className = "meterTypeItem"; 
+    div.textContent = item;
+    // Використовуємо mousedown, щоб клік спрацював до втрати фокусу інпутом
+    div.onmousedown = function(e){ 
+      e.preventDefault(); 
+      input.value = item; 
+      box.classList.add("hidden"); 
+    };
     box.appendChild(div);
   });
   if(meterTypes.length) box.classList.remove("hidden");
 }
 
-function filterMeterTypes(value){
-  const box = document.getElementById("meterTypeHints"); if(!box) return;
-  const q = String(value || "").trim().toLowerCase(); box.innerHTML = "";
-  let filtered = meterTypes; if(q) filtered = meterTypes.filter(item => item.toLowerCase().includes(q));
+function filterMeterTypes(value, inputId, hintBoxId){
+  const box = document.getElementById(hintBoxId); 
+  const input = document.getElementById(inputId);
+  if(!box || !input) return;
+  
+  const q = String(value || "").trim().toLowerCase(); 
+  box.innerHTML = "";
+  
+  let filtered = meterTypes; 
+  if(q) filtered = meterTypes.filter(item => item.toLowerCase().includes(q));
+  
   filtered.slice(0, 150).forEach(item => {
-    const div = document.createElement("div"); div.className = "meterTypeItem"; div.textContent = item;
-    div.onclick = function(){ document.getElementById("replaceInstalledMeterType").value = item; box.classList.add("hidden"); };
+    const div = document.createElement("div"); 
+    div.className = "meterTypeItem"; 
+    div.textContent = item;
+    div.onmousedown = function(e){ 
+      e.preventDefault(); 
+      input.value = item; 
+      box.classList.add("hidden"); 
+    };
     box.appendChild(div);
   });
   if(filtered.length) box.classList.remove("hidden"); else box.classList.add("hidden");
 }
+
+// Універсально ховаємо списки при кліку поза ними
 document.addEventListener("click", function(e){
-  const input = document.getElementById("replaceInstalledMeterType"); const box = document.getElementById("meterTypeHints");
-  if(!input || !box) return; if(e.target !== input && !box.contains(e.target)) box.classList.add("hidden");
+  const hintBoxes = document.querySelectorAll(".meterTypeHints");
+  hintBoxes.forEach(box => {
+    // Якщо клікнули не на сам інпут і не на меню - ховаємо
+    if (!box.contains(e.target) && e.target.tagName !== "INPUT") {
+      box.classList.add("hidden");
+    }
+  });
 });
 
 /* =========================================================
