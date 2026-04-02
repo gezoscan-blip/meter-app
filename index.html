@@ -751,6 +751,7 @@ const google = {
 let worker = ""; let workerName = ""; let selectedWork = "";
 let hintTimer = null; let meterTypes = [];
 let isFasadFlow = false;
+let isForceOffline = false; // <-- глобальна змінна офлан режим
 
 function getVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; }
 function getInner(id) { const el = document.getElementById(id); return el ? el.innerText.trim() : ""; }
@@ -1414,17 +1415,20 @@ function goFasadStep4(){
       return;
     }
   }
-  // ---------------------------------------------
 
-  isFasadFlow = true; 
-  const acc = document.getElementById("account").value.trim();
-  document.getElementById("fasadStep3").classList.add("hidden");
-  
-  if(navigator.onLine){
-    google.script.run.withSuccessHandler(res=>{ 
-      if(res.found){ openReplaceFromFasad(res.data); }else{ alert("Не знайдено"); } 
+  // Якщо є інтернет І ми НЕ натискали примусовий "Офлайн"
+  if (navigator.onLine && !isForceOffline) {
+    google.script.run.withSuccessHandler(res => { 
+      if(res.found) { 
+        openReplaceFromFasad(res.data); 
+      } else { 
+        // Якщо онлайн, але в базі пусто - відкриваємо чисту форму
+        openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+      } 
     }).findAccountFast(acc);
-  }else{ 
+  } else { 
+    // Якщо немає інтернету АБО ми примусово вибрали "Офлайн"
+    // Миттєво відкриваємо чисту форму без запитів у Гугл!
     openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
   }
 }
@@ -1439,6 +1443,7 @@ function openReplaceFromFasad(d){
 ОФЛАЙН РЕЖИМ 
 ========================================================= */
 function offlineMode(){
+  isForceOffline = true; // Тепер система знає, що ми примусово в офлайні!
   const acc = document.getElementById("account").value.trim();
   if(!selectedWork){ alert("Оберіть вид робіт"); return; }
   if(!/^\d{10}$/.test(acc)){ alert("Введіть 10 цифр особового рахунку"); return; }
