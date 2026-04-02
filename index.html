@@ -499,7 +499,10 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
     <div class="fieldGrid" style="position: relative;">
       <div class="fieldLabel">Тип</div>
       <div class="meterTypeBox">
-        <input id="replaceInstalledMeterType" autocomplete="off" onfocus="showMeterTypes()" oninput="filterMeterTypes(this.value)">
+        <!-- ОНОВЛЕНИЙ ВИКЛИК ФУНКЦІЙ З ПАРАМЕТРАМИ -->
+        <input id="replaceInstalledMeterType" autocomplete="off" 
+               onfocus="showMeterTypes('replaceInstalledMeterType', 'meterTypeHints')" 
+               oninput="filterMeterTypes(this.value, 'replaceInstalledMeterType', 'meterTypeHints')">
         <div id="meterTypeHints" class="meterTypeHints hidden"></div>
       </div>
       <div class="fieldLabel">Заводський номер</div>
