@@ -1658,55 +1658,66 @@ function goFasadStep4() {
     }
 
     isFasadFlow = true; 
-    const acc = accEl.value.trim();
     
+    // БЕРЕМО НОМЕР РАХУНКУ
+    let acc = accEl.value.trim();
+    
+    // ЯКЩО ПОЛЕ ПУСТЕ (після очищення офлайном), намагаємося взяти його з заголовку (якщо він там був)
+    if (!acc) {
+       acc = localStorage.getItem("tempOfflineAcc") || "";
+    }
+
+    if (!acc) {
+      alert("❌ Помилка: Номер особового рахунку втрачено. Будь ласка, введіть його знову в полі пошуку.");
+      showSearchBlock();
+      return;
+    }
+
     const step3 = document.getElementById("fasadStep3");
     if (step3) step3.classList.add("hidden");
     
-    // НАДІЙНА ПЕРЕВІРКА ОФЛАЙНУ З ПАМ'ЯТІ ТЕЛЕФОНУ
     const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
 
     if (!isOffline) {
-      // ОНЛАЙН РЕЖИМ
       google.script.run.withSuccessHandler(res => { 
         if (res && res.found) { openReplaceFromFasad(res.data); } 
         else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); } 
       }).findAccountFast(acc);
     } else { 
-      // ОФЛАЙН РЕЖИМ (Жодних запитів до бази!)
+      // ОФЛАЙН РЕЖИМ
       openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
     }
   } catch (e) { alert("❌ Помилка при переході на Заміну:\n" + e.message); }
-}
-
-function openReplaceFromFasad(d){
-  document.getElementById("meterReplaceStep1").classList.remove("hidden");
-  setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", d.account || ""); setInner("replacePibView1", d.pib || ""); setInner("replaceAddressView1", (d.street || "") + " " + (d.house || "") + " " + (d.flat || "")); setVal("replaceRemovedMeterType", d.type || ""); setVal("replaceRemovedMeterNumber", d.meter || "");
-  const plombs = parsePlombs(d.plomb || ""); setVal("replaceRemovedLichil", plombs.lichil); setVal("replaceRemovedOptop", plombs.optop); setVal("replaceRemovedFasad1", plombs.fasad[0]); setVal("replaceRemovedFasad2", plombs.fasad[1]); setVal("replaceRemovedVkp", plombs.vkp); setVal("replaceRemovedImp1", plombs.imp[0]); setVal("replaceRemovedImp2", plombs.imp[1]); setVal("replaceRemovedImp3", plombs.imp[2]); setVal("replaceRemovedOther", plombs.other); resizeTextarea(document.getElementById("replaceRemovedOther")); setVal("replaceRemovedT0", ""); setVal("replaceRemovedT1", ""); setVal("replaceRemovedT2", ""); setVal("replaceRemovedT3", "");
 }
 
 /* =========================================================
 ОФЛАЙН РЕЖИМ (ЗАЛІЗОБЕТОННИЙ)
 ========================================================= */
 function offlineMode() {
-  const acc = document.getElementById("account").value.trim();
+  const accInput = document.getElementById("account");
+  const acc = accInput.value.trim();
+  
   if(!selectedWork){ alert("❌ Оберіть вид робіт"); return; }
   if(!/^\d{10}$/.test(acc)){ alert("❌ Введіть 10 цифр особового рахунку"); return; }
   
-  // ПЕРШЕ: Очищаємо все старе
+  // ЗАПАМ'ЯТОВУЄМО РАХУНОК ТИМЧАСОВО
+  localStorage.setItem("tempOfflineAcc", acc);
+  localStorage.setItem("isForceOffline", "true"); 
+
+  // Очищаємо все старе
   clearAllForms();
   
-  localStorage.setItem("isForceOffline", "true"); 
+  // ПОВЕРТАЄМО РАХУНОК У ПОЛЕ, щоб фасад міг його прочитати
+  accInput.value = acc;
 
   const formType = openSelectedWorkForm();
   if(!formType) return;
   
-  // ДРУГЕ: Вписуємо нові дані для поточної роботи
+  // Вписуємо дані для відображення
   if(formType === "tech"){ 
     setInner("accountView", acc); 
     setInner("workerTab", worker);
     setInner("workerName", workerName);
-    setInner("workTypeView", selectedWork);
   } else if(formType === "replace"){ 
     setInner("replaceAccountView1", acc); 
     setInner("replaceWorkerTab1", worker);
@@ -1714,11 +1725,9 @@ function offlineMode() {
   } else if(formType === "control"){ 
     setInner("controlAccountView", acc); 
     setInner("controlWorkerTab", worker);
-    setInner("controlWorkerName", workerName);
   } else if(formType === "close"){ 
     setInner("closeAccountView1", acc); 
     setInner("closeWorkerTab1", worker);
-    setInner("closeWorkerName1", workerName);
   }
 }
 
