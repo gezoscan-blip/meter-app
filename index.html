@@ -1043,29 +1043,28 @@ function showHints(list){
 }
 
 function search() {
-  const accInput = document.getElementById("account");
-  const acc = accInput ? accInput.value.trim() : "";
+  const acc = document.getElementById("account").value.trim();
 
-  if (!selectedWork) { alert("❌ Спочатку оберіть вид робіт (натисніть на одну з кнопок зверху)!"); return; }
-  if (!acc) { alert("❌ Введіть особовий рахунок!"); return; }
-  if(!/^\d{10}$/.test(acc)){ alert("Особовий рахунок повинен містити 10 цифр"); return; }
+  if (!selectedWork) { alert("❌ Спочатку оберіть вид робіт!"); return; }
+  if (!acc || acc.length < 10) { alert("❌ Введіть 10 цифр рахунку!"); return; }
+
+  // ПРИМУСОВО ВИМИКАЄМО ОФЛАЙН
+  localStorage.setItem("isForceOffline", "false"); 
 
   const btn = document.getElementById("btnSearch");
-  const oldText = btn.innerText;
   btn.innerText = "⏳ Пошук...";
   btn.disabled = true;
 
-  if (navigator.onLine) {
-    google.script.run.withSuccessHandler(function(res) {
-      btn.innerText = oldText;
-      btn.disabled = false;
-      if (res && res.found) { fillFields(res.data); } else { alert("⚠️ Абонента не знайдено!"); }
-    }).findAccountFast(acc);
-  } else {
-    btn.innerText = oldText;
+  google.script.run.withSuccessHandler(function(res) {
+    btn.innerText = "Знайти";
     btn.disabled = false;
-    offlineMode();
-  }
+    if (res && res.found) {
+      clearAllForms(); // Очищаємо форму від старих даних перед заповненням
+      fillFields(res.data); 
+    } else {
+      alert("⚠️ Рахунок не знайдено в базі!");
+    }
+  }).findAccountFast(acc);
 }
   /* =========================================================
 ПОШУК АБОНЕНТА ПО НОМЕРУ ЛІЧИЛЬНИКА
@@ -1403,10 +1402,9 @@ function hideAllForms() {
 ОЧИЩЕННЯ ВСІХ ФОРМ (Зняття галочок і стирання тексту)
 ========================================================= */
 function clearAllForms() {
-  // 1. Очищаємо всі текстові поля, крім логіну та ГОЛОВНОГО ПОЛЯ ПОШУКУ
+  // Очищаємо все, КРІМ логіну та головного поля account
   const allInputs = document.querySelectorAll('input');
   allInputs.forEach(input => {
-    // Додаємо перевірку: якщо це НЕ табельний, НЕ пін і НЕ поле "account" — тоді стираємо
     if (input.id !== "tab" && input.id !== "pass" && input.id !== "account") {
       if (input.type === "checkbox" || input.type === "radio") {
         input.checked = false;
@@ -1416,19 +1414,15 @@ function clearAllForms() {
     }
   });
 
-  const allSelects = document.querySelectorAll('select');
-  allSelects.forEach(select => select.selectedIndex = 0);
+  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  
+  // Очищаємо написи "Збережено"
+  ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = "";
+  });
 
-  const hints = ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"];
-  hints.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ""; });
-
-  const views = [
-    "pibView", "addressView",
-    "replacePibView1", "replaceAddressView1", "replaceAccountView1",
-    "replacePibView2", "replaceAddressView2", "replaceAccountView2",
-    "controlPibView", "controlAddressView", "controlAccountView",
-    "closePibView1", "closeAddressView1", "closeAccountView1"
-  ];
+  // Очищаємо блоки ПІБ/Адреса
+  const views = ["pibView", "addressView", "replacePibView1", "replaceAddressView1", "replaceAccountView1", "replacePibView2", "replaceAddressView2", "replaceAccountView2", "controlPibView", "controlAddressView", "controlAccountView", "closePibView1", "closeAddressView1", "closeAccountView1"];
   views.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
   
   isFasadFlow = false;
@@ -1631,42 +1625,23 @@ function goFasadStep3(){ document.getElementById("fasadStep2").classList.add("hi
 function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden"); }
 
 function goFasadStep4() {
-  try {
-    const mark = getVal("fasadDemoMark");
-    const length = getVal("fasadDemoLength");
-    const demoBox = document.getElementById("fasadDemoBy");
-    const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
+  const acc = document.getElementById("account").value.trim();
+  isFasadFlow = true; 
+  document.getElementById("fasadStep3").classList.add("hidden");
+  
+  // Перевіряємо, який режим було обрано на початку
+  const isOffline = localStorage.getItem("isForceOffline") === "true";
 
-    // Перевірка заповнення
-    if (demoBy !== "ОРБ") {
-      if ((length !== "" && length !== "0" && mark === "") || (mark !== "" && (length === "" || length === "0"))) {
-        alert("❌ Заповніть дані демонтажу повністю (марка + метраж)!");
-        return;
-      }
-    }
-
-    isFasadFlow = true; 
-    let acc = getVal("account");
-    if (!acc) acc = localStorage.getItem("tempOfflineAcc") || "";
-
-    if (!acc) { alert("❌ Помилка: Оберіть о/р знову"); showSearchBlock(); return; }
-
-    document.getElementById("fasadStep3").classList.add("hidden");
-    
-    const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
-
-    if (!isOffline) {
-      google.script.run.withSuccessHandler(res => { 
-        if (res && res.found) { 
-          openReplaceFromFasad(res.data); 
-        } else { 
-          openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
-        } 
-      }).findAccountFast(acc);
-    } else { 
-      openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
-    }
-  } catch (e) { alert("❌ Помилка переходу: " + e.message); }
+  if (!isOffline && navigator.onLine) {
+    // ЯКЩО БУВ ОНЛАЙН - ШУКАЄМО ДАНІ
+    google.script.run.withSuccessHandler(res => { 
+      if (res && res.found) { openReplaceFromFasad(res.data); } 
+      else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: ""}); } 
+    }).findAccountFast(acc);
+  } else { 
+    // ЯКЩО БУВ ОФЛАЙН - ВІДКРИВАЄМО ПУСТУ ФОРМУ
+    openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+  }
 }
 
 function openReplaceFromFasad(d) {
@@ -1708,37 +1683,32 @@ function openReplaceFromFasad(d) {
 ОФЛАЙН РЕЖИМ (ЗАЛІЗОБЕТОННИЙ)
 ========================================================= */
 function offlineMode() {
-  const accInput = document.getElementById("account");
-  const acc = accInput.value.trim();
+  const acc = document.getElementById("account").value.trim();
   
-  // СПОЧАТКУ ПЕРЕВІРКА
-  if(!selectedWork){ alert("❌ Спочатку оберіть вид робіт (кнопки зверху)"); return; }
-  if(!/^\d{10}$/.test(acc)){ alert("❌ Введіть 10 цифр особового рахунку"); return; }
+  if(!selectedWork){ alert("❌ Оберіть вид робіт!"); return; }
+  if(!acc || acc.length < 10){ alert("❌ Введіть 10 цифр рахунку!"); return; }
   
-  // Тільки якщо перевірка пройшла — чистимо форми (поле account не зачепиться)
-  clearAllForms();
-  
-  localStorage.setItem("tempOfflineAcc", acc);
+  // ПРИМУСОВО ВМИКАЄМО ОФЛАЙН
   localStorage.setItem("isForceOffline", "true"); 
+
+  clearAllForms(); // Чистимо все старе
 
   const formType = openSelectedWorkForm();
   if(!formType) return;
   
+  // Заповнюємо тільки номер рахунку і статус ОФЛАЙН
   if(formType === "tech"){ 
     setInner("accountView", acc); 
-    setInner("workerTab", worker);
-    setInner("workerName", workerName);
-    setInner("workTypeView", selectedWork);
+    setInner("pibView", "ОФЛАЙН");
   } else if(formType === "replace"){ 
     setInner("replaceAccountView1", acc); 
-    setInner("replaceWorkerTab1", worker);
-    setInner("replaceWorkerName1", workerName);
+    setInner("replacePibView1", "ОФЛАЙН");
   } else if(formType === "control"){ 
     setInner("controlAccountView", acc); 
-    setInner("controlWorkerTab", worker);
+    setInner("controlPibView", "ОФЛАЙН");
   } else if(formType === "close"){ 
     setInner("closeAccountView1", acc); 
-    setInner("closeWorkerTab1", worker);
+    setInner("closePibView1", "ОФЛАЙН");
   }
 }
 
