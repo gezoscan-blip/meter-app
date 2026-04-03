@@ -1403,32 +1403,44 @@ function hideAllForms() {
 ОЧИЩЕННЯ ВСІХ ФОРМ (Зняття галочок і стирання тексту)
 ========================================================= */
 function clearAllForms() {
-  // 1. Очищаємо всі текстові поля, числа та textarea
-  const allInputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="tel"], textarea');
+  // 1. Очищаємо всі текстові поля, числа та textarea (крім логіну)
+  const allInputs = document.querySelectorAll('input');
   allInputs.forEach(input => {
     if (input.id !== "tab" && input.id !== "pass") {
-      input.value = "";
+      if (input.type === "checkbox" || input.type === "radio") {
+        input.checked = false; // Знімаємо галочки та крапки
+      } else {
+        input.value = ""; // Стираємо текст
+      }
     }
   });
 
-  // 2. Скидаємо всі радіокнопки (фазність, дільниці, підстави)
-  const allRadios = document.querySelectorAll('input[type="radio"]');
-  allRadios.forEach(radio => radio.checked = false);
-
-  // 3. Скидаємо всі чекбокси (наприклад, ОРБ)
-  const allChecks = document.querySelectorAll('input[type="checkbox"]');
-  allChecks.forEach(check => check.checked = false);
-
-  // 4. Скидаємо випадаючі списки
+  // 2. Скидаємо всі випадаючі списки (select)
   const allSelects = document.querySelectorAll('select');
   allSelects.forEach(select => select.selectedIndex = 0);
 
-  // 5. Очищаємо ПІБ та Адреси (текстові блоки)
-  const views = ["pibView", "addressView", "replacePibView1", "replaceAddressView1", "replaceAccountView1", "controlPibView", "controlAddressView", "closePibView1", "closeAddressView1"];
-  views.forEach(id => {
+  // 3. Стираємо всі текстові написи "Збережено" (Hints)
+  const hints = ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"];
+  hints.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = "";
   });
+
+  // 4. Очищаємо блоки з інформацією про абонента (ПІБ, Адреса)
+  const views = [
+    "pibView", "addressView", "accountView",
+    "replacePibView1", "replaceAddressView1", "replaceAccountView1",
+    "replacePibView2", "replaceAddressView2", "replaceAccountView2",
+    "controlPibView", "controlAddressView", "controlAccountView",
+    "closePibView1", "closeAddressView1", "closeAccountView1"
+  ];
+  views.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = "";
+  });
+  
+  // 5. Скидаємо прапорець фасадного потоку
+  isFasadFlow = false;
 }
   
 function showSearchBlock() {
