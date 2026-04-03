@@ -1376,7 +1376,40 @@ function hideAllForms() {
   document.getElementById("closeStep1").classList.add("hidden");
   document.getElementById("closeStep2").classList.add("hidden");
 }
+  
+/* =========================================================
+ОЧИЩЕННЯ ВСІХ ФОРМ (Зняття галочок і стирання тексту)
+========================================================= */
+function clearAllForms() {
+  // 1. Очищаємо всі текстові поля і textarea
+  const allInputs = document.querySelectorAll('.card input[type="text"], .card input[type="number"], .card input[type="tel"], .card textarea');
+  allInputs.forEach(input => {
+    // Не чіпаємо поля логіну
+    if (input.id !== "tab" && input.id !== "pass") {
+      input.value = "";
+    }
+  });
 
+  // 2. Знімаємо всі радіокнопки і чекбокси
+  const allRadios = document.querySelectorAll('.card input[type="radio"], .card input[type="checkbox"]');
+  allRadios.forEach(radio => radio.checked = false);
+
+  // 3. Скидаємо випадаючі списки (select) на "Вибрати"
+  const allSelects = document.querySelectorAll('.card select');
+  allSelects.forEach(select => select.selectedIndex = 0);
+
+  // 4. Очищаємо зелені написи "Збережено" та "Збережено офлайн"
+  const hints = ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"];
+  hints.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "";
+  });
+
+  // 5. Очищаємо текстові блоки з ПІБ та адресою
+  const views = ["pibView", "addressView", "replacePibView1", "replaceAddressView1", "replacePibView2", "replaceAddressView2", "controlPibView", "controlAddressView", "closePibView1", "closeAddressView1"];
+  views.forEach(id => setInner(id, ""));
+}
+  
 function showSearchBlock() {
   hideAllForms();
   // СКИДАЄМО ОФЛАЙН РЕЖИМ, КОЛИ ПОВЕРТАЄМОСЬ У ГОЛОВНЕ МЕНЮ
@@ -1688,13 +1721,52 @@ function saveFasadData() {
   } catch (e) { alert("❌ Помилка збору фасаду:\n" + e.message); }
 }
 
-function sendDataToServer(data, hintId, formsToHide){
-  if(navigator.onLine){
-    google.script.run.withSuccessHandler(function(res){
-      if(hintId) { const h=document.getElementById(hintId); if(h) h.textContent = "✅ Збережено"; }
-      setTimeout(showSearchBlock, 1500);
+/* =========================================================
+ВІДПРАВКА ДАНИХ (З ПРАВИЛЬНИМ ОЧИЩЕННЯМ ПІСЛЯ ЗБЕРЕЖЕННЯ)
+========================================================= */
+function sendDataToServer(data, hintId, formsToHide) {
+  if (navigator.onLine) {
+    google.script.run.withSuccessHandler(function(res) {
+      
+      // 1. Показуємо повідомлення про успіх
+      if (hintId) { 
+        const h = document.getElementById(hintId); 
+        if (h) h.textContent = "✅ Збережено"; 
+      }
+      
+      // 2. Чекаємо 1.5 сек, потім ховаємо форму, виходимо в меню і ОЧИЩАЄМО все!
+      setTimeout(() => {
+        // Ховаємо ті конкретні форми, які передали у функцію
+        formsToHide.forEach(function(id){
+          const el = document.getElementById(id);
+          if (el) el.classList.add("hidden");
+        });
+        
+        showSearchBlock(); // Вихід в головне меню
+        clearAllForms();   // Тотальне очищення галочок і тексту
+      }, 1500);
+
     }).saveData(data);
-  } else { saveOffline(data); if(hintId){ const h=document.getElementById(hintId); if(h) h.textContent = "Збережено офлайн"; } setTimeout(showSearchBlock, 1500); }
+    
+  } else { 
+    // ТЕ САМЕ ДЛЯ ОФЛАЙНУ
+    saveOffline(data); 
+    
+    if (hintId) { 
+      const h = document.getElementById(hintId); 
+      if (h) h.textContent = "💾 Збережено офлайн"; 
+    } 
+    
+    setTimeout(() => {
+      formsToHide.forEach(function(id){
+        const el = document.getElementById(id);
+        if (el) el.classList.add("hidden");
+      });
+      
+      showSearchBlock(); 
+      clearAllForms(); 
+    }, 1500); 
+  }
 }
 
 function saveOffline(data){
