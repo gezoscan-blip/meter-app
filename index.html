@@ -1403,43 +1403,34 @@ function hideAllForms() {
 ОЧИЩЕННЯ ВСІХ ФОРМ (Зняття галочок і стирання тексту)
 ========================================================= */
 function clearAllForms() {
-  // 1. Очищаємо всі текстові поля, числа та textarea (крім логіну)
+  // 1. Очищаємо всі текстові поля, крім логіну та ГОЛОВНОГО ПОЛЯ ПОШУКУ
   const allInputs = document.querySelectorAll('input');
   allInputs.forEach(input => {
-    if (input.id !== "tab" && input.id !== "pass") {
+    // Додаємо перевірку: якщо це НЕ табельний, НЕ пін і НЕ поле "account" — тоді стираємо
+    if (input.id !== "tab" && input.id !== "pass" && input.id !== "account") {
       if (input.type === "checkbox" || input.type === "radio") {
-        input.checked = false; // Знімаємо галочки та крапки
+        input.checked = false;
       } else {
-        input.value = ""; // Стираємо текст
+        input.value = "";
       }
     }
   });
 
-  // 2. Скидаємо всі випадаючі списки (select)
   const allSelects = document.querySelectorAll('select');
   allSelects.forEach(select => select.selectedIndex = 0);
 
-  // 3. Стираємо всі текстові написи "Збережено" (Hints)
   const hints = ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"];
-  hints.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = "";
-  });
+  hints.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ""; });
 
-  // 4. Очищаємо блоки з інформацією про абонента (ПІБ, Адреса)
   const views = [
-    "pibView", "addressView", "accountView",
+    "pibView", "addressView",
     "replacePibView1", "replaceAddressView1", "replaceAccountView1",
     "replacePibView2", "replaceAddressView2", "replaceAccountView2",
     "controlPibView", "controlAddressView", "controlAccountView",
     "closePibView1", "closeAddressView1", "closeAccountView1"
   ];
-  views.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = "";
-  });
+  views.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
   
-  // 5. Скидаємо прапорець фасадного потоку
   isFasadFlow = false;
 }
   
@@ -1641,53 +1632,76 @@ function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hi
 
 function goFasadStep4() {
   try {
-    const markEl = document.getElementById("fasadDemoMark");
-    const lengthEl = document.getElementById("fasadDemoLength");
+    const mark = getVal("fasadDemoMark");
+    const length = getVal("fasadDemoLength");
     const demoBox = document.getElementById("fasadDemoBy");
-    const accEl = document.getElementById("account");
-    
-    if (!markEl || !lengthEl || !accEl) { alert("❌ Помилка: загублено поле на сторінці!"); return; }
-
-    const mark = markEl.value.trim(); 
-    const length = lengthEl.value.trim(); 
     const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
+    // Перевірка заповнення
     if (demoBy !== "ОРБ") {
-      if (length !== "" && length !== "0" && mark === "") { alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу."); return; }
-      if (mark !== "" && (length === "" || length === "0")) { alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж."); return; }
+      if ((length !== "" && length !== "0" && mark === "") || (mark !== "" && (length === "" || length === "0"))) {
+        alert("❌ Заповніть дані демонтажу повністю (марка + метраж)!");
+        return;
+      }
     }
 
     isFasadFlow = true; 
-    
-    // БЕРЕМО НОМЕР РАХУНКУ
-    let acc = accEl.value.trim();
-    
-    // ЯКЩО ПОЛЕ ПУСТЕ (після очищення офлайном), намагаємося взяти його з заголовку (якщо він там був)
-    if (!acc) {
-       acc = localStorage.getItem("tempOfflineAcc") || "";
-    }
+    let acc = getVal("account");
+    if (!acc) acc = localStorage.getItem("tempOfflineAcc") || "";
 
-    if (!acc) {
-      alert("❌ Помилка: Номер особового рахунку втрачено. Будь ласка, введіть його знову в полі пошуку.");
-      showSearchBlock();
-      return;
-    }
+    if (!acc) { alert("❌ Помилка: Оберіть о/р знову"); showSearchBlock(); return; }
 
-    const step3 = document.getElementById("fasadStep3");
-    if (step3) step3.classList.add("hidden");
+    document.getElementById("fasadStep3").classList.add("hidden");
     
     const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
 
     if (!isOffline) {
       google.script.run.withSuccessHandler(res => { 
-        if (res && res.found) { openReplaceFromFasad(res.data); } 
-        else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); } 
+        if (res && res.found) { 
+          openReplaceFromFasad(res.data); 
+        } else { 
+          openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+        } 
       }).findAccountFast(acc);
     } else { 
-      // ОФЛАЙН РЕЖИМ
       openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
     }
-  } catch (e) { alert("❌ Помилка при переході на Заміну:\n" + e.message); }
+  } catch (e) { alert("❌ Помилка переходу: " + e.message); }
+}
+
+function openReplaceFromFasad(d) {
+  // Ховаємо всі можливі форми, щоб не було накладання
+  hideAllForms();
+  
+  // Відкриваємо крок 1 заміни
+  const replaceStep1 = document.getElementById("meterReplaceStep1");
+  if (replaceStep1) replaceStep1.classList.remove("hidden");
+
+  // Заповнюємо дані
+  setInner("replaceWorkerTab1", worker);
+  setInner("replaceWorkerName1", workerName);
+  setInner("replaceAccountView1", d.account || "");
+  setInner("replacePibView1", d.pib || "");
+  setInner("replaceAddressView1", (d.street || "") + " " + (d.house || "") + " " + (d.flat || ""));
+  
+  setVal("replaceRemovedMeterType", d.type || "");
+  setVal("replaceRemovedMeterNumber", d.meter || "");
+
+  const plombs = parsePlombs(d.plomb || "");
+  setVal("replaceRemovedLichil", plombs.lichil);
+  setVal("replaceRemovedOptop", plombs.optop);
+  setVal("replaceRemovedFasad1", plombs.fasad[0]);
+  setVal("replaceRemovedFasad2", plombs.fasad[1]);
+  setVal("replaceRemovedVkp", plombs.vkp);
+  setVal("replaceRemovedImp1", plombs.imp[0]);
+  setVal("replaceRemovedImp2", plombs.imp[1]);
+  setVal("replaceRemovedImp3", plombs.imp[2]);
+  setVal("replaceRemovedOther", plombs.other);
+  
+  const otherArea = document.getElementById("replaceRemovedOther");
+  if (otherArea) resizeTextarea(otherArea);
+
+  window.scrollTo(0, 0);
 }
 
 /* =========================================================
@@ -1697,27 +1711,24 @@ function offlineMode() {
   const accInput = document.getElementById("account");
   const acc = accInput.value.trim();
   
-  if(!selectedWork){ alert("❌ Оберіть вид робіт"); return; }
+  // СПОЧАТКУ ПЕРЕВІРКА
+  if(!selectedWork){ alert("❌ Спочатку оберіть вид робіт (кнопки зверху)"); return; }
   if(!/^\d{10}$/.test(acc)){ alert("❌ Введіть 10 цифр особового рахунку"); return; }
   
-  // ЗАПАМ'ЯТОВУЄМО РАХУНОК ТИМЧАСОВО
-  localStorage.setItem("tempOfflineAcc", acc);
-  localStorage.setItem("isForceOffline", "true"); 
-
-  // Очищаємо все старе
+  // Тільки якщо перевірка пройшла — чистимо форми (поле account не зачепиться)
   clearAllForms();
   
-  // ПОВЕРТАЄМО РАХУНОК У ПОЛЕ, щоб фасад міг його прочитати
-  accInput.value = acc;
+  localStorage.setItem("tempOfflineAcc", acc);
+  localStorage.setItem("isForceOffline", "true"); 
 
   const formType = openSelectedWorkForm();
   if(!formType) return;
   
-  // Вписуємо дані для відображення
   if(formType === "tech"){ 
     setInner("accountView", acc); 
     setInner("workerTab", worker);
     setInner("workerName", workerName);
+    setInner("workTypeView", selectedWork);
   } else if(formType === "replace"){ 
     setInner("replaceAccountView1", acc); 
     setInner("replaceWorkerTab1", worker);
