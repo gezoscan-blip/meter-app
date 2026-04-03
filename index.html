@@ -1049,32 +1049,25 @@ function search() {
   if (!selectedWork) { alert("❌ Спочатку оберіть вид робіт!"); return; }
   if (!acc || acc.length < 10) { alert("❌ Введіть 10 цифр рахунку!"); return; }
 
-  // Запам'ятовуємо вибір робіт, щоб він не злетів
-  const currentWork = selectedWork;
-
   const btn = document.getElementById("btnSearch");
   const oldText = btn.innerText;
   btn.innerText = "⏳ Пошук...";
   btn.disabled = true;
 
-  // ВИМИКАЄМО ОФЛАЙН МІТКУ
+  // Вимикаємо офлайн, бо натиснуто "Знайти"
   localStorage.setItem("isForceOffline", "false"); 
+
+  // ЧИСТИМО ВСЕ ПЕРЕД ПОШУКОМ
+  const currentWork = selectedWork; // зберігаємо вибір
+  clearAllForms();
+  selectedWork = currentWork; // повертаємо вибір
 
   google.script.run.withSuccessHandler(function(res) {
     btn.innerText = oldText;
     btn.disabled = false;
     
     if (res && res.found) {
-      // ПЕРЕД ЗАПОВНЕННЯМ: чистимо все, крім О/Р та Виду робіт
-      clearAllForms(); 
-      selectedWork = currentWork; // Повертаємо вибрану роботу
-      
-      try {
-        fillFields(res.data); 
-      } catch (err) {
-        console.error(err);
-        alert("⚠️ Помилка відображення даних. Перевірте консоль.");
-      }
+      fillFields(res.data); 
     } else {
       alert("⚠️ Рахунок не знайдено в базі!");
     }
@@ -1315,21 +1308,36 @@ let tempReplaceData = null; // Тимчасово зберігає дані аб
 let selectedReplaceReason = ""; // Зберігає вибрану Підставу
 
 function fillFields(d) {
-  // 1. Спочатку відкриваємо контейнер форми
-  const formType = openSelectedWorkForm(); 
-  if (!formType) return;
+  // 1. Сховати блоки пошуку
+  document.getElementById("searchBlock").style.display = "none";
+  const meterSearch = document.getElementById("searchMeterBlock");
+  if (meterSearch) meterSearch.style.display = "none";
 
-  // 2. Викликаємо відповідний заповнювач
-  if (formType === "tech") fillTechCheck(d);
-  else if (formType === "replace" || selectedWork === "Заміна лічильника") {
-     // Якщо заміна — показуємо модалку підстави (як у вас було)
-     tempReplaceData = d; 
-     document.getElementById("meterReplaceStep1").classList.add("hidden"); // ховаємо поки
-     document.getElementById("reasonModal").style.display = "flex";
-     document.getElementById("reasonModal").classList.remove("hidden");
+  // 2. Перевірка, що саме заповнювати
+  if (selectedWork === "Технічна перевірка") {
+    document.getElementById("techCheckForm").classList.remove("hidden");
+    fillTechCheck(d);
+  } 
+  else if (selectedWork === "Контрольний огляд") {
+    document.getElementById("controlCheckForm").classList.remove("hidden");
+    fillControlCheck(d);
+  } 
+  else if (selectedWork === "Заміна лічильника") {
+    // Для заміни — показуємо модалку підстави
+    tempReplaceData = d;
+    document.getElementById("reasonModal").style.display = "flex";
+    document.getElementById("reasonModal").classList.remove("hidden");
+  } 
+  else if (selectedWork === "Фасадні роботи") {
+    document.getElementById("fasadStep1").classList.remove("hidden");
+    // ПІБ та о/р для фасаду заповнюються пізніше, на етапі заміни
+  } 
+  else if (selectedWork === "Закриття о/р з демонтажем") {
+    document.getElementById("closeStep1").classList.remove("hidden");
+    fillCloseStep1(d);
   }
-  else if (formType === "control") fillControlCheck(d);
-  else if (formType === "close") fillCloseStep1(d);
+  
+  window.scrollTo(0,0);
 }
 
 /* =========================================================
@@ -1390,9 +1398,9 @@ function hideAllForms() {
 ОЧИЩЕННЯ ВСІХ ФОРМ (Зняття галочок і стирання тексту)
 ========================================================= */
 function clearAllForms() {
-  const allInputs = document.querySelectorAll('.card input, .card textarea');
+  // Чистимо всі інпути крім логіну та поля account
+  const allInputs = document.querySelectorAll('input, textarea');
   allInputs.forEach(input => {
-    // Не чіпаємо логін та головний о/р
     if (input.id !== "tab" && input.id !== "pass" && input.id !== "account") {
       if (input.type === "checkbox" || input.type === "radio") {
         input.checked = false;
@@ -1402,17 +1410,18 @@ function clearAllForms() {
     }
   });
 
+  // Чистимо селекти
   document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
   
-  // Очищаємо підказки
-  const hints = ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"];
-  hints.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ""; });
+  // Чистимо повідомлення
+  ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = "";
+  });
 
-  // Очищаємо ПІБ/Адреси
+  // Чистимо текстові блоки
   const views = ["pibView", "addressView", "replacePibView1", "replaceAddressView1", "replaceAccountView1", "replacePibView2", "replaceAddressView2", "replaceAccountView2", "controlPibView", "controlAddressView", "controlAccountView", "closePibView1", "closeAddressView1", "closeAccountView1"];
   views.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
   
-  // isFasadFlow залишаємо false за замовчуванням
   isFasadFlow = false;
 }
 
