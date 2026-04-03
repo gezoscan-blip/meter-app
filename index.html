@@ -1603,23 +1603,19 @@ function goFasadStep4(){
   const acc = document.getElementById("account").value.trim();
   document.getElementById("fasadStep3").classList.add("hidden");
   
-  // --- РОЗУМНА ОФЛАЙН ЛОГІКА ---
-  // Перевіряємо: якщо Є інтернет І ми не тиснули кнопку "Офлайн"
-  if (navigator.onLine && (typeof isForceOffline === 'undefined' || !isForceOffline)) {
-    
-    // Онлайн режим: шукаємо лічильник в базі
+  // ВИПРАВЛЕНА ОФЛАЙН-ЛОГІКА
+  // Якщо є інтернет І ми НЕ тиснули кнопку "Офлайн"
+  if (navigator.onLine && !isForceOffline) {
     google.script.run.withSuccessHandler(res => { 
       if (res.found) { 
         openReplaceFromFasad(res.data); 
       } else { 
-        alert("⚠️ Абонента не знайдено в базі! Відкриваю пусту форму.");
-        openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+        alert("Не знайдено"); 
+        openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""});
       } 
     }).findAccountFast(acc);
-    
   } else { 
-    // ОФЛАЙН РЕЖИМ (або примусовий Офлайн):
-    // Взагалі не звертаємось до Гугла! Миттєво відкриваємо форму Заміни!
+    // Якщо інтернету немає АБО ми натиснули кнопку "Офлайн"
     openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
   }
 }
