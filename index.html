@@ -1581,42 +1581,60 @@ function backToFasad1(){ document.getElementById("fasadStep2").classList.add("hi
 function goFasadStep3(){ document.getElementById("fasadStep2").classList.add("hidden"); document.getElementById("fasadStep3").classList.remove("hidden"); }
 function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden"); }
 
-function goFasadStep4(){
-  const mark = document.getElementById("fasadDemoMark").value.trim(); 
-  const length = document.getElementById("fasadDemoLength").value.trim(); 
-  const demoBox = document.getElementById("fasadDemoBy");
-  const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
-
-  // Перевірка демонтажу
-  if (demoBy !== "ОРБ") {
-    if (length !== "" && length !== "0" && mark === "") {
-      alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
+function goFasadStep4() {
+  try {
+    const markEl = document.getElementById("fasadDemoMark");
+    const lengthEl = document.getElementById("fasadDemoLength");
+    const demoBox = document.getElementById("fasadDemoBy");
+    const accEl = document.getElementById("account");
+    
+    if (!markEl || !lengthEl || !accEl) {
+      alert("❌ Помилка: загублено поле на сторінці!");
       return;
     }
-    if (mark !== "" && (length === "" || length === "0")) {
-      alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
-      return;
-    }
-  }
 
-  isFasadFlow = true; 
-  const acc = document.getElementById("account").value.trim();
-  document.getElementById("fasadStep3").classList.add("hidden");
-  
-  // ВИПРАВЛЕНА ОФЛАЙН-ЛОГІКА
-  // Якщо є інтернет І ми НЕ тиснули кнопку "Офлайн"
-  if (navigator.onLine && !isForceOffline) {
-    google.script.run.withSuccessHandler(res => { 
-      if (res.found) { 
-        openReplaceFromFasad(res.data); 
-      } else { 
-        alert("Не знайдено"); 
-        openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""});
-      } 
-    }).findAccountFast(acc);
-  } else { 
-    // Якщо інтернету немає АБО ми натиснули кнопку "Офлайн"
-    openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+    const mark = markEl.value.trim(); 
+    const length = lengthEl.value.trim(); 
+    const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
+
+    // 1. ПЕРЕВІРКА ДЕМОНТАЖУ
+    if (demoBy !== "ОРБ") {
+      if (length !== "" && length !== "0" && mark === "") {
+        alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
+        return;
+      }
+      if (mark !== "" && (length === "" || length === "0")) {
+        alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
+        return;
+      }
+    }
+
+    isFasadFlow = true; 
+    const acc = accEl.value.trim();
+    
+    const step3 = document.getElementById("fasadStep3");
+    if (step3) step3.classList.add("hidden");
+    
+    // 2. ВИПРАВЛЕНА ОФЛАЙН-ЛОГІКА
+    // Перевіряємо, чи ми НЕ в примусовому офлайні (isForceOffline)
+    let isOffline = (typeof isForceOffline !== 'undefined' && isForceOffline) || !navigator.onLine;
+
+    if (!isOffline) {
+      // ОНЛАЙН РЕЖИМ
+      google.script.run.withSuccessHandler(res => { 
+        if (res && res.found) { 
+          openReplaceFromFasad(res.data); 
+        } else { 
+          alert("⚠️ В базі не знайдено! Відкриваю чисту форму.");
+          openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""});
+        } 
+      }).findAccountFast(acc);
+    } else { 
+      // ОФЛАЙН РЕЖИМ (Миттєвий перехід)
+      openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+    }
+  } catch (e) {
+    alert("❌ Помилка при переході на Заміну:\n" + e.message);
   }
 }
 
