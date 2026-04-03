@@ -1379,26 +1379,19 @@ function hideAllForms() {
 
 function showSearchBlock() {
   hideAllForms();
-  // Повертаємо обидва блоки пошуку на екран
+  // СКИДАЄМО ОФЛАЙН РЕЖИМ, КОЛИ ПОВЕРТАЄМОСЬ У ГОЛОВНЕ МЕНЮ
+  localStorage.removeItem("isForceOffline"); 
+  
   document.getElementById("searchBlock").style.display = "block";
   const meterSearch = document.getElementById("searchMeterBlock");
   if (meterSearch) meterSearch.style.display = "block";
-
+  
   document.getElementById("account").value = "";
   if(document.getElementById("searchMeterNumber")) document.getElementById("searchMeterNumber").value = "";
-
+  
   const hints = document.getElementById("accountHints");
   if(hints) hints.innerHTML = "";
   window.scrollTo(0,0);
-}
-
-function goBack() { showSearchBlock(); }
-
-function buildAddress(d) {
-  let addr = d.street || "";
-  if(d.house) addr += " буд. " + d.house;
-  if(d.flat) addr += " кв. " + d.flat;
-  return addr;
 }
 
 /* =========================================================
@@ -1588,25 +1581,15 @@ function goFasadStep4() {
     const demoBox = document.getElementById("fasadDemoBy");
     const accEl = document.getElementById("account");
     
-    if (!markEl || !lengthEl || !accEl) {
-      alert("❌ Помилка: загублено поле на сторінці!");
-      return;
-    }
+    if (!markEl || !lengthEl || !accEl) { alert("❌ Помилка: загублено поле на сторінці!"); return; }
 
     const mark = markEl.value.trim(); 
     const length = lengthEl.value.trim(); 
     const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
-    // 1. ПЕРЕВІРКА ДЕМОНТАЖУ
     if (demoBy !== "ОРБ") {
-      if (length !== "" && length !== "0" && mark === "") {
-        alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
-        return;
-      }
-      if (mark !== "" && (length === "" || length === "0")) {
-        alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
-        return;
-      }
+      if (length !== "" && length !== "0" && mark === "") { alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу."); return; }
+      if (mark !== "" && (length === "" || length === "0")) { alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж."); return; }
     }
 
     isFasadFlow = true; 
@@ -1615,27 +1598,20 @@ function goFasadStep4() {
     const step3 = document.getElementById("fasadStep3");
     if (step3) step3.classList.add("hidden");
     
-    // 2. ВИПРАВЛЕНА ОФЛАЙН-ЛОГІКА
-    // Перевіряємо, чи ми НЕ в примусовому офлайні (isForceOffline)
-    let isOffline = (typeof isForceOffline !== 'undefined' && isForceOffline) || !navigator.onLine;
+    // НАДІЙНА ПЕРЕВІРКА ОФЛАЙНУ З ПАМ'ЯТІ ТЕЛЕФОНУ
+    const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
 
     if (!isOffline) {
       // ОНЛАЙН РЕЖИМ
       google.script.run.withSuccessHandler(res => { 
-        if (res && res.found) { 
-          openReplaceFromFasad(res.data); 
-        } else { 
-          alert("⚠️ В базі не знайдено! Відкриваю чисту форму.");
-          openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""});
-        } 
+        if (res && res.found) { openReplaceFromFasad(res.data); } 
+        else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); } 
       }).findAccountFast(acc);
     } else { 
-      // ОФЛАЙН РЕЖИМ (Миттєвий перехід)
+      // ОФЛАЙН РЕЖИМ (Жодних запитів до бази!)
       openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
     }
-  } catch (e) {
-    alert("❌ Помилка при переході на Заміну:\n" + e.message);
-  }
+  } catch (e) { alert("❌ Помилка при переході на Заміну:\n" + e.message); }
 }
 
 function openReplaceFromFasad(d){
@@ -1645,18 +1621,23 @@ function openReplaceFromFasad(d){
 }
 
 /* =========================================================
-ОФЛАЙН РЕЖИМ 
+ОФЛАЙН РЕЖИМ (ЗАЛІЗОБЕТОННИЙ)
 ========================================================= */
-function offlineMode(){
+function offlineMode() {
   const acc = document.getElementById("account").value.trim();
-  if(!selectedWork){ alert("Оберіть вид робіт"); return; }
-  if(!/^\d{10}$/.test(acc)){ alert("Введіть 10 цифр особового рахунку"); return; }
+  if(!selectedWork){ alert("❌ Оберіть вид робіт"); return; }
+  if(!/^\d{10}$/.test(acc)){ alert("❌ Введіть 10 цифр особового рахунку"); return; }
+  
+  // НАДІЙНО запам'ятовуємо, що ми в офлайні
+  localStorage.setItem("isForceOffline", "true"); 
+
   const formType = openSelectedWorkForm();
   if(!formType) return;
-
-  if(formType === "tech"){ setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork); setInner("accountView", acc); setInner("pibView", ""); setInner("addressView", ""); setVal("meterType", ""); setVal("meterNumber", ""); setVal("removedLichil", ""); setVal("installedLichil", ""); setVal("t0", ""); }
-  else if(formType === "replace"){ setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", acc); setInner("replacePibView1", ""); setInner("replaceAddressView1", ""); setVal("replaceRemovedMeterType", ""); setVal("replaceRemovedMeterNumber", ""); }
-  else if(formType === "control"){ setInner("controlWorkerTab", worker); setInner("controlWorkerName", workerName); setInner("controlAccountView", acc); setInner("controlPibView", ""); setInner("controlAddressView", ""); setVal("controlMeterType", ""); setVal("controlMeterNumber", ""); }
+  
+  if(formType === "tech"){ setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork); setInner("accountView", acc); setInner("pibView", "ОФЛАЙН"); setInner("addressView", "ОФЛАЙН"); setVal("meterType", ""); setVal("meterNumber", ""); setVal("removedLichil", ""); setVal("installedLichil", ""); setVal("t0", ""); }
+  else if(formType === "replace"){ setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", acc); setInner("replacePibView1", "ОФЛАЙН"); setInner("replaceAddressView1", "ОФЛАЙН"); setVal("replaceRemovedMeterType", ""); setVal("replaceRemovedMeterNumber", ""); }
+  else if(formType === "control"){ setInner("controlWorkerTab", worker); setInner("controlWorkerName", workerName); setInner("controlAccountView", acc); setInner("controlPibView", "ОФЛАЙН"); setInner("controlAddressView", "ОФЛАЙН"); setVal("controlMeterType", ""); setVal("controlMeterNumber", ""); }
+  else if(formType === "close"){ setInner("closeWorkerTab1", worker); setInner("closeWorkerName1", workerName); setInner("closeAccountView1", acc); setInner("closePibView1", "ОФЛАЙН"); setInner("closeAddressView1", "ОФЛАЙН"); }
 }
 
 /* =========================================================
