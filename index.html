@@ -994,8 +994,8 @@ function confirmLogout(){ localStorage.clear(); location.reload(); }
 ВИБІР ВИДУ РОБІТ
 ========================================================= */
 function selectWork(btn, type) {
-  // Скидаємо прапорець фасадного потоку!
-  isFasadFlow = false; 
+  // При виборі нової роботи — повний скид всього введеного раніше
+  clearAllForms(); 
   
   // Очищаємо всі поля перед початком нової роботи
   clearAllForms(); 
@@ -1693,16 +1693,33 @@ function offlineMode() {
   if(!selectedWork){ alert("❌ Оберіть вид робіт"); return; }
   if(!/^\d{10}$/.test(acc)){ alert("❌ Введіть 10 цифр особового рахунку"); return; }
   
-  // НАДІЙНО запам'ятовуємо, що ми в офлайні
+  // ПЕРШЕ: Очищаємо все старе
+  clearAllForms();
+  
   localStorage.setItem("isForceOffline", "true"); 
 
   const formType = openSelectedWorkForm();
   if(!formType) return;
   
-  if(formType === "tech"){ setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork); setInner("accountView", acc); setInner("pibView", "ОФЛАЙН"); setInner("addressView", "ОФЛАЙН"); setVal("meterType", ""); setVal("meterNumber", ""); setVal("removedLichil", ""); setVal("installedLichil", ""); setVal("t0", ""); }
-  else if(formType === "replace"){ setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", acc); setInner("replacePibView1", "ОФЛАЙН"); setInner("replaceAddressView1", "ОФЛАЙН"); setVal("replaceRemovedMeterType", ""); setVal("replaceRemovedMeterNumber", ""); }
-  else if(formType === "control"){ setInner("controlWorkerTab", worker); setInner("controlWorkerName", workerName); setInner("controlAccountView", acc); setInner("controlPibView", "ОФЛАЙН"); setInner("controlAddressView", "ОФЛАЙН"); setVal("controlMeterType", ""); setVal("controlMeterNumber", ""); }
-  else if(formType === "close"){ setInner("closeWorkerTab1", worker); setInner("closeWorkerName1", workerName); setInner("closeAccountView1", acc); setInner("closePibView1", "ОФЛАЙН"); setInner("closeAddressView1", "ОФЛАЙН"); }
+  // ДРУГЕ: Вписуємо нові дані для поточної роботи
+  if(formType === "tech"){ 
+    setInner("accountView", acc); 
+    setInner("workerTab", worker);
+    setInner("workerName", workerName);
+    setInner("workTypeView", selectedWork);
+  } else if(formType === "replace"){ 
+    setInner("replaceAccountView1", acc); 
+    setInner("replaceWorkerTab1", worker);
+    setInner("replaceWorkerName1", workerName);
+  } else if(formType === "control"){ 
+    setInner("controlAccountView", acc); 
+    setInner("controlWorkerTab", worker);
+    setInner("controlWorkerName", workerName);
+  } else if(formType === "close"){ 
+    setInner("closeAccountView1", acc); 
+    setInner("closeWorkerTab1", worker);
+    setInner("closeWorkerName1", workerName);
+  }
 }
 
 /* =========================================================
