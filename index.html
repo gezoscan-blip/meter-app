@@ -993,8 +993,14 @@ function confirmLogout(){ localStorage.clear(); location.reload(); }
 /* =========================================================
 ВИБІР ВИДУ РОБІТ
 ========================================================= */
-function selectWork(btn,type){
-  document.querySelectorAll(".work-btn").forEach(b=>b.classList.remove("active"));
+function selectWork(btn, type) {
+  // Скидаємо прапорець фасадного потоку!
+  isFasadFlow = false; 
+  
+  // Очищаємо всі поля перед початком нової роботи
+  clearAllForms(); 
+
+  document.querySelectorAll(".work-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   selectedWork = type;
 }
@@ -1397,49 +1403,47 @@ function hideAllForms() {
 ОЧИЩЕННЯ ВСІХ ФОРМ (Зняття галочок і стирання тексту)
 ========================================================= */
 function clearAllForms() {
-  // 1. Очищаємо всі текстові поля і textarea
-  const allInputs = document.querySelectorAll('.card input[type="text"], .card input[type="number"], .card input[type="tel"], .card textarea');
+  // 1. Очищаємо всі текстові поля, числа та textarea
+  const allInputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="tel"], textarea');
   allInputs.forEach(input => {
-    // Не чіпаємо поля логіну
     if (input.id !== "tab" && input.id !== "pass") {
       input.value = "";
     }
   });
 
-  // 2. Знімаємо всі радіокнопки і чекбокси
-  const allRadios = document.querySelectorAll('.card input[type="radio"], .card input[type="checkbox"]');
+  // 2. Скидаємо всі радіокнопки (фазність, дільниці, підстави)
+  const allRadios = document.querySelectorAll('input[type="radio"]');
   allRadios.forEach(radio => radio.checked = false);
 
-  // 3. Скидаємо випадаючі списки (select) на "Вибрати"
-  const allSelects = document.querySelectorAll('.card select');
+  // 3. Скидаємо всі чекбокси (наприклад, ОРБ)
+  const allChecks = document.querySelectorAll('input[type="checkbox"]');
+  allChecks.forEach(check => check.checked = false);
+
+  // 4. Скидаємо випадаючі списки
+  const allSelects = document.querySelectorAll('select');
   allSelects.forEach(select => select.selectedIndex = 0);
 
-  // 4. Очищаємо зелені написи "Збережено" та "Збережено офлайн"
-  const hints = ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"];
-  hints.forEach(id => {
+  // 5. Очищаємо ПІБ та Адреси (текстові блоки)
+  const views = ["pibView", "addressView", "replacePibView1", "replaceAddressView1", "replaceAccountView1", "controlPibView", "controlAddressView", "closePibView1", "closeAddressView1"];
+  views.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = "";
   });
-
-  // 5. Очищаємо текстові блоки з ПІБ та адресою
-  const views = ["pibView", "addressView", "replacePibView1", "replaceAddressView1", "replacePibView2", "replaceAddressView2", "controlPibView", "controlAddressView", "closePibView1", "closeAddressView1"];
-  views.forEach(id => setInner(id, ""));
 }
   
 function showSearchBlock() {
   hideAllForms();
-  // СКИДАЄМО ОФЛАЙН РЕЖИМ, КОЛИ ПОВЕРТАЄМОСЬ У ГОЛОВНЕ МЕНЮ
+  isFasadFlow = false; // ЗАВЖДИ скидаємо режим фасаду
   localStorage.removeItem("isForceOffline"); 
   
   document.getElementById("searchBlock").style.display = "block";
   const meterSearch = document.getElementById("searchMeterBlock");
   if (meterSearch) meterSearch.style.display = "block";
   
-  document.getElementById("account").value = "";
-  if(document.getElementById("searchMeterNumber")) document.getElementById("searchMeterNumber").value = "";
+  // Не чистимо ПІБ тут, бо clearAllForms очистить все, що треба
+  clearAllForms(); 
   
-  const hints = document.getElementById("accountHints");
-  if(hints) hints.innerHTML = "";
+  document.getElementById("account").value = "";
   window.scrollTo(0,0);
 }
 
@@ -1710,7 +1714,9 @@ function saveReplaceData(){
 function saveFasadData() {
   try {
     const is1F = (fasadPhase == 1);
-    const rawData = collectReplaceData(); 
+    const rawData = collectReplaceData();
+    // Скидаємо прапорець ТУТ, до відправки
+    isFasadFlow = false;
 
     const demoBox = document.getElementById("fasadDemoBy");
     let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
@@ -1733,6 +1739,8 @@ function saveFasadData() {
       removedMeterNumber: remMeter, removedMeterType: remType, installedMeterNumber: instMeter, installedMeterType: instType,
       removedLichil: rLich, installedLichil: iLich, removedFasad1: rFas1, installedFasad1: iFas1, removedFasad2: rFas2, installedFasad2: iFas2, removedVkp: rVkp, installedVkp: iVkp, removedOptop: rOpt, installedOptop: iOpt, removedImp1: rImp1, installedImp1: iImp1, removedImp2: rImp2, installedImp2: iImp2, removedImp3: rImp3, installedImp3: iImp3
     });
+    // В самому кінці формування додайте примусову назву роботи
+    data.workType = "Фасадні роботи";
     sendDataToServer(data, "replaceSaveHint", ["meterReplaceStep1", "meterReplaceStep2"]);
   } catch (e) { alert("❌ Помилка збору фасаду:\n" + e.message); }
 }
