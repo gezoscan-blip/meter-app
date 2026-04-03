@@ -462,7 +462,14 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
         <input id="replaceRemovedMeterType" autocomplete="off" onfocus="showMeterTypes('replaceRemovedMeterType', 'meterTypeHints2')" oninput="filterMeterTypes(this.value, 'replaceRemovedMeterType', 'meterTypeHints2')">
         <div id="meterTypeHints2" class="meterTypeHints hidden"></div>
       </div>
-      <div class="fieldLabel">Заводський номер</div><div><input id="replaceRemovedMeterNumber"></div>
+      <div class="fieldLabel">Заводський номер</div>
+      <!-- Додали красиву зовнішню кнопку сканера! -->
+      <div class="input-with-scanner">
+        <input id="replaceRemovedMeterNumber">
+        <button class="scan-btn-outer" onclick="startScanner('replaceRemovedMeterNumber', false)">
+          <svg class="scan-icon" viewBox="0 0 24 24"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm-9 4h2v10h-2V7zm-4 0h2v10H6V7zm10 0h2v10h-2V7zm-6 0h4v10h-4V7z"/></svg>
+        </button>
+      </div>
     </div>
     <div class="sectionLine"></div>
 
