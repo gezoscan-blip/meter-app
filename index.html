@@ -825,7 +825,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyYgud1io4yTYUSEXGOGkZaod3s4ew0iTKHNB7gbmTzJ4EBqRfslaEk31pi9VNVDPb4/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzEEDVpxDWEvw4oy9tIcry-xS2_-GmILJSmfhRzXWUwJMnlBhmIweOYKGOvl_R3ewVm/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -864,7 +864,7 @@ const google = {
       withSuccessHandler: function(callback) {
         return {
           login: (tab, pass) => sendRequest("login", {tab, pass}, callback),
-          checkWorker: (tab, pass) => sendRequest("checkWorker", {tab, pass}, callback),
+          checkWorker: (tab) => sendRequest("checkWorker", {tab}, callback),
           findAccountFast: (account) => sendRequest("findAccountFast", {account}, callback),
           findAccountByMeter: (meter) => sendRequest("findAccountByMeter", {meter}, callback), // ДОДАНО
           searchAccounts: (part) => sendRequest("searchAccounts", {part}, callback),
@@ -906,55 +906,46 @@ function resizeTextarea(el){
 /* =========================================================
 АВТОВХІД ПРИ ЗАПУСКУ
 ========================================================= */
-window.onload = function() {
-  // 1. Завантажуємо типи лічильників
+window.onload = function(){
   google.script.run.withSuccessHandler(function(list){ meterTypes = list || []; }).getMeterTypes();
-
   const savedWorker = localStorage.getItem("worker");
-  const savedPass = localStorage.getItem("workerPass"); // Отримуємо збережений ПІН
+  if(!savedWorker) return;
 
-  if (!savedWorker || !savedPass) return;
-
-  if (navigator.onLine) {
-    // ПЕРЕВІРКА: відправляємо і табельний, і ПІН
-    google.script.run.withSuccessHandler(res => {
-      if (res.ok) { 
-        worker = savedWorker; 
-        workerName = res.name || ""; 
-        afterLogin(); 
-      } else { 
-        // Якщо ПІН у таблиці змінили — res.ok буде false, і ми очищуємо вхід
-        alert("⚠️ ПІН-код змінено або доступ скасовано. Увійдіть знову.");
-        localStorage.clear();
-        location.reload(); 
-      }
-    }).checkWorker(savedWorker, savedPass);
-  } else {
-    // В офлайні пускаємо за старими даними
-    worker = savedWorker; 
-    workerName = localStorage.getItem("workerName") || "Офлайн"; 
-    afterLogin();
+  if(navigator.onLine){
+    google.script.run.withSuccessHandler(res=>{
+      if(res.ok){ worker = savedWorker; workerName = res.name || ""; afterLogin(); }
+      else{ localStorage.clear(); }
+    }).checkWorker(savedWorker);
+  }else{
+    worker = savedWorker; workerName = "Офлайн"; afterLogin();
   }
-};
-
-// --- БРОНЕБІЙНА КЛАВІАТУРА (ЗАЛИШАЄТЬСЯ ЯК БУЛА) ---
-const loginBox = document.getElementById("login");
-if (loginBox) {
-  const loginInputs = loginBox.querySelectorAll("input");
-  loginInputs.forEach(input => {
-    input.addEventListener("focus", () => {
-      loginBox.classList.add("login-focused");
-    });
-    input.addEventListener("blur", () => {
-      setTimeout(() => {
-        const isAnyInputFocused = Array.from(loginInputs).some(i => i === document.activeElement);
-        if (!isAnyInputFocused) {
-          loginBox.classList.remove("login-focused");
-        }
-      }, 100);
-    });
-  });
 }
+ // --- БРОНЕБІЙНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
+  const loginBox = document.getElementById("login");
+
+  if (loginBox) {
+    // Знаходимо ВСІ поля вводу (input), які знаходяться всередині картки входу
+    const loginInputs = loginBox.querySelectorAll("input");
+
+    // Вішаємо подію "підстрибування" на кожне з них
+    loginInputs.forEach(input => {
+      input.addEventListener("focus", () => {
+        loginBox.classList.add("login-focused");
+      });
+
+      input.addEventListener("blur", () => {
+        // Затримка 100мс потрібна, щоб картка не стрибала вниз, 
+        // якщо монтер просто перемкнувся з Табельного на ПІН
+        setTimeout(() => {
+          // Якщо зараз жодне з полів вводу не у фокусі - опускаємо картку
+          const isAnyInputFocused = Array.from(loginInputs).some(i => i === document.activeElement);
+          if (!isAnyInputFocused) {
+            loginBox.classList.remove("login-focused");
+          }
+        }, 100);
+      });
+    });
+  }
 
 /* =========================================================
 ФУНКЦІЯ ВХОДУ ТА ЛОГАУТУ
