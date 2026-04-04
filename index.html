@@ -1575,32 +1575,31 @@ function goFasadStep4() {
   const length = parseFloat(lengthInput) || 0;
   const isOrb = document.getElementById("fasadDemoBy").checked;
 
-  console.log("Debug: Mark=" + mark + ", Length=" + length + ", IsOrb=" + isOrb);
+  // 1. ПЕРЕВІРКА: чи взагалі щось введено?
+  // Якщо не ОРБ І (марка порожня АБО метраж <= 0)
+  if (!isOrb && (mark === "" || length <= 0)) {
+    alert("❌ Помилка: Ви не вибрали ОРБ і не вказали дані демонтажу (марку та метраж)!");
+    return; // Зупиняємо виконання!
+  }
 
-  // ЛОГІКА:
+  // 2. ДОДАТКОВА ПЕРЕВІРКА: якщо не ОРБ, але ввели лише щось одне
   if (!isOrb) {
-    // Якщо не ОРБ, перевіряємо, чи є демонтаж (length > 0)
-    if (length > 0) {
-      if (mark === "") {
-        alert("❌ Помилка: Вкажіть марку проводу для демонтажу!");
-        return; // Зупиняємо виконання
-      }
-    } else {
-      // length <= 0. Якщо при цьому вибрана марка - це теж помилка
-      if (mark !== "") {
-        alert("❌ Помилка: Ви вказали марку, але метраж має бути більше 0!");
-        return; // Зупиняємо виконання
-      }
+    if (length > 0 && mark === "") {
+      alert("❌ Помилка: Вкажіть марку проводу для демонтажу!");
+      return;
+    }
+    if (mark !== "" && length <= 0) {
+      alert("❌ Помилка: Вкажіть метраж (має бути більше 0)!");
+      return;
     }
   }
 
-  // Якщо перевірку пройшли або вибрали ОРБ
+  // Якщо ми тут — значить або ОРБ = true, або (Марка і Метраж введені правильно)
   isFasadFlow = true; 
   document.getElementById("fasadStep3").classList.add("hidden");
   
-  // Далі виклик форми заміни...
+  // ... далі ваш код переходу до заміни ...
   const acc = document.getElementById("account").value.trim();
-  
   if (navigator.onLine && (typeof isForceOffline === 'undefined' || !isForceOffline)) {
     google.script.run.withSuccessHandler(res => { 
       if (res.found) { openReplaceFromFasad(res.data); } 
@@ -1613,7 +1612,7 @@ function goFasadStep4() {
     openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
   }
 }
-
+  
 function openReplaceFromFasad(d){
   document.getElementById("meterReplaceStep1").classList.remove("hidden");
   setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", d.account || ""); setInner("replacePibView1", d.pib || ""); setInner("replaceAddressView1", (d.street || "") + " " + (d.house || "") + " " + (d.flat || "")); setVal("replaceRemovedMeterType", d.type || ""); setVal("replaceRemovedMeterNumber", d.meter || "");
