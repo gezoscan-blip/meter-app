@@ -1575,25 +1575,47 @@ function goFasadStep4() {
   const length = parseFloat(lengthInput) || 0;
   const isOrb = document.getElementById("fasadDemoBy").checked;
 
-  // 1. СЦЕНАРІЙ "НІЧОГО НЕ ДЕМОНТУВАЛИ" (length === 0)
-  // Якщо 0 метрів, ми дозволяємо пройти далі БЕЗ ОРБ і БЕЗ Марки
-  if (length === 0) {
-    console.log("Демонтаж: 0 метрів, пропущено.");
-  } 
-  // 2. СЦЕНАРІЙ "ДЕМОНТАЖ БУВ" (length > 0)
-  else {
-    // Якщо не ОРБ, перевіряємо чи є марка
-    if (!isOrb && mark === "") {
-      alert("❌ Помилка: Ви вказали метраж, але не вибрали марку вводу!");
-      return; 
-    }
+  // 1. ПЕРЕВІРКА: чи введено щось взагалі?
+  // Якщо ОРБ не стоїть І марка порожня І метраж == 0 (або порожній)
+  if (!isOrb && mark === "" && length === 0) {
+    alert("❌ Помилка: Ви нічого не вказали (ні ОРБ, ні дані про демонтаж)!");
+    return;
   }
 
-  // Якщо все пройшли (або 0 метрів, або ОРБ, або є Марка+Метраж)
+  // 2. ЯКЩО СТОЇТЬ ОРБ — ПРОПУСКАЄМО
+  if (isOrb) {
+    proceedToNextStep();
+    return;
+  }
+
+  // 3. ЯКЩО НЕ ОРБ:
+  // Якщо ввели метраж, але не вибрали марку
+  if (length > 0 && mark === "") {
+    alert("❌ Помилка: Ви вказали метраж, але не вибрали марку вводу!");
+    return;
+  }
+
+  // Якщо вибрали марку, але не вказали метраж (або 0)
+  if (mark !== "" && length <= 0) {
+    alert("❌ Помилка: Ви вибрали марку, але метраж має бути більше 0!");
+    return;
+  }
+
+  // Якщо метраж 0 (і марка порожня, що перевірено вище) — пропускаємо
+  if (length === 0) {
+    proceedToNextStep();
+    return;
+  }
+
+  // Якщо дійшли сюди — значить Марка і Метраж заповнені правильно
+  proceedToNextStep();
+}
+
+// Допоміжна функція, щоб не дублювати код переходу
+function proceedToNextStep() {
   isFasadFlow = true; 
   document.getElementById("fasadStep3").classList.add("hidden");
   
-  // Далі ваш код переходу до заміни...
   const acc = document.getElementById("account").value.trim();
   
   if (navigator.onLine && (typeof isForceOffline === 'undefined' || !isForceOffline)) {
