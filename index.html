@@ -906,20 +906,32 @@ function resizeTextarea(el){
 /* =========================================================
 АВТОВХІД ПРИ ЗАПУСКУ
 ========================================================= */
-window.onload = function(){
+window.onload = function() {
   google.script.run.withSuccessHandler(function(list){ meterTypes = list || []; }).getMeterTypes();
-  const savedWorker = localStorage.getItem("worker");
-  if(!savedWorker) return;
 
-  if(navigator.onLine){
-    google.script.run.withSuccessHandler(res=>{
-      if(res.ok){ worker = savedWorker; workerName = res.name || ""; afterLogin(); }
-      else{ localStorage.clear(); }
-    }).checkWorker(savedWorker);
-  }else{
-    worker = savedWorker; workerName = "Офлайн"; afterLogin();
+  const savedWorker = localStorage.getItem("worker");
+  const savedPass = localStorage.getItem("workerPass");
+
+  if (!savedWorker || !savedPass) return;
+
+  if (navigator.onLine) {
+    google.script.run.withSuccessHandler(res => {
+      if (res.ok) { 
+        worker = savedWorker; 
+        workerName = res.name || ""; 
+        afterLogin(); 
+      } else { 
+        alert("⚠️ Доступ заблоковано або ПІН змінено.");
+        localStorage.clear();
+        location.reload(); 
+      }
+    }).checkWorker(savedWorker, savedPass);
+  } else {
+    worker = savedWorker; 
+    workerName = localStorage.getItem("workerName") || "Офлайн"; 
+    afterLogin();
   }
-}
+};
  // --- БРОНЕБІЙНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
   const loginBox = document.getElementById("login");
 
@@ -1372,16 +1384,60 @@ function openSelectedWorkForm(){
   alert("Форма для цього виду робіт ще не налаштована"); return false;
 }
 
-function hideAllForms() {
-  document.getElementById("techCheckForm").classList.add("hidden");
-  document.getElementById("meterReplaceStep1").classList.add("hidden");
-  document.getElementById("meterReplaceStep2").classList.add("hidden");
-  document.getElementById("controlCheckForm").classList.add("hidden");
-  document.getElementById("fasadStep1").classList.add("hidden");
-  document.getElementById("fasadStep2").classList.add("hidden");
-  document.getElementById("fasadStep3").classList.add("hidden");
-  document.getElementById("closeStep1").classList.add("hidden");
-  document.getElementById("closeStep2").classList.add("hidden");
+function search() {
+  const acc = document.getElementById("account").value.trim();
+  if (!selectedWork) { alert("❌ Оберіть вид робіт!"); return; }
+  if (acc.length < 10) { alert("❌ Введіть 10 цифр о/р!"); return; }
+
+  localStorage.setItem("isForceOffline", "false"); 
+  const btn = document.getElementById("btnSearch");
+  btn.innerText = "⏳ Пошук...";
+
+  google.script.run.withSuccessHandler(function(res) {
+    btn.innerText = "Знайти";
+    if (res && res.found) {
+      // ПЕРЕД ЗАПОВНЕННЯМ: чистимо все старе
+      clearAllForms(); 
+      fillFields(res.data); 
+    } else {
+      alert("⚠️ Рахунок не знайдено!");
+    }
+  }).findAccountFast(acc);
+}
+
+function fillFields(d) {
+  try {
+    // 1. Ховаємо пошук
+    document.getElementById("searchBlock").style.display = "none";
+    const meterSearch = document.getElementById("searchMeterBlock");
+    if (meterSearch) meterSearch.style.display = "none";
+
+    // 2. Визначаємо яку форму відкрити
+    if (selectedWork === "Технічна перевірка") {
+      document.getElementById("techCheckForm").classList.remove("hidden");
+      fillTechCheck(d);
+    } 
+    else if (selectedWork === "Заміна лічильника") {
+      tempReplaceData = d;
+      document.getElementById("reasonModal").style.display = "flex";
+      document.getElementById("reasonModal").classList.remove("hidden");
+    }
+    else if (selectedWork === "Контрольний огляд") {
+      document.getElementById("controlCheckForm").classList.remove("hidden");
+      fillControlCheck(d);
+    }
+    else if (selectedWork === "Закриття о/р з демонтажем") {
+      document.getElementById("closeStep1").classList.remove("hidden");
+      fillCloseStep1(d);
+    }
+    else if (selectedWork === "Фасадні роботи") {
+      document.getElementById("fasadStep1").classList.remove("hidden");
+    }
+    window.scrollTo(0,0);
+  } catch (e) {
+    console.error(e);
+    alert("⚠️ Помилка відображення: перевірте чи всі поля існують у формі.");
+  }
 }
   
 /* =========================================================
