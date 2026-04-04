@@ -1643,40 +1643,124 @@ document.addEventListener("click", function(e){
 });
 
 /* =========================================================
-ЗАПОВНЕННЯ ФОРМ ДАНИМИ (Деталі)
+   ЗАПОВНЕННЯ ФОРМ ДАНИМИ (ВИПРАВЛЕНО ТА БЕЗПЕЧНО)
 ========================================================= */
-function fillTechCheck(d){
-  setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork || ""); setInner("accountView", d.account || ""); setInner("pibView", d.pib || ""); setInner("addressView", buildAddress(d)); setVal("meterType", d.type || ""); setVal("meterNumber", d.meter || "");
-  const plombs = parsePlombs(d.plomb || "");
-  setVal("removedLichil", plombs.lichil); setVal("removedOptop", plombs.optop); setVal("removedFasad1", plombs.fasad[0]); setVal("removedFasad2", plombs.fasad[1]); setVal("removedVkp", plombs.vkp); setVal("removedImp1", plombs.imp[0]); setVal("removedImp2", plombs.imp[1]); setVal("removedImp3", plombs.imp[2]); setVal("removedOther", plombs.other); resizeTextarea(document.getElementById("removedOther"));
-  setVal("installedLichil", ""); setVal("installedOptop", ""); setVal("installedFasad1", ""); setVal("installedFasad2", ""); setVal("installedVkp", ""); setVal("installedImp1", ""); setVal("installedImp2", ""); setVal("installedImp3", ""); setVal("installedOther", ""); resizeTextarea(document.getElementById("installedOther"));
-  setVal("t0", ""); setVal("t1", ""); setVal("t2", ""); setVal("t3", "");
+
+function fillTechCheck(d) {
+  try {
+    setInner("workerTab", worker); 
+    setInner("workerName", workerName); 
+    setInner("workTypeView", selectedWork || ""); 
+    setInner("accountView", d.account || ""); 
+    setInner("pibView", d.pib || ""); 
+    setInner("addressView", buildAddress(d)); 
+    
+    // Використовуємо правильні ID з вашої розмітки
+    setVal("meterType", d.type || ""); 
+    setVal("meterNumber", d.meter || ""); 
+    
+    const plombs = parsePlombs(d.plomb || "");
+    setVal("removedLichil", plombs.lichil); 
+    setVal("removedOptop", plombs.optop); 
+    setVal("removedFasad1", plombs.fasad[0]); 
+    setVal("removedFasad2", plombs.fasad[1]); 
+    setVal("removedVkp", plombs.vkp); 
+    setVal("removedImp1", plombs.imp[0]); 
+    setVal("removedImp2", plombs.imp[1]); 
+    setVal("removedImp3", plombs.imp[2]); 
+    setVal("removedOther", plombs.other); 
+    
+    const otherEl = document.getElementById("removedOther");
+    if (otherEl) resizeTextarea(otherEl);
+
+    // Очищаємо поля встановлених
+    const installedIds = ["installedLichil", "installedOptop", "installedFasad1", "installedFasad2", "installedVkp", "installedImp1", "installedImp2", "installedImp3", "installedOther", "t0", "t1", "t2", "t3"];
+    installedIds.forEach(id => setVal(id, ""));
+
+  } catch (err) {
+    console.error("Помилка заповнення техперевірки:", err);
+  }
 }
 
-function fillReplaceStep1(d){
-  setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", d.account || ""); setInner("replacePibView1", d.pib || ""); setInner("replaceAddressView1", buildAddress(d)); setVal("replaceRemovedMeterType", d.type || ""); setVal("replaceRemovedMeterNumber", d.meter || "");
-  const plombs = parsePlombs(d.plomb || "");
-  setVal("replaceRemovedLichil", plombs.lichil); setVal("replaceRemovedOptop", plombs.optop); setVal("replaceRemovedFasad1", plombs.fasad[0]); setVal("replaceRemovedFasad2", plombs.fasad[1]); setVal("replaceRemovedVkp", plombs.vkp); setVal("replaceRemovedImp1", plombs.imp[0]); setVal("replaceRemovedImp2", plombs.imp[1]); setVal("replaceRemovedImp3", plombs.imp[2]); setVal("replaceRemovedOther", plombs.other); resizeTextarea(document.getElementById("replaceRemovedOther"));
-  setVal("replaceRemovedT0", ""); setVal("replaceRemovedT1", ""); setVal("replaceRemovedT2", ""); setVal("replaceRemovedT3", "");
+function fillControlCheck(d) {
+  try {
+    setInner("controlWorkerTab", worker); 
+    setInner("controlWorkerName", workerName); 
+    setInner("controlAccountView", d.account || ""); 
+    setInner("controlPibView", d.pib || ""); 
+    setInner("controlAddressView", buildAddress(d)); 
+    
+    setVal("controlMeterType", d.type || ""); 
+    setVal("controlMeterNumber", d.meter || ""); 
+    
+    const plombs = parsePlombs(d.plomb || "");
+    setVal("controlInstalledLichil", plombs.lichil); 
+    setVal("controlInstalledOptop", plombs.optop); 
+    setVal("controlInstalledFasad1", plombs.fasad[0]); 
+    setVal("controlInstalledFasad2", plombs.fasad[1]); 
+    setVal("controlInstalledVkp", plombs.vkp); 
+    setVal("controlInstalledImp1", plombs.imp[0]); 
+    setVal("controlInstalledImp2", plombs.imp[1]); 
+    setVal("controlInstalledImp3", plombs.imp[2]); 
+    
+    setVal("controlT0", ""); setVal("controlT1", ""); setVal("controlT2", ""); setVal("controlT3", "");
+  } catch (err) {
+    console.error("Помилка заповнення контрольного огляду:", err);
+  }
 }
 
-function goToReplaceStep2(){
-  document.getElementById("meterReplaceStep1").classList.add("hidden"); document.getElementById("meterReplaceStep2").classList.remove("hidden");
-  setInner("replaceWorkerTab2", getInner("replaceWorkerTab1")); setInner("replaceWorkerName2", getInner("replaceWorkerName1")); setInner("replaceAccountView2", getInner("replaceAccountView1")); setInner("replacePibView2", getInner("replacePibView1")); setInner("replaceAddressView2", getInner("replaceAddressView1"));
-  setVal("replaceInstalledMeterType", ""); setVal("replaceInstalledMeterNumber", ""); setVal("replaceInstalledLichil", ""); setVal("replaceInstalledOptop", ""); setVal("replaceInstalledFasad1", ""); setVal("replaceInstalledFasad2", ""); setVal("replaceInstalledVkp", ""); setVal("replaceInstalledImp1", ""); setVal("replaceInstalledImp2", ""); setVal("replaceInstalledImp3", ""); setVal("replaceInstalledOther", ""); resizeTextarea(document.getElementById("replaceInstalledOther"));
-  setVal("replaceInstalledT0", ""); setVal("replaceInstalledT1", ""); setVal("replaceInstalledT2", ""); setVal("replaceInstalledT3", "");
+// Допоміжна функція для адреси (щоб не було undefined)
+function buildAddress(d) {
+  if (!d) return "";
+  let addr = d.street || "";
+  if (d.house) addr += " буд. " + d.house;
+  if (d.flat) addr += " кв. " + d.flat;
+  return addr;
+}
+/* =========================================================
+   ЛОГІКА НАВІГАЦІЇ (ВИПРАВЛЕННЯ БІЛОГО ЕКРАНУ)
+========================================================= */
+
+// 1. Функція, яка ховає всі картки, щоб вони не накладалися
+function hideAllForms() {
+  const forms = [
+    "techCheckForm", "meterReplaceStep1", "meterReplaceStep2", 
+    "controlCheckForm", "fasadStep1", "fasadStep2", "fasadStep3",
+    "closeStep1", "closeStep2"
+  ];
+  forms.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
 }
 
-function backFromReplace1(){ if(isFasadFlow){ document.getElementById("meterReplaceStep1").classList.add("hidden"); document.getElementById("fasadStep3").classList.remove("hidden"); } else { showSearchBlock(); } }
-function backFromReplace2(){ document.getElementById("meterReplaceStep2").classList.add("hidden"); document.getElementById("meterReplaceStep1").classList.remove("hidden"); }
-
-function fillControlCheck(d){
-  setInner("controlWorkerTab", worker); setInner("controlWorkerName", workerName); setInner("controlAccountView", d.account || ""); setInner("controlPibView", d.pib || ""); setInner("controlAddressView", buildAddress(d)); setVal("controlMeterType", d.type || ""); setVal("controlMeterNumber", d.meter || "");
-  const plombs = parsePlombs(d.plomb || "");
-  setVal("controlInstalledLichil", plombs.lichil); setVal("controlInstalledOptop", plombs.optop); setVal("controlInstalledFasad1", plombs.fasad[0]); setVal("controlInstalledFasad2", plombs.fasad[1]); setVal("controlInstalledVkp", plombs.vkp); setVal("controlInstalledImp1", plombs.imp[0]); setVal("controlInstalledImp2", plombs.imp[1]); setVal("controlInstalledImp3", plombs.imp[2]); setVal("controlInstalledOther", ""); resizeTextarea(document.getElementById("controlInstalledOther"));
-  setVal("controlT0", ""); setVal("controlT1", ""); setVal("controlT2", ""); setVal("controlT3", "");
+// 2. Універсальна кнопка "Назад"
+function goBack() {
+  showSearchBlock();
 }
-function goBackControlCheck(){ document.getElementById("controlCheckForm").classList.add("hidden"); showSearchBlock(); }
+
+// 3. Повернення в головне меню (Пошук)
+function showSearchBlock() {
+  hideAllForms(); // Тепер ця функція існує!
+  
+  isFasadFlow = false;
+  localStorage.removeItem("isForceOffline"); 
+  
+  const searchBlock = document.getElementById("searchBlock");
+  if (searchBlock) {
+    searchBlock.style.display = "block";
+    searchBlock.classList.remove("hidden");
+  }
+
+  const meterSearch = document.getElementById("searchMeterBlock");
+  if (meterSearch) {
+    meterSearch.style.display = "block";
+    meterSearch.classList.remove("hidden");
+  }
+  
+  clearAllForms();
+  window.scrollTo(0,0);
+}
 
 /* =========================================================
 ФАСАДНА ЛОГІКА
