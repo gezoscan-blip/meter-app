@@ -1684,15 +1684,26 @@ function saveFasadData() {
 function sendDataToServer(data, hintId, formsToHide){
   if(navigator.onLine){
     google.script.run.withSuccessHandler(function(res){
-      if(hintId) { const h=document.getElementById(hintId); if(h) h.textContent = "✅ Збережено"; }
-      setTimeout(showSearchBlock, 1500);
+      if(hintId) { const h = document.getElementById(hintId); if(h) h.textContent = "✅ Збережено"; }
+      
+      // Запускаємо очищення РАЗОМ з переходом назад
+      setTimeout(function() {
+        resetFasadForm(); // Очищаємо форму
+        showSearchBlock(); // Переходимо на головний екран
+      }, 1500);
+      
     }).saveData(data);
-  } else { saveOffline(data); if(hintId){ const h=document.getElementById(hintId); if(h) h.textContent = "Збережено офлайн"; } setTimeout(showSearchBlock, 1500); }
-}
-
-function saveOffline(data){
-  let list = JSON.parse(localStorage.getItem("offlineData") || "[]");
-  list.push(data); localStorage.setItem("offlineData",JSON.stringify(list));
+  } else { 
+    saveOffline(data); 
+    
+    if(hintId){ const h = document.getElementById(hintId); if(h) h.textContent = "Збережено офлайн"; } 
+    
+    // І для офлайну теж запускаємо через таймер
+    setTimeout(function() {
+      resetFasadForm(); // Очищаємо форму
+      showSearchBlock(); // Переходимо на головний екран
+    }, 1500);
+  }
 }
 
 /* =========================================================
@@ -1985,6 +1996,35 @@ document.addEventListener("backbutton", function (e) {
   });
 }
 
+/* =========================================================
+фунція очищення імпутів та радіо кнопок
+========================================================= */
+  function resetFasadForm() {
+  // 1. Очищення інпутів та селектів (номер наряду, метраж, текст)
+  const inputsToReset = [
+    "fasadOrder", "fasadDemoLength", "fasadDemoMark", 
+    "f1_box", "f1_nom", "f1_asxsn", "f1_zn", "f1_zv", "f1_cable", "f1_gofra", "f1_clip", "f1_anker", "f1_dubel", "f1_boxk", "f1_styajka", "f1_other",
+    "f3_box", "f3_nom", "f3_asxsn", "f3_zn", "f3_zv", "f3_cable", "f3_gofra", "f3_clip", "f3_anker", "f3_dubel", "f3_boxk", "f3_styajka", "f3_other"
+  ];
+  
+  inputsToReset.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+
+  // 2. Скидання Radio-кнопок (підстава, дільниця, фазність, тип обліку)
+  const radios = document.querySelectorAll('input[type="radio"]');
+  radios.forEach(radio => radio.checked = false);
+
+  // 3. Скидання Чекбоксів (демонтаж)
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => cb.checked = false);
+  
+  // 4. Скидання глобальної змінної фази (якщо вона була)
+  fasadPhase = null;
+  isFasadFlow = false;
+  selectedReplaceReason = ""; // Якщо вона теж використовується для фасадної заміни
+}
   
 </script>
 </body>
