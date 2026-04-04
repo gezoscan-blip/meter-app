@@ -1281,6 +1281,7 @@ let selectedReplaceReason = ""; // Зберігає вибрану Підста�
 
 function fillFields(d) {
   // ХОВАЄМО ОБИДВА БЛОКИ ПОШУКУ
+  clearSaveStatus();
   document.getElementById("searchBlock").style.display = "none"; 
   const meterSearch = document.getElementById("searchMeterBlock");
   if (meterSearch) meterSearch.style.display = "none";
@@ -1326,21 +1327,7 @@ function fillFields(d) {
 /* =========================================================
 ФУНКЦІЇ ДЛЯ МОДАЛЬНОГО ВІКНА ЗАМІНИ
 ========================================================= */
-function setReplaceReason(reason) {
-  selectedReplaceReason = reason;
-  document.getElementById("reasonModal").style.display = "none"; 
-  document.getElementById("reasonModal").classList.add("hidden");
-
-  document.getElementById("meterReplaceStep1").classList.remove("hidden");
-  window.scrollTo(0,0);
-  fillReplaceStep1(tempReplaceData);
-}
-
-function cancelReplaceReason() {
-  document.getElementById("reasonModal").style.display = "none"; 
-  document.getElementById("reasonModal").classList.add("hidden");
-  showSearchBlock(); 
-}
+document.getElementById("reasonModal").style.display = "none";
 
 /* =========================================================
 МЕНЕДЖЕР ФОРМ (Приховування / Показ)
@@ -1379,6 +1366,7 @@ function hideAllForms() {
 
 function showSearchBlock() {
   hideAllForms();
+  clearSaveStatus();
   // Повертаємо обидва блоки пошуку на екран
   document.getElementById("searchBlock").style.display = "block";
   const meterSearch = document.getElementById("searchMeterBlock");
@@ -1980,6 +1968,24 @@ document.addEventListener("backbutton", function (e) {
     closeMenu();
   }
 }, false);
+  /* =========================================================
+фунція очищення зеленої галочки
+========================================================= */
+  function clearSaveStatus() {
+  const hints = [
+    "saveHint", 
+    "replaceSaveHint", 
+    "controlSaveHint", 
+    "closeSaveHint"
+  ];
+  
+  hints.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = ""; // Очищаємо текст повідомлення
+  });
+}
+
+  
 </script>
 </body>
 </html>
