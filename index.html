@@ -2045,6 +2045,36 @@ document.addEventListener("backbutton", function (e) {
   isFasadFlow = false;
   selectedReplaceReason = ""; // Якщо вона теж використовується для фасадної заміни
 }
+  /* =========================================================
+фунція глобальної змінної для збереження підстава
+========================================================= */
+  function setReplaceReason(reason) {
+  // 1. Запам'ятовуємо вибір у глобальну змінну
+  selectedReplaceReason = reason;
+  
+  // 2. Ховаємо вікно вибору підстави
+  document.getElementById("reasonModal").style.display = "none"; 
+  document.getElementById("reasonModal").classList.add("hidden");
+
+  // 3. Відкриваємо крок 1 форми заміни
+  document.getElementById("meterReplaceStep1").classList.remove("hidden");
+  
+  // 4. Заповнюємо форму даними абонента, які ми "підхопили" під час пошуку
+  if (tempReplaceData) {
+    fillReplaceStep1(tempReplaceData);
+  }  
+  window.scrollTo(0,0);
+}
+/* =========================================================
+функція кнопки скасувати
+========================================================= */
+  function cancelReplaceReason() {
+  document.getElementById("reasonModal").style.display = "none"; 
+  document.getElementById("reasonModal").classList.add("hidden");
+  
+  // Повертаємось до головного меню
+  showSearchBlock(); 
+}
   
 </script>
 </body>
