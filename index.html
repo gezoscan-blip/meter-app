@@ -910,19 +910,18 @@ window.onload = function() {
   google.script.run.withSuccessHandler(function(list){ meterTypes = list || []; }).getMeterTypes();
 
   const savedWorker = localStorage.getItem("worker");
-  const savedPass = localStorage.getItem("workerPass"); // Отримуємо збережений ПІН
+  const savedPass = localStorage.getItem("workerPass");
 
   if (!savedWorker || !savedPass) return;
 
   if (navigator.onLine) {
-    // Відправляємо і табельний, і ПІН
     google.script.run.withSuccessHandler(res => {
       if (res.ok) { 
         worker = savedWorker; 
         workerName = res.name || ""; 
         afterLogin(); 
       } else { 
-        alert("⚠️ ПІН-код було змінено. Увійдіть знову.");
+        alert("⚠️ ПІН-код змінено. Увійдіть знову.");
         localStorage.clear();
         location.reload(); 
       }
@@ -933,32 +932,22 @@ window.onload = function() {
     afterLogin();
   }
 };
- // --- БРОНЕБІЙНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
-  const loginBox = document.getElementById("login");
 
-  if (loginBox) {
-    // Знаходимо ВСІ поля вводу (input), які знаходяться всередині картки входу
-    const loginInputs = loginBox.querySelectorAll("input");
-
-    // Вішаємо подію "підстрибування" на кожне з них
-    loginInputs.forEach(input => {
-      input.addEventListener("focus", () => {
-        loginBox.classList.add("login-focused");
-      });
-
-      input.addEventListener("blur", () => {
-        // Затримка 100мс потрібна, щоб картка не стрибала вниз, 
-        // якщо монтер просто перемкнувся з Табельного на ПІН
-        setTimeout(() => {
-          // Якщо зараз жодне з полів вводу не у фокусі - опускаємо картку
-          const isAnyInputFocused = Array.from(loginInputs).some(i => i === document.activeElement);
-          if (!isAnyInputFocused) {
-            loginBox.classList.remove("login-focused");
-          }
-        }, 100);
-      });
+// КЛАВІАТУРА (Підстрибування)
+const loginBox = document.getElementById("login");
+if (loginBox) {
+  const loginInputs = loginBox.querySelectorAll("input");
+  loginInputs.forEach(input => {
+    input.addEventListener("focus", () => loginBox.classList.add("login-focused"));
+    input.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (!Array.from(loginInputs).some(i => i === document.activeElement)) {
+          loginBox.classList.remove("login-focused");
+        }
+      }, 100);
     });
-  }
+  });
+}
 
 /* =========================================================
 ФУНКЦІЯ ВХОДУ ТА ЛОГАУТУ
@@ -1293,55 +1282,6 @@ function cleanPlomb(text) {
   return text.replace(/[^A-Za-zА-Яа-яІіЇїЄєҐґ0-9]/g, "").toUpperCase();
 }
 
-/* =========================================================
-ЗАПОВНЕННЯ ФОРМ ДАНИМИ ТА МЕНЕДЖЕР ВІКОН
-========================================================= */
-let tempReplaceData = null; // Тимчасово зберігає дані абонента для Заміни лічильника
-let selectedReplaceReason = ""; // Зберігає вибрану Підставу
-
-function fillFields(d) {
-  // ХОВАЄМО ОБИДВА БЛОКИ ПОШУКУ
-  document.getElementById("searchBlock").style.display = "none"; 
-  const meterSearch = document.getElementById("searchMeterBlock");
-  if (meterSearch) meterSearch.style.display = "none";
-
-  if (selectedWork === "Технічна перевірка") { 
-    document.getElementById("techCheckForm").classList.remove("hidden"); 
-    window.scrollTo(0,0); 
-    fillTechCheck(d); 
-    return; 
-  }
-  if (selectedWork === "Фасадні роботи") { 
-    setInner("fasadWorkerTab", worker); 
-    setInner("fasadWorkerName", workerName);
-    document.getElementById("fasadStep1").classList.remove("hidden"); 
-    window.scrollTo(0,0); 
-    return; 
-  }
-  if (selectedWork === "Контрольний огляд") { 
-    document.getElementById("controlCheckForm").classList.remove("hidden"); 
-    window.scrollTo(0,0); 
-    fillControlCheck(d); 
-    return; 
-  }
-  if (selectedWork === "Закриття о/р з демонтажем") { 
-    document.getElementById("closeStep1").classList.remove("hidden"); 
-    window.scrollTo(0,0); 
-    fillCloseStep1(d); 
-    return; 
-  }
-  if (selectedWork === "Заміна лічильника") { 
-    tempReplaceData = d; 
-    document.getElementById("reasonModal").style.display = "flex";
-    document.getElementById("reasonModal").classList.remove("hidden");
-    return; 
-  }
-
-  // Якщо щось пішло не так - повертаємо пошук
-  document.getElementById("searchBlock").style.display = "block";
-  if (meterSearch) meterSearch.style.display = "block";
-  alert("Форма для цього виду робіт ще не налаштована"); 
-}
 
 /* =========================================================
 ФУНКЦІЇ ДЛЯ МОДАЛЬНОГО ВІКНА ЗАМІНИ
@@ -1449,32 +1389,20 @@ function fillFields(d) {
 ОЧИЩЕННЯ ВСІХ ФОРМ (Зняття галочок і стирання тексту)
 ========================================================= */
 function clearAllForms() {
-  // 1. Очищаємо всі текстові поля і textarea
-  const allInputs = document.querySelectorAll('.card input[type="text"], .card input[type="number"], .card input[type="tel"], .card textarea');
+  const allInputs = document.querySelectorAll('.card input, .card textarea');
   allInputs.forEach(input => {
-    // Не чіпаємо поля логіну
-    if (input.id !== "tab" && input.id !== "pass") {
-      input.value = "";
+    // ЗАХИСТ: не стираємо логін та головне поле пошуку
+    if (input.id !== "tab" && input.id !== "pass" && input.id !== "account") {
+      if (input.type === "checkbox" || input.type === "radio") {
+        input.checked = false;
+      } else {
+        input.value = "";
+      }
     }
   });
-
-  // 2. Знімаємо всі радіокнопки і чекбокси
-  const allRadios = document.querySelectorAll('.card input[type="radio"], .card input[type="checkbox"]');
-  allRadios.forEach(radio => radio.checked = false);
-
-  // 3. Скидаємо випадаючі списки (select) на "Вибрати"
-  const allSelects = document.querySelectorAll('.card select');
-  allSelects.forEach(select => select.selectedIndex = 0);
-
-  // 4. Очищаємо зелені написи "Збережено" та "Збережено офлайн"
-  const hints = ["saveHint", "replaceSaveHint", "controlSaveHint", "closeSaveHint"];
-  hints.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = "";
-  });
-
-  // 5. Очищаємо текстові блоки з ПІБ та адресою
-  const views = ["pibView", "addressView", "replacePibView1", "replaceAddressView1", "replacePibView2", "replaceAddressView2", "controlPibView", "controlAddressView", "closePibView1", "closeAddressView1"];
+  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  // Очищаємо ПІБ
+  const views = ["pibView", "addressView", "replacePibView1", "controlPibView", "closePibView1"];
   views.forEach(id => setInner(id, ""));
 }
   
@@ -1724,47 +1652,74 @@ function buildAddress(d) {
 /* =========================================================
    ЛОГІКА НАВІГАЦІЇ (ВИПРАВЛЕННЯ БІЛОГО ЕКРАНУ)
 ========================================================= */
-
-// 1. Функція, яка ховає всі картки, щоб вони не накладалися
+// 1. ХОВАЄМО ВСІ КАРТКИ (Додайте цю функцію, якщо її нема!)
 function hideAllForms() {
-  const forms = [
-    "techCheckForm", "meterReplaceStep1", "meterReplaceStep2", 
-    "controlCheckForm", "fasadStep1", "fasadStep2", "fasadStep3",
-    "closeStep1", "closeStep2"
-  ];
+  const forms = ["techCheckForm", "meterReplaceStep1", "meterReplaceStep2", "controlCheckForm", "fasadStep1", "fasadStep2", "fasadStep3", "closeStep1", "closeStep2"];
   forms.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add("hidden");
   });
 }
 
-// 2. Універсальна кнопка "Назад"
-function goBack() {
-  showSearchBlock();
-}
+// 2. УНІВЕРСАЛЬНЕ ПОВЕРНЕННЯ
+function goBack() { showSearchBlock(); }
 
-// 3. Повернення в головне меню (Пошук)
 function showSearchBlock() {
-  hideAllForms(); // Тепер ця функція існує!
-  
+  hideAllForms();
   isFasadFlow = false;
   localStorage.removeItem("isForceOffline"); 
-  
-  const searchBlock = document.getElementById("searchBlock");
-  if (searchBlock) {
-    searchBlock.style.display = "block";
-    searchBlock.classList.remove("hidden");
-  }
-
+  document.getElementById("searchBlock").style.display = "block";
   const meterSearch = document.getElementById("searchMeterBlock");
-  if (meterSearch) {
-    meterSearch.style.display = "block";
-    meterSearch.classList.remove("hidden");
-  }
-  
-  clearAllForms();
+  if (meterSearch) meterSearch.style.display = "block";
+  clearAllForms(); // Очищаємо все крім о/р
   window.scrollTo(0,0);
 }
+
+// 3. ПОШУК (ОНЛАЙН)
+function search() {
+  const acc = document.getElementById("account").value.trim();
+  if (!selectedWork) { alert("❌ Оберіть вид робіт!"); return; }
+  if (acc.length < 10) { alert("❌ Введіть 10 цифр о/р!"); return; }
+
+  const btn = document.getElementById("btnSearch");
+  btn.innerText = "⏳ Пошук...";
+  localStorage.setItem("isForceOffline", "false"); 
+
+  google.script.run.withSuccessHandler(function(res) {
+    btn.innerText = "Знайти";
+    if (res && res.found) {
+      fillFields(res.data); 
+    } else { alert("⚠️ Рахунок не знайдено!"); }
+  }).findAccountFast(acc);
+}
+
+// 4. ДИСПЕТЧЕР ФОРМ (Виправляє помилку заповнення)
+function fillFields(d) {
+  try {
+    hideAllForms();
+    document.getElementById("searchBlock").style.display = "none";
+    if(document.getElementById("searchMeterBlock")) document.getElementById("searchMeterBlock").style.display = "none";
+
+    if (selectedWork === "Технічна перевірка") {
+      document.getElementById("techCheckForm").classList.remove("hidden");
+      fillTechCheck(d);
+    } else if (selectedWork === "Контрольний огляд") {
+      document.getElementById("controlCheckForm").classList.remove("hidden");
+      fillControlCheck(d);
+    } else if (selectedWork === "Заміна лічильника") {
+      tempReplaceData = d;
+      document.getElementById("reasonModal").style.display = "flex";
+      document.getElementById("reasonModal").classList.remove("hidden");
+    } else if (selectedWork === "Фасадні роботи") {
+      setInner("fasadWorkerTab", worker); setInner("fasadWorkerName", workerName);
+      document.getElementById("fasadStep1").classList.remove("hidden");
+    } else if (selectedWork === "Закриття о/р з демонтажем") {
+      document.getElementById("closeStep1").classList.remove("hidden");
+      fillCloseStep1(d);
+    }
+  } catch (e) { alert("Помилка відображення: " + e.message); }
+}
+
 
 /* =========================================================
 ФАСАДНА ЛОГІКА
@@ -1803,57 +1758,26 @@ function goFasadStep4() {
     const demoBox = document.getElementById("fasadDemoBy");
     const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
-    // ЛОГІКА: Якщо галочка ОРБ не стоїть — вимагаємо марку та метраж
-    if (!demoBy) {
-      if (mark === "" || length === "" || length === "0") {
-        alert("❌ Помилка: Оберіть марку проводу та вкажіть метраж, або поставте галочку 'ОРБ'.");
-        return;
-      }
+    if (!demoBy && (mark === "" || length === "" || length === "0")) {
+      alert("❌ Заповніть дані демонтажу повністю!"); return;
     }
 
     isFasadFlow = true; 
-    let acc = getVal("account");
+    let acc = document.getElementById("account").value.trim();
     if (!acc) acc = localStorage.getItem("tempOfflineAcc") || "";
-
-    if (!acc) { alert("❌ Помилка: номер рахунку втрачено."); showSearchBlock(); return; }
 
     document.getElementById("fasadStep3").classList.add("hidden");
-    
     const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
 
     if (!isOffline) {
       google.script.run.withSuccessHandler(res => { 
-        if (res && res.found) { openReplaceFromFasad(res.data); } 
-        else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: ""}); } 
+        if (res && res.found) openReplaceFromFasad(res.data); 
+        else openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО"}); 
       }).findAccountFast(acc);
     } else { 
       openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
     }
-  } catch (e) { alert("❌ Помилка переходу: " + e.message); }
-}
-
-    isFasadFlow = true; 
-    
-    // Беремо о/р з поля, якщо воно пусте (офлайн) — беремо з пам'яті
-    let acc = accEl.value.trim();
-    if (!acc) acc = localStorage.getItem("tempOfflineAcc") || "";
-
-    if (!acc) { alert("❌ Помилка: особовий рахунок не знайдено!"); showSearchBlock(); return; }
-
-    const step3 = document.getElementById("fasadStep3");
-    if (step3) step3.classList.add("hidden");
-    
-    const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
-
-    if (!isOffline) {
-      google.script.run.withSuccessHandler(res => { 
-        if (res && res.found) { openReplaceFromFasad(res.data); } 
-        else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); } 
-      }).findAccountFast(acc);
-    } else { 
-      openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
-    }
-  } catch (e) { alert("❌ Помилка при переході на Заміну:\n" + e.message); }
+  } catch (e) { alert("Помилка: " + e.message); }
 }
 
 function openReplaceFromFasad(d){
