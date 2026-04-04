@@ -1474,20 +1474,63 @@ function clearAllForms() {
   views.forEach(id => setInner(id, ""));
 }
   
+/* =========================================================
+   ЛОГІКА НАВІГАЦІЇ (ДОДАНО ТІ ФУНКЦІЇ, ЯКИХ НЕ ВИСТАЧАЄ)
+========================================================= */
+
+// 1. Універсальна функція ховання всіх карток
+function hideAllForms() {
+  const forms = [
+    "techCheckForm", 
+    "meterReplaceStep1", 
+    "meterReplaceStep2", 
+    "controlCheckForm", 
+    "fasadStep1", 
+    "fasadStep2", 
+    "fasadStep3",
+    "closeStep1", 
+    "closeStep2"
+  ];
+  forms.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add("hidden"); // Ховаємо через клас
+      el.style.display = "none";  // Ховаємо через стиль (для надійності)
+    }
+  });
+}
+
+// 2. Універсальна функція "Назад"
+function goBack() {
+  showSearchBlock();
+}
+
+// 3. ПОВНЕ ВИПРАВЛЕННЯ ФУНКЦІЇ ПОВЕРНЕННЯ В МЕНЮ
 function showSearchBlock() {
+  // Тепер hideAllForms існує і спрацює правильно
   hideAllForms();
-  // СКИДАЄМО ОФЛАЙН РЕЖИМ, КОЛИ ПОВЕРТАЄМОСЬ У ГОЛОВНЕ МЕНЮ
+  
+  // Скидаємо режими
+  isFasadFlow = false;
   localStorage.removeItem("isForceOffline"); 
   
-  document.getElementById("searchBlock").style.display = "block";
+  // ПОКАЗУЄМО ГОЛОВНИЙ БЛОК ПОШУКУ
+  const searchBlock = document.getElementById("searchBlock");
+  if (searchBlock) {
+    searchBlock.style.display = "block";
+    searchBlock.classList.remove("hidden");
+  }
+
+  // ПОКАЗУЄМО БЛОК ПОШУКУ ПО ЛІЧИЛЬНИКУ
   const meterSearch = document.getElementById("searchMeterBlock");
-  if (meterSearch) meterSearch.style.display = "block";
+  if (meterSearch) {
+    meterSearch.style.display = "block";
+    meterSearch.classList.remove("hidden");
+  }
   
-  document.getElementById("account").value = "";
-  if(document.getElementById("searchMeterNumber")) document.getElementById("searchMeterNumber").value = "";
+  // Очищаємо поля (крім о/р)
+  clearAllForms();
   
-  const hints = document.getElementById("accountHints");
-  if(hints) hints.innerHTML = "";
   window.scrollTo(0,0);
 }
 
