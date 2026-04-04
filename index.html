@@ -1570,43 +1570,42 @@ function goFasadStep3(){ document.getElementById("fasadStep2").classList.add("hi
 function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden"); }
 
 function goFasadStep4() {
-  const mark = document.getElementById("fasadDemoMark").value.trim(); 
+  const mark = document.getElementById("fasadDemoMark").value.trim();
   const lengthInput = document.getElementById("fasadDemoLength").value.trim();
-  const length = parseFloat(lengthInput) || 0; 
+  const length = parseFloat(lengthInput) || 0;
   const isOrb = document.getElementById("fasadDemoBy").checked;
 
+  console.log("Debug: Mark=" + mark + ", Length=" + length + ", IsOrb=" + isOrb);
+
   // ЛОГІКА:
-  // 1. Якщо ми НЕ ОРБ:
   if (!isOrb) {
-    // Якщо вказано метраж > 0, марка обов'язкова
-    if (length > 0 && mark === "") {
-      alert("❌ Ви вказали метраж (" + length + " м), але не вибрали марку вводу!");
-      return;
+    // Якщо не ОРБ, перевіряємо, чи є демонтаж (length > 0)
+    if (length > 0) {
+      if (mark === "") {
+        alert("❌ Помилка: Вкажіть марку проводу для демонтажу!");
+        return; // Зупиняємо виконання
+      }
+    } else {
+      // length <= 0. Якщо при цьому вибрана марка - це теж помилка
+      if (mark !== "") {
+        alert("❌ Помилка: Ви вказали марку, але метраж має бути більше 0!");
+        return; // Зупиняємо виконання
+      }
     }
-    // Якщо вибрано марку, метраж обов'язковий і має бути > 0
-    if (mark !== "" && length <= 0) {
-      alert("❌ Ви вибрали марку, але не вказали метраж (має бути більше 0)!");
-      return;
-    }
-  } 
-  // 2. Якщо ми ОРБ:
-  else {
-    // Тут перевірка м'якша: марка та метраж можуть бути, а можуть і не бути.
-    // Але якщо вказали метраж, то бажано і марку, хоча не критично для ОРБ.
-    // Якщо вам потрібно і для ОРБ суворі правила, можна додати сюди перевірку.
   }
 
-  // Якщо все ок:
+  // Якщо перевірку пройшли або вибрали ОРБ
   isFasadFlow = true; 
-  const acc = document.getElementById("account").value.trim();
   document.getElementById("fasadStep3").classList.add("hidden");
   
-  // ... далі ваш стандартний код виклику openReplaceFromFasad ...
+  // Далі виклик форми заміни...
+  const acc = document.getElementById("account").value.trim();
+  
   if (navigator.onLine && (typeof isForceOffline === 'undefined' || !isForceOffline)) {
     google.script.run.withSuccessHandler(res => { 
       if (res.found) { openReplaceFromFasad(res.data); } 
       else { 
-        alert("⚠️ Абонента не знайдено! Відкриваю пусту форму.");
+        alert("⚠️ Абонента не знайдено!");
         openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
       } 
     }).findAccountFast(acc);
