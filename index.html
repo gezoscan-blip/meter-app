@@ -864,7 +864,7 @@ const google = {
       withSuccessHandler: function(callback) {
         return {
           login: (tab, pass) => sendRequest("login", {tab, pass}, callback),
-          checkWorker: (tab) => sendRequest("checkWorker", {tab}, callback),
+          checkWorker: (tab, pass) => sendRequest("checkWorker", {tab, pass}, callback),
           findAccountFast: (account) => sendRequest("findAccountFast", {account}, callback),
           findAccountByMeter: (meter) => sendRequest("findAccountByMeter", {meter}, callback), // ДОДАНО
           searchAccounts: (part) => sendRequest("searchAccounts", {part}, callback),
@@ -910,18 +910,19 @@ window.onload = function() {
   google.script.run.withSuccessHandler(function(list){ meterTypes = list || []; }).getMeterTypes();
 
   const savedWorker = localStorage.getItem("worker");
-  const savedPass = localStorage.getItem("workerPass");
+  const savedPass = localStorage.getItem("workerPass"); // Отримуємо збережений ПІН
 
   if (!savedWorker || !savedPass) return;
 
   if (navigator.onLine) {
+    // Відправляємо і табельний, і ПІН
     google.script.run.withSuccessHandler(res => {
       if (res.ok) { 
         worker = savedWorker; 
         workerName = res.name || ""; 
         afterLogin(); 
       } else { 
-        alert("⚠️ Доступ заблоковано або ПІН змінено.");
+        alert("⚠️ ПІН-код було змінено. Увійдіть знову.");
         localStorage.clear();
         location.reload(); 
       }
@@ -1493,55 +1494,49 @@ function showSearchBlock() {
 /* =========================================================
 ПАРСИНГ ПЛОМБ (Оновлено під формат [Номер/Місце/Бригада])
 ========================================================= */
+// БРОНЕБІЙНИЙ ПАРСИНГ ПЛОМБ
 function parsePlombs(plombText){
   const result = { lichil: "", optop: "", fasad: ["", ""], vkp: "", imp: ["", "", ""], other: [] };
-  let text = String(plombText || "").trim();
-  if(!text) return result;
-
-  // Шукаємо всі блоки у квадратних дужках, наприклад [С 81099073/Фасад/ППН 1-8]
+  if(!plombText) return result;
+  
+  let text = String(plombText).trim();
   const matches = text.match(/\[(.*?)\]/g);
 
   if (matches) {
     matches.forEach(m => {
-      // Прибираємо дужки [ і ]
       let content = m.replace(/[\[\]]/g, "");
-      // Розбиваємо по слешу: parts[0] = "С 81099073", parts[1] = "Фасад"
       let parts = content.split("/");
-
-      let plombNum = cleanPlomb(parts[0]); // Робить "С81099073" (видаляє пробіли)
+      let plombNum = cleanPlomb(parts[0]);
       let location = (parts[1] || "").toLowerCase();
 
       if (!plombNum) return;
 
-      if(location.includes("лічил")) { 
-        if(!result.lichil) result.lichil = plombNum; else result.other.push(plombNum); 
+      if(location.includes("лічил")) result.lichil = plombNum;
+      else if(location.includes("оптоп")) result.optop = plombNum;
+      else if(location.includes("фасад") || location.includes("шаф")) {
+        if(!result.fasad[0]) result.fasad[0] = plombNum; else result.fasad[1] = plombNum;
       }
-      else if(location.includes("оптоп")) { 
-        if(!result.optop) result.optop = plombNum; else result.other.push(plombNum); 
+      else if(location.includes("вкп") || location.includes("ввід")) result.vkp = plombNum;
+      else if(location.includes("імп") || location.includes("корп")) {
+        const idx = result.imp.findIndex(v => !v); if(idx !== -1) result.imp[idx] = plombNum;
       }
-      else if(location.includes("фасад") || location.includes("шкаф") || location.includes("шафа") || location.includes("сходова")) { 
-        if(!result.fasad[0]) result.fasad[0] = plombNum; 
-        else if(!result.fasad[1]) result.fasad[1] = plombNum; 
-        else result.other.push(plombNum); 
-      }
-      else if(location.includes("вкп") || location.includes("ввідн") || location.includes("ввод")) { 
-        if(!result.vkp) result.vkp = plombNum; else result.other.push(plombNum); 
-      }
-      else if(location.includes("імп") || location.includes("корпу") || location.includes("розпа")) { 
-        const idx = result.imp.findIndex(v => !v); 
-        if(idx !== -1) result.imp[idx] = plombNum; else result.other.push(plombNum); 
-      }
-      else {
-        result.other.push(plombNum);
-      }
+      else result.other.push(plombNum);
     });
   } else {
-    // Якщо текст є, але він без квадратних дужок (старий формат), кидаємо все в "Інше"
+    // Якщо дужок немає - просто записуємо весь текст
     result.other.push(text);
   }
-
   result.other = result.other.join("\n");
   return result;
+}
+
+// БЕЗПЕЧНА АДРЕСА
+function buildAddress(d) {
+  if (!d) return "";
+  let street = d.street || "";
+  let house = d.house ? " буд. " + d.house : "";
+  let flat = d.flat ? " кв. " + d.flat : "";
+  return street + house + flat;
 }
 
 /* =========================================================
