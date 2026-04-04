@@ -1432,8 +1432,12 @@ function fillFields(d) {
       fillCloseStep1(d);
     }
     else if (selectedWork === "Фасадні роботи") {
-      document.getElementById("fasadStep1").classList.remove("hidden");
-    }
+    // Прописуємо дані монтера у відповідні поля
+    setInner("fasadWorkerTab", worker); 
+    setInner("fasadWorkerName", workerName);
+    
+    document.getElementById("fasadStep1").classList.remove("hidden");
+  }
     window.scrollTo(0,0);
   } catch (e) {
     console.error(e);
@@ -1794,39 +1798,59 @@ function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hi
 
 function goFasadStep4() {
   try {
-    const markEl = document.getElementById("fasadDemoMark");
-    const lengthEl = document.getElementById("fasadDemoLength");
+    const mark = getVal("fasadDemoMark");
+    const length = getVal("fasadDemoLength");
     const demoBox = document.getElementById("fasadDemoBy");
-    const accEl = document.getElementById("account");
-    
-    if (!markEl || !lengthEl || !accEl) { alert("❌ Помилка: загублено поле на сторінці!"); return; }
-
-    const mark = markEl.value.trim(); 
-    const length = lengthEl.value.trim(); 
     const demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
 
-    if (demoBy !== "ОРБ") {
-      if (length !== "" && length !== "0" && mark === "") { alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу."); return; }
-      if (mark !== "" && (length === "" || length === "0")) { alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж."); return; }
+    // ЛОГІКА: Якщо галочка ОРБ не стоїть — вимагаємо марку та метраж
+    if (!demoBy) {
+      if (mark === "" || length === "" || length === "0") {
+        alert("❌ Помилка: Оберіть марку проводу та вкажіть метраж, або поставте галочку 'ОРБ'.");
+        return;
+      }
     }
 
     isFasadFlow = true; 
-    const acc = accEl.value.trim();
+    let acc = getVal("account");
+    if (!acc) acc = localStorage.getItem("tempOfflineAcc") || "";
+
+    if (!acc) { alert("❌ Помилка: номер рахунку втрачено."); showSearchBlock(); return; }
+
+    document.getElementById("fasadStep3").classList.add("hidden");
     
-    const step3 = document.getElementById("fasadStep3");
-    if (step3) step3.classList.add("hidden");
-    
-    // НАДІЙНА ПЕРЕВІРКА ОФЛАЙНУ З ПАМ'ЯТІ ТЕЛЕФОНУ
     const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
 
     if (!isOffline) {
-      // ОНЛАЙН РЕЖИМ
+      google.script.run.withSuccessHandler(res => { 
+        if (res && res.found) { openReplaceFromFasad(res.data); } 
+        else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: ""}); } 
+      }).findAccountFast(acc);
+    } else { 
+      openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+    }
+  } catch (e) { alert("❌ Помилка переходу: " + e.message); }
+}
+
+    isFasadFlow = true; 
+    
+    // Беремо о/р з поля, якщо воно пусте (офлайн) — беремо з пам'яті
+    let acc = accEl.value.trim();
+    if (!acc) acc = localStorage.getItem("tempOfflineAcc") || "";
+
+    if (!acc) { alert("❌ Помилка: особовий рахунок не знайдено!"); showSearchBlock(); return; }
+
+    const step3 = document.getElementById("fasadStep3");
+    if (step3) step3.classList.add("hidden");
+    
+    const isOffline = (localStorage.getItem("isForceOffline") === "true") || !navigator.onLine;
+
+    if (!isOffline) {
       google.script.run.withSuccessHandler(res => { 
         if (res && res.found) { openReplaceFromFasad(res.data); } 
         else { openReplaceFromFasad({account: acc, pib: "НЕ ЗНАЙДЕНО", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); } 
       }).findAccountFast(acc);
     } else { 
-      // ОФЛАЙН РЕЖИМ (Жодних запитів до бази!)
       openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
     }
   } catch (e) { alert("❌ Помилка при переході на Заміну:\n" + e.message); }
@@ -2131,6 +2155,40 @@ function fillCloseStep1(d) {
   setVal("closeOther", plombs.other); resizeTextarea(document.getElementById("closeOther"));
   setVal("closeT0", ""); setVal("closeT1", ""); setVal("closeT2", ""); setVal("closeT3", "");
 }
+ function goToReplaceStep2() {
+  try {
+    // 1. Ховаємо Крок 1 (Знятий лічильник) і показуємо Крок 2 (Встановлений)
+    const step1 = document.getElementById("meterReplaceStep1");
+    const step2 = document.getElementById("meterReplaceStep2");
+    
+    if (step1) step1.classList.add("hidden");
+    if (step2) step2.classList.remove("hidden");
+
+    // 2. Копіюємо дані в заголовок Кроку 2, щоб монтер бачив, з чим працює
+    setInner("replaceWorkerTab2", worker);
+    setInner("replaceWorkerName2", workerName);
+    setInner("replaceAccountView2", getInner("replaceAccountView1"));
+
+    // 3. Очищаємо поля встановленого лічильника (щоб не було старих даних)
+    const fieldsToClear = [
+      "replaceInstalledMeterType", "replaceInstalledMeterNumber",
+      "replaceInstalledLichil", "replaceInstalledOptop",
+      "replaceInstalledFasad1", "replaceInstalledFasad2",
+      "replaceInstalledVkp", "replaceInstalledImp1",
+      "replaceInstalledImp2", "replaceInstalledImp3",
+      "replaceInstalledOther", "replaceInstalledT0",
+      "replaceInstalledT1", "replaceInstalledT2", "replaceInstalledT3"
+    ];
+    
+    fieldsToClear.forEach(id => setVal(id, ""));
+    
+    // Прокручуємо вгору сторінки
+    window.scrollTo(0, 0);
+  } catch (err) {
+    console.error("Помилка переходу до встановленого лічильника:", err);
+    alert("❌ Помилка: функція переходу не спрацювала.");
+  }
+} 
 
 function goCloseStep2() {
   let mark = getVal("closeDemoMark"); 
