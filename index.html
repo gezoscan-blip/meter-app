@@ -1612,6 +1612,25 @@ function goFasadStep4() {
   // --- 4. Якщо все ОК ---
   proceedToNextStep();
 }
+  // Допоміжна функція, щоб не дублювати код переходу
+function proceedToNextStep() {
+  isFasadFlow = true; 
+  document.getElementById("fasadStep3").classList.add("hidden");
+  
+  const acc = document.getElementById("account").value.trim();
+  
+  if (navigator.onLine && (typeof isForceOffline === 'undefined' || !isForceOffline)) {
+    google.script.run.withSuccessHandler(res => { 
+      if (res.found) { openReplaceFromFasad(res.data); } 
+      else { 
+        alert("⚠️ Абонента не знайдено!");
+        openReplaceFromFasad({account: acc, pib: "", street: "", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+      } 
+    }).findAccountFast(acc);
+  } else { 
+    openReplaceFromFasad({account: acc, pib: "ОФЛАЙН", street: "ОФЛАЙН", house: "", flat: "", type: "", meter: "", plomb: ""}); 
+  }
+}
   
 function openReplaceFromFasad(d){
   document.getElementById("meterReplaceStep1").classList.remove("hidden");
