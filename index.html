@@ -1570,45 +1570,33 @@ function goFasadStep3(){ document.getElementById("fasadStep2").classList.add("hi
 function backToFasad2(){ document.getElementById("fasadStep3").classList.add("hidden"); document.getElementById("fasadStep2").classList.remove("hidden"); }
 
 function goFasadStep4() {
-  const mark = document.getElementById("fasadDemoMark").value.trim();
+  const markElement = document.getElementById("fasadDemoMark");
+  const mark = markElement.value.trim(); // Це буде "" якщо вибрано "Вибрати"
   const lengthInput = document.getElementById("fasadDemoLength").value.trim();
   const length = parseFloat(lengthInput) || 0;
   const isOrb = document.getElementById("fasadDemoBy").checked;
 
-  // 1. ПЕРЕВІРКА: чи введено щось взагалі?
-  // Якщо ОРБ не стоїть І марка порожня І метраж == 0 (або порожній)
-  if (!isOrb && mark === "" && length === "") {
-    alert("❌ Помилка: Ви нічого не вказали (ні ОРБ, ні дані про демонтаж)!");
-    return;
-  }
+  console.log("Марка:", mark, "Метраж:", length, "ОРБ:", isOrb);
 
-  // 2. ЯКЩО СТОЇТЬ ОРБ — ПРОПУСКАЄМО
+  // 1. Якщо ОРБ - пропускаємо одразу (незалежно від інших полів)
   if (isOrb) {
     proceedToNextStep();
     return;
   }
 
-  // 3. Якщо метраж 0 - це означає, що нічого не демонтували (пропускаємо)
+  // 2. Якщо метраж 0 - це означає, що нічого не демонтували (пропускаємо)
   if (length === 0) {
     proceedToNextStep();
     return;
   }
 
-  // 4. ЯКЩО НЕ ОРБ:
-  // Якщо ввели метраж, але не вибрали марку
-  if (length > 0 && mark === "") {
+  // 3. Якщо ми тут, значить метраж > 0, тому перевіряємо Марку
+  if (mark === "" || mark === "Вибрати") {
     alert("❌ Помилка: Ви вказали метраж, але не вибрали марку вводу!");
     return;
   }
 
-  // Якщо вибрали марку, але не вказали метраж (або 0)
-  if (mark !== "" && length <= 0) {
-    alert("❌ Помилка: Ви вибрали марку, але метраж має бути більше 0!");
-    return;
-  }
-
-
-  // Якщо дійшли сюди — значить Марка і Метраж заповнені правильно
+  // 4. Якщо метраж > 0 і марка вибрана - все добре
   proceedToNextStep();
 }
 
