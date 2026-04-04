@@ -1575,31 +1575,27 @@ function goFasadStep4() {
   const length = parseFloat(lengthInput) || 0;
   const isOrb = document.getElementById("fasadDemoBy").checked;
 
-  // 1. ПЕРЕВІРКА: чи взагалі щось введено?
-  // Якщо не ОРБ І (марка порожня АБО метраж <= 0)
-  if (!isOrb && (mark === "" || length <= 0)) {
-    alert("❌ Помилка: Ви не вибрали ОРБ і не вказали дані демонтажу (марку та метраж)!");
-    return; // Зупиняємо виконання!
-  }
-
-  // 2. ДОДАТКОВА ПЕРЕВІРКА: якщо не ОРБ, але ввели лише щось одне
-  if (!isOrb) {
-    if (length > 0 && mark === "") {
-      alert("❌ Помилка: Вкажіть марку проводу для демонтажу!");
-      return;
-    }
-    if (mark !== "" && length <= 0) {
-      alert("❌ Помилка: Вкажіть метраж (має бути більше 0)!");
-      return;
+  // 1. СЦЕНАРІЙ "НІЧОГО НЕ ДЕМОНТУВАЛИ" (length === 0)
+  // Якщо 0 метрів, ми дозволяємо пройти далі БЕЗ ОРБ і БЕЗ Марки
+  if (length === 0) {
+    console.log("Демонтаж: 0 метрів, пропущено.");
+  } 
+  // 2. СЦЕНАРІЙ "ДЕМОНТАЖ БУВ" (length > 0)
+  else {
+    // Якщо не ОРБ, перевіряємо чи є марка
+    if (!isOrb && mark === "") {
+      alert("❌ Помилка: Ви вказали метраж, але не вибрали марку вводу!");
+      return; 
     }
   }
 
-  // Якщо ми тут — значить або ОРБ = true, або (Марка і Метраж введені правильно)
+  // Якщо все пройшли (або 0 метрів, або ОРБ, або є Марка+Метраж)
   isFasadFlow = true; 
   document.getElementById("fasadStep3").classList.add("hidden");
   
-  // ... далі ваш код переходу до заміни ...
+  // Далі ваш код переходу до заміни...
   const acc = document.getElementById("account").value.trim();
+  
   if (navigator.onLine && (typeof isForceOffline === 'undefined' || !isForceOffline)) {
     google.script.run.withSuccessHandler(res => { 
       if (res.found) { openReplaceFromFasad(res.data); } 
