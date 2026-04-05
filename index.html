@@ -334,6 +334,9 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
         <!-- Заглушки на майбутнє -->
         <a href="#" class="menu-item disabled" onclick="return false;">📅 Графіки чергувань (скоро)</a>
         <a href="#" class="menu-item disabled" onclick="return false;">🌴 Відпустки (скоро)</a>
+        <a href="#" class="menu-item" id="offlineCount" onclick="syncOfflineData()">
+          📤 Незавантажені дані: <span id="count">0</span>
+          </a>
       </div>
     </div>
 
@@ -819,7 +822,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycby_ztlEz87m1qt__4oqlvkJsZXjSUJIQnziX317rppI5FT53liqJefKp_emEV4lTLgF/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbz_hWRNw5Lf-OgQxq0GQHUQFJAsHk62MLjqV4khnoKpj_5nDZXmTzbDgAGo4-bdciAJ/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -913,6 +916,7 @@ window.onload = function(){
   }else{
     worker = savedWorker; workerName = "Офлайн"; afterLogin();
   }
+  updateOfflineCount();
 }
  // --- БРОНЕБІЙНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
   const loginBox = document.getElementById("login");
@@ -1741,29 +1745,33 @@ function saveFasadData() {
   } catch (e) { alert("❌ Помилка збору фасаду:\n" + e.message); }
 }
 
-function sendDataToServer(data, hintId, formsToHide){
-  if(navigator.onLine){
-    google.script.run.withSuccessHandler(function(res){
-      if(hintId) { const h = document.getElementById(hintId); if(h) h.textContent = "✅ Збережено"; }
-      // --- ДОДАЄМО ЗВУК ---
-      playSuccessBeep();
-      // Запускаємо очищення РАЗОМ з переходом назад
-      setTimeout(function() {
-        resetFasadForm(); // Очищаємо форму
-        resetCloseForm();  // Очищення закриття о/р
-        showSearchBlock(); // Переходимо на головний екран
-      }, 1500);
+function sendDataToServer(data, hintId, formsToHide) {
+  if (navigator.onLine) {
+    google.script.run.withSuccessHandler(function(res) {
+      if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "✅ Збережено"; }
       
+      playSuccessBeep();
+      setTimeout(function() {
+        resetFasadForm();
+        resetCloseForm();
+        showSearchBlock();
+      }, 1500);
     }).saveData(data);
-  } else { 
-    saveOffline(data); 
+  } else {
+    // ЯКЩО НЕМАЄ ІНТЕРНЕТУ:
+    let list = JSON.parse(localStorage.getItem("offlineData") || "[]");
+    list.push(data);
+    localStorage.setItem("offlineData", JSON.stringify(list));
     
-    if(hintId){ const h = document.getElementById(hintId); if(h) h.textContent = "Збережено офлайн"; } 
+    // ОСЬ ТУТ ОНОВЛЮЄМО ЛІЧИЛЬНИК:
+    updateOfflineCount();
     
-    // І для офлайну теж запускаємо через таймер
+    if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "💾 Збережено офлайн"; }
+    playSuccessBeep();
     setTimeout(function() {
-      resetFasadForm(); // Очищаємо форму
-      showSearchBlock(); // Переходимо на головний екран
+      resetFasadForm();
+      resetCloseForm();
+      showSearchBlock();
     }, 1500);
   }
 }
@@ -2223,6 +2231,43 @@ document.addEventListener("backbutton", function (e) {
     }
   });
 }
+/* =========================================================
+Логіка оновлення лічильника та синхронізації
+========================================================= */ 
+  
+  // Оновлення лічильника в меню
+function updateOfflineCount() {
+  const list = JSON.parse(localStorage.getItem("offlineData") || "[]");
+  const countEl = document.getElementById("count");
+  if (countEl) countEl.textContent = list.length;
+}
+
+// Автоматична синхронізація при старті або натисканні
+function syncOfflineData() {
+  const list = JSON.parse(localStorage.getItem("offlineData") || "[]");
+  
+  if (list.length === 0) {
+    alert("✅ Всі дані вже завантажені!");
+    return;
+  }
+  
+  if (!navigator.onLine) {
+    alert("❌ Немає інтернету, синхронізація неможлива.");
+    return;
+  }
+
+  alert("⏳ Починаю синхронізацію " + list.length + " записів...");
+
+  // Відправляємо дані на сервер
+  google.script.run.withSuccessHandler(function(res) {
+    localStorage.removeItem("offlineData"); // Чистимо локальне сховище після успіху
+    updateOfflineCount();
+    alert("✅ Успішно відправлено " + res.saved + " записів!");
+  }).saveDataBatch(list); 
+}
+
+// Перевірка при запуску програми
+window.addEventListener('online', syncOfflineData); // Автоматично при появі інету
   
 </script>
 </body>
