@@ -822,7 +822,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxf8-AttHvQdvRIXQUoE9RFRO8q2aXa8mp8gnP4Tp5VzqiaR7DxfmhL67hPxRt4Ts75/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzs8FA6dvTwgVbdHz2YEDDL5iWITFbwA4sfpdb7WJuvVrtJpAGunMmtlKwW3KoMbrGj/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -2245,9 +2245,10 @@ function updateOfflineCount() {
 // Автоматична синхронізація при старті або натисканні
 function syncOfflineData() {
   const rawData = localStorage.getItem("offlineData");
-  if (!rawData) return;
+  if (!rawData) { alert("Немає даних у пам'яті"); return; }
   
   const list = JSON.parse(rawData);
+  console.log("Відправляємо на сервер:", list); // <--- ВІДКРИЙ КОНСОЛЬ F12 І ПОДИВИСЬ, ЩО ТУТ
   
   if (list.length === 0) {
     alert("✅ Всі дані вже завантажені!");
