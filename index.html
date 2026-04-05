@@ -1934,7 +1934,9 @@ function goCloseStep2() {
   // Якщо всі перевірки пройшли
   proceedToCloseStep2();
 }
-  // --- ПЕРЕХІД ---
+
+// Допоміжна функція для переходу (щоб не дублювати код)
+function proceedToCloseStep2() {
   document.getElementById("closeStep1").classList.add("hidden");
   document.getElementById("closeStep2").classList.remove("hidden");
 
