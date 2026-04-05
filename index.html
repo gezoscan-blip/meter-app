@@ -904,41 +904,46 @@ function resizeTextarea(el){
 }
 
 /* =========================================================
-АВТОВХІД ПРИ ЗАПУСКУ
+   АВТОВХІД ПРИ ЗАПУСКУ
 ========================================================= */
 window.onload = function(){
   google.script.run.withSuccessHandler(function(list){ meterTypes = list || []; }).getMeterTypes();
+  
   const savedWorker = localStorage.getItem("worker");
-  if(!savedWorker) return;
-
-  if(navigator.onLine){
-    google.script.run.withSuccessHandler(res=>{
-      if(res.ok){ worker = savedWorker; workerName = res.name || ""; afterLogin(); }
-      else{ localStorage.clear(); }
-    }).checkWorker(savedWorker);
-  }else{
-    worker = savedWorker; workerName = "Офлайн"; afterLogin();
+  const savedPass = localStorage.getItem("workerPass"); 
+  
+  if(savedWorker && savedPass){
+    if(navigator.onLine){
+      google.script.run.withSuccessHandler(res=>{
+        if(res.authorized){ 
+          worker = savedWorker; 
+          workerName = res.name || ""; 
+          afterLogin(); 
+        } else { 
+          localStorage.clear(); 
+          alert("Сесія застаріла або доступ видалено.");
+          location.reload(); 
+        }
+      }).verifyAccess(savedWorker, savedPass);
+    } else {
+      worker = savedWorker; 
+      workerName = localStorage.getItem("workerName") || "Офлайн"; 
+      afterLogin();
+    }
   }
+  
   updateOfflineCount();
-}
- // --- БРОНЕБІЙНА КЛАВІАТУРА ДЛЯ ЕКРАНУ ВХОДУ ---
+
+  // --- БРОНЕБІЙНА КЛАВІАТУРА (Повертаємо на місце) ---
   const loginBox = document.getElementById("login");
-
   if (loginBox) {
-    // Знаходимо ВСІ поля вводу (input), які знаходяться всередині картки входу
     const loginInputs = loginBox.querySelectorAll("input");
-
-    // Вішаємо подію "підстрибування" на кожне з них
     loginInputs.forEach(input => {
       input.addEventListener("focus", () => {
         loginBox.classList.add("login-focused");
       });
-
       input.addEventListener("blur", () => {
-        // Затримка 100мс потрібна, щоб картка не стрибала вниз, 
-        // якщо монтер просто перемкнувся з Табельного на ПІН
         setTimeout(() => {
-          // Якщо зараз жодне з полів вводу не у фокусі - опускаємо картку
           const isAnyInputFocused = Array.from(loginInputs).some(i => i === document.activeElement);
           if (!isAnyInputFocused) {
             loginBox.classList.remove("login-focused");
@@ -947,6 +952,7 @@ window.onload = function(){
       });
     });
   }
+}
 
 /* =========================================================
 ФУНКЦІЯ ВХОДУ ТА ЛОГАУТУ
@@ -967,15 +973,29 @@ function doLogin(){
   }
 }
 
-function afterLogin(){
-  localStorage.setItem("worker",worker);
-  localStorage.setItem("workerName",workerName);
+function afterLogin() {
+  localStorage.setItem("worker", worker);
+  localStorage.setItem("workerName", workerName);
+  
+  // Безпечне збереження пароля: перевіряємо, чи існує поле 'pass' на сторінці
   const passInput = document.getElementById("pass");
-  if(passInput && passInput.value){ localStorage.setItem("workerPass",passInput.value); }
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  document.getElementById("who").innerHTML = "Т/н: <b>"+worker+"</b> "+workerName;
-  document.getElementById("who").innerHTML = "👷 Т/н: <b>"+worker+"</b> "+workerName;
+  if (passInput && passInput.value.trim() !== "") {
+    localStorage.setItem("workerPass", passInput.value.trim());
+  }
+
+  // Приховуємо екран входу
+  const loginScreen = document.getElementById("login");
+  if (loginScreen) loginScreen.classList.add("hidden");
+  
+  // Показуємо додаток
+  const appScreen = document.getElementById("app");
+  if (appScreen) appScreen.classList.remove("hidden");
+
+  // Встановлюємо ім'я працівника (один рядок, без дублювання)
+  const whoBlock = document.getElementById("who");
+  if (whoBlock) {
+    whoBlock.innerHTML = "👷 Т/н: <b>" + worker + "</b> " + workerName;
+  }
 }
 
 function askLogout(){ document.getElementById("logoutModal").style.display="flex"; document.getElementById("logoutModal").classList.remove("hidden"); }
@@ -1766,34 +1786,49 @@ function saveFasadData() {
 }
 
 function sendDataToServer(data, hintId, formsToHide) {
-  if (navigator.onLine) {
-    google.script.run.withSuccessHandler(function(res) {
-      if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "✅ Збережено"; }
+  // 1. Спочатку перевіряємо пароль (це твоя безпека)
+  const tab = localStorage.getItem("worker");
+  const pass = localStorage.getItem("workerPass");
+
+  google.script.run.withSuccessHandler(function(res) {
+    if (!res.authorized) {
+      alert("⚠️ Доступ заборонено! Пароль було змінено.");
+      localStorage.clear();
+      location.reload();
+      return;
+    }
+
+    // 2. Якщо пароль правильний - відправляємо дані
+    if (navigator.onLine) {
+      google.script.run.withSuccessHandler(function(res) {
+        if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "✅ Збережено"; }
+        
+        playSuccessBeep(); // Звук!
+        
+        setTimeout(function() {
+          resetFasadForm(); // Очищення фасадів
+          resetCloseForm(); // Очищення закриття
+          showSearchBlock();
+        }, 1500);
+      }).saveData(data);
+    } else {
+      // Офлайн логіка
+      let list = JSON.parse(localStorage.getItem("offlineData") || "[]");
+      list.push(data);
+      localStorage.setItem("offlineData", JSON.stringify(list));
       
-      playSuccessBeep();
+      updateOfflineCount(); // Оновлюємо лічильник в меню
+      playSuccessBeep();    // Звук!
+      
+      if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "💾 Збережено офлайн"; }
+      playSuccessBeep();    // Звук!
       setTimeout(function() {
         resetFasadForm();
         resetCloseForm();
         showSearchBlock();
       }, 1500);
-    }).saveData(data);
-  } else {
-    // ЯКЩО НЕМАЄ ІНТЕРНЕТУ:
-    let list = JSON.parse(localStorage.getItem("offlineData") || "[]");
-    list.push(data);
-    localStorage.setItem("offlineData", JSON.stringify(list));
-    
-    // ОСЬ ТУТ ОНОВЛЮЄМО ЛІЧИЛЬНИК:
-    updateOfflineCount();
-    
-    if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "💾 Збережено офлайн"; }
-    playSuccessBeep();
-    setTimeout(function() {
-      resetFasadForm();
-      resetCloseForm();
-      showSearchBlock();
-    }, 1500);
-  }
+    }
+  }).verifyAccess(tab, pass);
 }
 
 /* =========================================================
