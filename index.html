@@ -822,7 +822,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzs8FA6dvTwgVbdHz2YEDDL5iWITFbwA4sfpdb7WJuvVrtJpAGunMmtlKwW3KoMbrGj/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyQtMdIH3Oh4NAlnarV3krRf1CjEAs2mx-odkbnWOxIu3r_lsFki_Q9QQMjYYej1BT2/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -2248,12 +2248,7 @@ function syncOfflineData() {
   if (!rawData) { alert("Немає даних у пам'яті"); return; }
   
   const list = JSON.parse(rawData);
-  console.log("Відправляємо на сервер:", list); // <--- ВІДКРИЙ КОНСОЛЬ F12 І ПОДИВИСЬ, ЩО ТУТ
-  
-  if (list.length === 0) {
-    alert("✅ Всі дані вже завантажені!");
-    return;
-  }
+  if (list.length === 0) { alert("✅ Всі дані вже завантажені!"); return; }
   
   if (!navigator.onLine) {
     alert("❌ Немає інтернету!");
@@ -2262,20 +2257,16 @@ function syncOfflineData() {
 
   alert("⏳ Починаю синхронізацію " + list.length + " записів...");
 
-  google.script.run
-    .withSuccessHandler(function(res) {
-      if (res.ok) {
-        localStorage.removeItem("offlineData");
-        updateOfflineCount();
-        alert("✅ Успішно відправлено: " + res.saved + " записів!");
-      } else {
-        alert("⚠️ Помилка на сервері: " + res.message);
-      }
-    })
-    .withFailureHandler(function(err) {
-      alert("❌ Критична помилка: " + err.message);
-    })
-    .saveDataBatch(list); 
+  // ВИКОРИСТОВУЄМО ТВОЮ ФУНКЦІЮ sendRequest, А НЕ google.script.run
+  sendRequest("saveDataBatch", { items: list }, function(res) {
+    if (res.ok) {
+      localStorage.removeItem("offlineData");
+      updateOfflineCount();
+      alert("✅ Успішно відправлено: " + res.saved + " записів!");
+    } else {
+      alert("⚠️ Помилка на сервері: " + (res.message || "Невідома помилка"));
+    }
+  });
 }
 
 // Перевірка при запуску програми
