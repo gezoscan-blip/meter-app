@@ -1904,51 +1904,57 @@ function fillCloseStep1(d) {
 function goCloseStep2() {
   const mark = document.getElementById("closeDemoMark").value.trim();
   const lengthInput = document.getElementById("closeDemoLength").value.trim();
-  const length = parseFloat(lengthInput) || 0;
-  const demoBox = document.getElementById("closeDemoBy");
-  const isOrb = (demoBox && demoBox.checked); // Це і є "ОРБ"
+  const length = parseFloat(lengthInput); 
+  const isOrb = document.getElementById("closeDemoBy").checked;
+  const isLengthEmpty = (lengthInput === "" || isNaN(length));
 
-  // 1. Якщо вибрано ОРБ — пропускаємо все, це "зелена зона"
+  // --- 1. ПЕРЕВІРКА: ЧИ ВЗАГАЛІ ЩОСЬ ЗАПОВНЕНО? ---
+  if (!isOrb && mark === "" && isLengthEmpty) {
+    alert("❌ Помилка: Ви нічого не вказали (ні ОРБ, ні дані про демонтаж)!");
+    return;
+  }
+
+  // --- 2. ЯКЩО ОРБ — ПРОПУСКАЄМО ---
   if (isOrb) {
     proceedToNextCloseStep();
     return;
   }
 
-  // 2. Якщо метраж 0 — пропускаємо (нічого не демонтували)
-  if (length === 0) {
-    proceedToNextCloseStep();
+  // --- 3. ЯКЩО НЕ ОРБ, ПЕРЕВІРЯЄМО ДАНІ ---
+  if (!isLengthEmpty) {
+    if (length > 0 && mark === "") {
+      alert("❌ Помилка: Ви вказали метраж (" + length + "), але не вибрали марку вводу!");
+      return;
+    }
+    if (length === 0) {
+      proceedToNextCloseStep();
+      return;
+    }
+  } 
+  else if (mark !== "") {
+    alert("❌ Помилка: Ви вибрали марку, але не вказали метраж!");
     return;
   }
 
-  // 3. Якщо введено метраж > 0, а марка пуста — помилка
-  if (length > 0 && mark === "") {
-    alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
-    return;
-  }
-
-  // 4. Якщо вибрана марка, а метраж не вказано або 0 — помилка
-  if (mark !== "" && length <= 0) {
-    alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
-    return;
-  }
-
-  // 5. Якщо нічого не заповнено (і не ОРБ, і не 0) — помилка
-  if (mark === "" && length === 0) {
-    alert("❌ Помилка: Ви нічого не вказали (ні ОРБ, ні дані про демонтаж)!");
-    return;
-  }
-
+  // --- 4. Якщо все ОК ---
   proceedToNextCloseStep();
 }
 
-// Ось ця функція, щоб кнопка "Далі" працювала
+// Допоміжна функція переходу (Клон proceedToNextStep)
 function proceedToNextCloseStep() {
   document.getElementById("closeStep1").classList.add("hidden");
   document.getElementById("closeStep2").classList.remove("hidden");
-
+  
+  // Копіюємо дані, як у тебе було в закритті
   setInner("closeWorkerTab2", getInner("closeWorkerTab1")); 
   setInner("closeWorkerName2", getInner("closeWorkerName1")); 
   setInner("closeAccountView2", getInner("closeAccountView1")); 
+}
+
+// Додай це, щоб кнопка "Назад" запрацювала:
+function backFromClose1() {
+  document.getElementById("closeStep1").classList.add("hidden");
+  showSearchBlock(); 
 }
 
 function collectCloseData() {
