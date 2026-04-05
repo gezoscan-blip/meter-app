@@ -1287,7 +1287,8 @@ function fillFields(d) {
   const meterSearch = document.getElementById("searchMeterBlock");
   if (meterSearch) meterSearch.style.display = "none";
 
-  if (selectedWork === "Технічна перевірка") { 
+  if (selectedWork === "Технічна перевірка") {
+    resetTechForm(); // <--- ОЧИЩАЄМО ПЕРЕД ЗАПОВНЕННЯМ
     document.getElementById("techCheckForm").classList.remove("hidden"); 
     window.scrollTo(0,0); 
     fillTechCheck(d); 
@@ -1642,16 +1643,54 @@ function openReplaceFromFasad(d){
 /* =========================================================
 ОФЛАЙН РЕЖИМ 
 ========================================================= */
-function offlineMode(){
+function offlineMode() {
   const acc = document.getElementById("account").value.trim();
-  if(!selectedWork){ alert("Оберіть вид робіт"); return; }
-  if(!/^\d{10}$/.test(acc)){ alert("Введіть 10 цифр особового рахунку"); return; }
-  const formType = openSelectedWorkForm();
-  if(!formType) return;
+  if (!selectedWork) { alert("❌ Оберіть вид робіт!"); return; }
+  if (!/^\d{10}$/.test(acc)) { alert("❌ Введіть 10 цифр особового рахунку"); return; }
 
-  if(formType === "tech"){ setInner("workerTab", worker); setInner("workerName", workerName); setInner("workTypeView", selectedWork); setInner("accountView", acc); setInner("pibView", ""); setInner("addressView", ""); setVal("meterType", ""); setVal("meterNumber", ""); setVal("removedLichil", ""); setVal("installedLichil", ""); setVal("t0", ""); }
-  else if(formType === "replace"){ setInner("replaceWorkerTab1", worker); setInner("replaceWorkerName1", workerName); setInner("replaceAccountView1", acc); setInner("replacePibView1", ""); setInner("replaceAddressView1", ""); setVal("replaceRemovedMeterType", ""); setVal("replaceRemovedMeterNumber", ""); }
-  else if(formType === "control"){ setInner("controlWorkerTab", worker); setInner("controlWorkerName", workerName); setInner("controlAccountView", acc); setInner("controlPibView", ""); setInner("controlAddressView", ""); setVal("controlMeterType", ""); setVal("controlMeterNumber", ""); }
+  // 1. Спочатку очищуємо всі можливі форми, щоб не лишилось "сміття"
+  resetTechForm();
+  resetCloseForm();
+  // Можна додати resetReplaceForm(), якщо вона у тебе є
+  
+  // 2. Відкриваємо потрібну форму
+  const formType = openSelectedWorkForm();
+  if (!formType) return;
+
+  // 3. Заповнюємо базовими даними для офлайну
+  if (formType === "tech") { 
+    setInner("workerTab", worker); 
+    setInner("workerName", workerName); 
+    setInner("workTypeView", selectedWork); 
+    setInner("accountView", acc); 
+    setInner("pibView", "ОФЛАЙН (Абонента не знайдено)"); 
+    setInner("addressView", "ОФЛАЙН"); 
+    // Поля інпутів вже чисті завдяки resetTechForm()
+  }
+  else if (formType === "replace") { 
+    setInner("replaceWorkerTab1", worker); 
+    setInner("replaceWorkerName1", workerName); 
+    setInner("replaceAccountView1", acc); 
+    setInner("replacePibView1", "ОФЛАЙН"); 
+    setInner("replaceAddressView1", "ОФЛАЙН"); 
+    // Поля інпутів вже чисті
+  }
+  else if (formType === "control") { 
+    setInner("controlWorkerTab", worker); 
+    setInner("controlWorkerName", workerName); 
+    setInner("controlAccountView", acc); 
+    setInner("controlPibView", "ОФЛАЙН"); 
+    setInner("controlAddressView", "ОФЛАЙН"); 
+    // Поля інпутів вже чисті
+  }
+  else if (formType === "close") {
+    // Якщо ти вибрав "Закриття", заповнюємо за аналогією
+    setInner("closeWorkerTab1", worker);
+    setInner("closeWorkerName1", workerName);
+    setInner("closeAccountView1", acc);
+    setInner("closePibView1", "ОФЛАЙН");
+    setInner("closeAddressView1", "ОФЛАЙН");
+  }
 }
 
 /* =========================================================
@@ -2165,6 +2204,24 @@ document.addEventListener("backbutton", function (e) {
   } catch (e) {
     console.log("Звук не підтримується браузером");
   }
+}
+  /* =========================================================
+функція для очистки Технічної перевірки
+========================================================= */ 
+  function resetTechForm() {
+  const ids = ["meterType", "meterNumber", "t0", "t1", "t2", "t3", 
+               "removedLichil", "installedLichil", "removedFasad1", "installedFasad1", 
+               "removedFasad2", "installedFasad2", "removedVkp", "installedVkp", 
+               "removedOptop", "installedOptop", "removedImp1", "installedImp1", 
+               "removedImp2", "installedImp2", "removedImp3", "installedImp3", 
+               "removedOther", "installedOther"];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) {
+      el.value = "";
+      if(el.tagName === "TEXTAREA") el.style.height = "auto"; // скидаємо висоту
+    }
+  });
 }
   
 </script>
