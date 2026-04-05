@@ -1710,6 +1710,7 @@ function sendDataToServer(data, hintId, formsToHide){
       // Запускаємо очищення РАЗОМ з переходом назад
       setTimeout(function() {
         resetFasadForm(); // Очищаємо форму
+        resetCloseForm();  // Очищення закриття о/р
         showSearchBlock(); // Переходимо на головний екран
       }, 1500);
       
@@ -1901,24 +1902,33 @@ function fillCloseStep1(d) {
 }
 
 function goCloseStep2() {
-  let mark = getVal("closeDemoMark"); 
-  let length = getVal("closeDemoLength");
+  const mark = document.getElementById("closeDemoMark").value.trim();
+  const lengthInput = document.getElementById("closeDemoLength").value.trim();
+  const length = parseFloat(lengthInput) || 0;
   const demoBox = document.getElementById("closeDemoBy");
-  let demoBy = (demoBox && demoBox.checked) ? "ОРБ" : "";
+  const isOrb = (demoBox && demoBox.checked);
 
-  // --- ВИПРАВЛЕНА ЛОГІКА ПЕРЕВІРКИ ДЕМОНТАЖУ ---
-  if (demoBy !== "ОРБ") {
-    if (length !== "" && length !== "0" && mark === "") {
-      alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
-      return;
-    }
-    if (mark !== "" && (length === "" || length === "0")) {
-      alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
-      return;
-    }
+  // --- ЛОГІКА ЯК У ФАСАДАХ ---
+  
+  // 1. Якщо нічого не введено і не ОРБ -> Помилка
+  if (!isOrb && mark === "" && length === 0) {
+    alert("❌ Помилка: Ви не вказали дані демонтажу (ОРБ або марка + метраж)!");
+    return;
   }
-  // ---------------------------------------------
 
+  // 2. Якщо не ОРБ і введено метраж > 0 -> перевіряємо марку
+  if (!isOrb && length > 0 && mark === "") {
+    alert("❌ Помилка: Ви вказали метраж, але не вибрали марку вводу!");
+    return;
+  }
+
+  // 3. Якщо не ОРБ і обрана марка -> перевіряємо метраж
+  if (!isOrb && mark !== "" && length <= 0) {
+    alert("❌ Помилка: Ви вибрали марку, але не вказали метраж!");
+    return;
+  }
+
+  // --- ПЕРЕХІД ---
   document.getElementById("closeStep1").classList.add("hidden");
   document.getElementById("closeStep2").classList.remove("hidden");
 
@@ -2075,6 +2085,28 @@ document.addEventListener("backbutton", function (e) {
   
   // Повертаємось до головного меню
   showSearchBlock(); 
+}
+  /* =========================================================
+функція кнопки назад в закритті о/р демонтаж
+========================================================= */
+  function backFromClose1() {
+  document.getElementById("closeStep1").classList.add("hidden");
+  // Повертаємося до пошуку, як у фасадах
+  showSearchBlock(); 
+}
+/* =========================================================
+функція очиски полів в закритті о/р з демонтажем
+========================================================= */
+  function resetCloseForm() {
+  const ids = ["closeDemoMark", "closeDemoLength", "closeMeterType", "closeMeterNumber", "closeLichil", 
+               "closeFasad1", "closeFasad2", "closeVkp", "closeOptop", "closeImp1", "closeImp2", 
+               "closeImp3", "closeOther", "closeT0", "closeT1", "closeT2", "closeT3"];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = "";
+  });
+  const cb = document.getElementById("closeDemoBy");
+  if(cb) cb.checked = false;
 }
   
 </script>
