@@ -851,7 +851,10 @@ function sendRequest(action, payload, callback) {
   })
   .catch(err => {
     if (btn && btn.tagName === "BUTTON") btn.innerText = oldText;
-    alert("❌ Немає зв'язку! Помилка: " + err.message);
+    // Тільки якщо це НЕ був фоновий пошук (autoSearch), показуємо помилку
+    if (action !== "searchAccounts") { 
+      alert("❌ Немає зв'язку з базою даних.");
+    }
   });
 }
 
@@ -998,6 +1001,13 @@ function autoSearch(){
   if (!accInput || !hintBox) return;
   const value = accInput.value.trim();
 
+  // 1. Якщо інтернету немає — просто нічого не шукаємо і виходимо
+  if (!navigator.onLine) {
+    hintBox.innerHTML = "<div class='hintItem' style='color:red;'>🌐 Немає інтернету (офлайн)</div>";
+    return;
+  }
+
+  // 2. Якщо інтернет є — працюємо як зазвичай
   if (value.length < 4) { hintBox.innerHTML = ""; return; }
 
   clearTimeout(hintTimer);
@@ -1029,26 +1039,36 @@ function search() {
   const accInput = document.getElementById("account");
   const acc = accInput ? accInput.value.trim() : "";
 
-  if (!selectedWork) { alert("❌ Спочатку оберіть вид робіт (натисніть на одну з кнопок зверху)!"); return; }
+  if (!selectedWork) { alert("❌ Спочатку оберіть вид робіт!"); return; }
   if (!acc) { alert("❌ Введіть особовий рахунок!"); return; }
-  if(!/^\d{10}$/.test(acc)){ alert("Особовий рахунок повинен містити 10 цифр"); return; }
+  if(!/^\d{10}$/.test(acc)){ alert("Особовий рахунок має містити 10 цифр"); return; }
+
+  // Якщо немає інтернету — одразу йдемо в офлайн, не питаючи сервер
+  if (!navigator.onLine) {
+    offlineMode();
+    return;
+  }
 
   const btn = document.getElementById("btnSearch");
   const oldText = btn.innerText;
   btn.innerText = "⏳ Пошук...";
   btn.disabled = true;
 
-  if (navigator.onLine) {
-    google.script.run.withSuccessHandler(function(res) {
-      btn.innerText = oldText;
-      btn.disabled = false;
-      if (res && res.found) { fillFields(res.data); } else { alert("⚠️ Абонента не знайдено!"); }
-    }).findAccountFast(acc);
-  } else {
+  // Викликаємо пошук
+  google.script.run.withSuccessHandler(function(res) {
     btn.innerText = oldText;
     btn.disabled = false;
-    offlineMode();
-  }
+    
+    // Якщо прийшла помилка (наприклад, сервер не відповів)
+    if (res && res.error) {
+       alert("⚠️ Сервер не відповів, переходимо в офлайн режим.");
+       offlineMode();
+    } else if (res && res.found) { 
+       fillFields(res.data); 
+    } else { 
+       alert("⚠️ Абонента не знайдено!"); 
+    }
+  }).findAccountFast(acc);
 }
   /* =========================================================
 ПОШУК АБОНЕНТА ПО НОМЕРУ ЛІЧИЛЬНИКА
