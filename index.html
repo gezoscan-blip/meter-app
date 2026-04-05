@@ -822,7 +822,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbz3-ERyPVJmAIEE1WyIiiNJghlzCQcj6UsHhK3fjZqPDZXv-dFXAp659oe_ETfslh0/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxWCg2A8mSBPPcv6WFBZ0-7fHs9UeaL9oJs-F5MvnWmCQKxRgZkVPxa_fo9V-pqlvpd/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -864,9 +864,10 @@ const google = {
       withSuccessHandler: function(callback) {
         return {
           login: (tab, pass) => sendRequest("login", {tab, pass}, callback),
+          verifyAccess: (tab, pass) => sendRequest("verifyAccess", {tab, pass}, callback), // <-- ДОДАЙ ЦЕ
           checkWorker: (tab) => sendRequest("checkWorker", {tab}, callback),
           findAccountFast: (account) => sendRequest("findAccountFast", {account}, callback),
-          findAccountByMeter: (meter) => sendRequest("findAccountByMeter", {meter}, callback), // ДОДАНО
+          findAccountByMeter: (meter) => sendRequest("findAccountByMeter", {meter}, callback),
           searchAccounts: (part) => sendRequest("searchAccounts", {part}, callback),
           getMeterTypes: () => sendRequest("getMeterTypes", {}, callback),
           saveData: (data) => sendRequest("saveData", {data}, callback)
