@@ -1795,7 +1795,13 @@ function saveFasadData() {
 }
 
 function sendDataToServer(data, hintId, formsToHide) {
-  // 1. Спочатку перевіряємо пароль (це твоя безпека)
+  // 1. ПЕРЕВІРКА ОФЛАЙНУ (Перша і головна)
+  if (!navigator.onLine) {
+    saveToOfflineStorage(data, hintId); // Виносимо офлайн-логіку в окрему функцію
+    return; // Виходимо, щоб не смикати сервер
+  }
+
+  // 2. ЯКЩО ІНТЕРНЕТ Є — перевіряємо доступ
   const tab = localStorage.getItem("worker");
   const pass = localStorage.getItem("workerPass");
 
@@ -1806,38 +1812,37 @@ function sendDataToServer(data, hintId, formsToHide) {
       location.reload();
       return;
     }
-
-    // 2. Якщо пароль правильний - відправляємо дані
-    if (navigator.onLine) {
-      google.script.run.withSuccessHandler(function(res) {
-        if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "✅ Збережено"; }
-        
-        playSuccessBeep(); // Звук!
-        
-        setTimeout(function() {
-          resetFasadForm(); // Очищення фасадів
-          resetCloseForm(); // Очищення закриття
-          showSearchBlock();
-        }, 1500);
-      }).saveData(data);
-    } else {
-      // Офлайн логіка
-      let list = JSON.parse(localStorage.getItem("offlineData") || "[]");
-      list.push(data);
-      localStorage.setItem("offlineData", JSON.stringify(list));
-      
-      updateOfflineCount(); // Оновлюємо лічильник в меню
-      playSuccessBeep();    // Звук!
-      
-      if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "💾 Збережено офлайн"; }
-      playSuccessBeep();    // Звук!
+    
+    // Якщо пароль правильний - відправляємо дані
+    google.script.run.withSuccessHandler(function(res) {
+      if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "✅ Збережено"; }
+      playSuccessBeep();
       setTimeout(function() {
         resetFasadForm();
         resetCloseForm();
         showSearchBlock();
       }, 1500);
-    }
+    }).saveData(data);
+    
   }).verifyAccess(tab, pass);
+}
+
+// Допоміжна функція для чистоти коду
+function saveToOfflineStorage(data, hintId) {
+  let list = JSON.parse(localStorage.getItem("offlineData") || "[]");
+  list.push(data);
+  localStorage.setItem("offlineData", JSON.stringify(list));
+  
+  updateOfflineCount();
+  playSuccessBeep();
+  
+  if (hintId) { const h = document.getElementById(hintId); if (h) h.textContent = "💾 Збережено офлайн"; }
+  
+  setTimeout(function() {
+    resetFasadForm();
+    resetCloseForm();
+    showSearchBlock();
+  }, 1500);
 }
 
 /* =========================================================
