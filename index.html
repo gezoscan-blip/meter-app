@@ -1706,7 +1706,8 @@ function sendDataToServer(data, hintId, formsToHide){
   if(navigator.onLine){
     google.script.run.withSuccessHandler(function(res){
       if(hintId) { const h = document.getElementById(hintId); if(h) h.textContent = "✅ Збережено"; }
-      
+      // --- ДОДАЄМО ЗВУК ---
+      playSuccessBeep();
       // Запускаємо очищення РАЗОМ з переходом назад
       setTimeout(function() {
         resetFasadForm(); // Очищаємо форму
@@ -2139,6 +2140,31 @@ document.addEventListener("backbutton", function (e) {
   
   // Додатково: скролимо наверх, щоб користувач бачив форму
   window.scrollTo(0,0);
+}
+   /* =========================================================
+функція звукового сигналу
+========================================================= */ 
+  function playSuccessBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = 'sine'; // М'який чистий звук
+    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Висота тону
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); // Гучність
+    
+    // Швидке загасання (коротке "пі")
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.3); // Тривалість 0.3 секунди
+  } catch (e) {
+    console.log("Звук не підтримується браузером");
+  }
 }
   
 </script>
