@@ -1904,30 +1904,36 @@ function fillCloseStep1(d) {
 function goCloseStep2() {
   const mark = document.getElementById("closeDemoMark").value.trim();
   const lengthInput = document.getElementById("closeDemoLength").value.trim();
-  const length = parseFloat(lengthInput) || 0;
-  const demoBox = document.getElementById("closeDemoBy");
-  const isOrb = (demoBox && demoBox.checked);
+  const length = parseFloat(lengthInput) || 0; // Якщо 0 або пусто, буде 0
+  const isOrb = document.getElementById("closeDemoBy").checked;
 
-  // --- ЛОГІКА ЯК У ФАСАДАХ ---
-  
-  // 1. Якщо нічого не введено і не ОРБ -> Помилка
-  if (!isOrb && mark === "" && length === 0) {
-    alert("❌ Помилка: Ви не вказали дані демонтажу (ОРБ або марка + метраж)!");
+  // 1. Якщо ОРБ - пропускаємо одразу (це "зелена зона")
+  if (isOrb) {
+    proceedToCloseStep2();
     return;
   }
 
-  // 2. Якщо не ОРБ і введено метраж > 0 -> перевіряємо марку
-  if (!isOrb && length > 0 && mark === "") {
-    alert("❌ Помилка: Ви вказали метраж, але не вибрали марку вводу!");
+  // 2. Якщо метраж 0 - це означає, що нічого не демонтували (пропускаємо)
+  if (length === 0) {
+    proceedToCloseStep2();
     return;
   }
 
-  // 3. Якщо не ОРБ і обрана марка -> перевіряємо метраж
-  if (!isOrb && mark !== "" && length <= 0) {
+  // 3. Якщо метраж > 0 - вимагаємо марку
+  if (length > 0 && (mark === "" || mark === "Вибрати")) {
+    alert("❌ Помилка: Ви вказали метраж (" + length + " м), але не вибрали марку вводу!");
+    return;
+  }
+
+  // 4. Якщо обрана марка, але метраж не вказано (хоча вище перевірка на 0, для страховки)
+  if (mark !== "" && mark !== "Вибрати" && length <= 0) {
     alert("❌ Помилка: Ви вибрали марку, але не вказали метраж!");
     return;
   }
 
+  // Якщо всі перевірки пройшли
+  proceedToCloseStep2();
+}
   // --- ПЕРЕХІД ---
   document.getElementById("closeStep1").classList.add("hidden");
   document.getElementById("closeStep2").classList.remove("hidden");
