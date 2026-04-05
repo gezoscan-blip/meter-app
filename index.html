@@ -1820,6 +1820,7 @@ function sendDataToServer(data, hintId, formsToHide) {
       setTimeout(function() {
         resetFasadForm();
         resetCloseForm();
+        resetReplaceForm();
         showSearchBlock();
       }, 1500);
     }).saveData(data);
