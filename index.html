@@ -1841,6 +1841,7 @@ function saveToOfflineStorage(data, hintId) {
   setTimeout(function() {
     resetFasadForm();
     resetCloseForm();
+    resetReplaceForm();
     showSearchBlock();
   }, 1500);
 }
@@ -2300,6 +2301,25 @@ document.addEventListener("backbutton", function (e) {
     }
   });
 }
+  /* =========================================================
+функція для очистки Заміни лічильника
+========================================================= */ 
+  function resetReplaceForm() {
+  const ids = [
+    "replaceRemovedMeterType", "replaceRemovedMeterNumber", 
+    "replaceRemovedT0", "replaceRemovedT1", "replaceRemovedT2", "replaceRemovedT3",
+    "replaceInstalledMeterType", "replaceInstalledMeterNumber", 
+    "replaceInstalledLichil", "replaceInstalledFasad1", "replaceInstalledFasad2", 
+    "replaceInstalledVkp", "replaceInstalledOptop", "replaceInstalledImp1", 
+    "replaceInstalledImp2", "replaceInstalledImp3", "replaceInstalledOther",
+    "replaceInstalledT0", "replaceInstalledT1", "replaceInstalledT2", "replaceInstalledT3"
+  ];
+  
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = "";
+  });
+}
 /* =========================================================
 Логіка оновлення лічильника та синхронізації
 ========================================================= */ 
@@ -2340,7 +2360,7 @@ function syncOfflineData() {
 
 // Перевірка при запуску програми
 window.addEventListener('online', syncOfflineData); // Автоматично при появі інету
-  
+
 </script>
 </body>
 </html>
