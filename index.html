@@ -822,7 +822,7 @@ textarea { resize: none; overflow: hidden; font-size: 14px; }
    МАГІЧНИЙ МІСТ ДЛЯ ЗВ'ЯЗКУ З GOOGLE (POLYFILL)
 ========================================================= */
 // ⚠️⚠️⚠️ ОБОВ'ЯЗКОВО ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ /EXEC !!!
-const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwwjPD8V2GXp6lfK-mUAVFVSUqBq4je8xldPNA_Tl6Ax1akOfmOcDAU_1xYxQURzTE7/exec";
+const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxf8-AttHvQdvRIXQUoE9RFRO8q2aXa8mp8gnP4Tp5VzqiaR7DxfmhL67hPxRt4Ts75/exec";
 
 function sendRequest(action, payload, callback) {
   const btn = (typeof window.event !== 'undefined' && window.event.target) ? window.event.target : null;
@@ -2244,7 +2244,10 @@ function updateOfflineCount() {
 
 // Автоматична синхронізація при старті або натисканні
 function syncOfflineData() {
-  const list = JSON.parse(localStorage.getItem("offlineData") || "[]");
+  const rawData = localStorage.getItem("offlineData");
+  if (!rawData) return;
+  
+  const list = JSON.parse(rawData);
   
   if (list.length === 0) {
     alert("✅ Всі дані вже завантажені!");
@@ -2252,18 +2255,26 @@ function syncOfflineData() {
   }
   
   if (!navigator.onLine) {
-    alert("❌ Немає інтернету, синхронізація неможлива.");
+    alert("❌ Немає інтернету!");
     return;
   }
 
   alert("⏳ Починаю синхронізацію " + list.length + " записів...");
 
-  // Відправляємо дані на сервер
-  google.script.run.withSuccessHandler(function(res) {
-    localStorage.removeItem("offlineData"); // Чистимо локальне сховище після успіху
-    updateOfflineCount();
-    alert("✅ Успішно відправлено " + res.saved + " записів!");
-  }).saveDataBatch(list); 
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.ok) {
+        localStorage.removeItem("offlineData");
+        updateOfflineCount();
+        alert("✅ Успішно відправлено: " + res.saved + " записів!");
+      } else {
+        alert("⚠️ Помилка на сервері: " + res.message);
+      }
+    })
+    .withFailureHandler(function(err) {
+      alert("❌ Критична помилка: " + err.message);
+    })
+    .saveDataBatch(list); 
 }
 
 // Перевірка при запуску програми
