@@ -1904,39 +1904,45 @@ function fillCloseStep1(d) {
 function goCloseStep2() {
   const mark = document.getElementById("closeDemoMark").value.trim();
   const lengthInput = document.getElementById("closeDemoLength").value.trim();
-  const length = parseFloat(lengthInput) || 0; // Якщо 0 або пусто, буде 0
-  const isOrb = document.getElementById("closeDemoBy").checked;
+  const length = parseFloat(lengthInput) || 0;
+  const demoBox = document.getElementById("closeDemoBy");
+  const isOrb = (demoBox && demoBox.checked); // Це і є "ОРБ"
 
-  // 1. Якщо ОРБ - пропускаємо одразу (це "зелена зона")
+  // 1. Якщо вибрано ОРБ — пропускаємо все, це "зелена зона"
   if (isOrb) {
-    proceedToCloseStep2();
+    proceedToNextCloseStep();
     return;
   }
 
-  // 2. Якщо метраж 0 - це означає, що нічого не демонтували (пропускаємо)
+  // 2. Якщо метраж 0 — пропускаємо (нічого не демонтували)
   if (length === 0) {
-    proceedToCloseStep2();
+    proceedToNextCloseStep();
     return;
   }
 
-  // 3. Якщо метраж > 0 - вимагаємо марку
-  if (length > 0 && (mark === "" || mark === "Вибрати")) {
-    alert("❌ Помилка: Ви вказали метраж (" + length + " м), але не вибрали марку вводу!");
+  // 3. Якщо введено метраж > 0, а марка пуста — помилка
+  if (length > 0 && mark === "") {
+    alert("❌ Заповніть дані демонтажу!\nВи вказали метраж, але не вибрали марку проводу.");
     return;
   }
 
-  // 4. Якщо обрана марка, але метраж не вказано (хоча вище перевірка на 0, для страховки)
-  if (mark !== "" && mark !== "Вибрати" && length <= 0) {
-    alert("❌ Помилка: Ви вибрали марку, але не вказали метраж!");
+  // 4. Якщо вибрана марка, а метраж не вказано або 0 — помилка
+  if (mark !== "" && length <= 0) {
+    alert("❌ Заповніть дані демонтажу!\nВи вибрали марку проводу, але не вказали метраж.");
     return;
   }
 
-  // Якщо всі перевірки пройшли
-  proceedToCloseStep2();
+  // 5. Якщо нічого не заповнено (і не ОРБ, і не 0) — помилка
+  if (mark === "" && length === 0) {
+    alert("❌ Помилка: Ви нічого не вказали (ні ОРБ, ні дані про демонтаж)!");
+    return;
+  }
+
+  proceedToNextCloseStep();
 }
 
-// Допоміжна функція для переходу (щоб не дублювати код)
-function proceedToCloseStep2() {
+// Ось ця функція, щоб кнопка "Далі" працювала
+function proceedToNextCloseStep() {
   document.getElementById("closeStep1").classList.add("hidden");
   document.getElementById("closeStep2").classList.remove("hidden");
 
@@ -2098,9 +2104,8 @@ document.addEventListener("backbutton", function (e) {
 функція кнопки назад в закритті о/р демонтаж
 ========================================================= */
   function backFromClose1() {
-  document.getElementById("closeStep1").classList.add("hidden");
-  // Повертаємося до пошуку, як у фасадах
-  showSearchBlock(); 
+  document.getElementById("closeStep1").classList.add("hidden"); // Ховаємо форму
+  showSearchBlock(); // Це стандартна функція повернення в меню
 }
 /* =========================================================
 функція очиски полів в закритті о/р з демонтажем
