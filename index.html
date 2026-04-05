@@ -1037,13 +1037,23 @@ function autoSearch(){
   }, 400);
 }
 
-function showHints(list){
+function showHints(list) {
   const box = document.getElementById("accountHints"); 
   if (!box) return; 
 
   box.innerHTML = "";
-  if (!list || list.length === 0) return;
+  
+  // ЗАХИСТ: Якщо сервер прислав щось інше, ніж масив, перетворюємо це на пустий масив
+  // Це зупинить помилку "forEach is not a function"
+  if (!Array.isArray(list)) {
+    console.warn("showHints отримав не масив:", list);
+    return;
+  }
 
+  // Якщо масив пустий, нічого не малюємо
+  if (list.length === 0) return;
+
+  // Тепер спокійно проходимо по масиву
   list.forEach(acc => {
     const div = document.createElement("div"); 
     div.className = "hintItem"; 
